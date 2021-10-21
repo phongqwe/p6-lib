@@ -1,6 +1,6 @@
 package org.bitbucket.xadkile.taiga.jupyterclient.path
 
-object JpEnvVars {
+object JpEnv {
     val JUPYTER_CONFIG_DIR = "JUPYTER_CONFIG_DIR"
     val JUPYTER_CONFIG_PATH = "JUPYTER_CONFIG_PATH"
     val JUPYTER_DATA_DIR = "JUPYTER_DATA_DIR"
@@ -8,4 +8,6 @@ object JpEnvVars {
     val JUPYTER_RUNTIME_DIR = "JUPYTER_RUNTIME_DIR"
     val JUPYTER_NO_CONFIG="JUPYTER_NO_CONFIG"
     val JUPYTER_PREFER_ENV_PATH= "JUPYTER_PREFER_ENV_PATH"
+    val IPYTHONDIR="IPYTHONDIR"
+    val IPYTHON_DIR_DEPRECATED="IPYTHON_DIR"
 }

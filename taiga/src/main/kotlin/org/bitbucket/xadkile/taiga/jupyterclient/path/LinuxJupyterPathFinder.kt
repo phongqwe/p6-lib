@@ -11,11 +11,11 @@ import java.nio.file.Paths
  */
 class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
     companion object {
-        val JUPYTER_CONFIG_DIR = JpEnvVars.JUPYTER_CONFIG_DIR
-        val JUPYTER_CONFIG_PATH = JpEnvVars.JUPYTER_CONFIG_PATH
-        val JUPYTER_DATA_DIR = JpEnvVars.JUPYTER_DATA_DIR
-        val JUPYTER_PATH = JpEnvVars.JUPYTER_PATH
-        val JUPYTER_RUNTIME_DIR = JpEnvVars.JUPYTER_RUNTIME_DIR
+        val JUPYTER_CONFIG_DIR = JpEnv.JUPYTER_CONFIG_DIR
+        val JUPYTER_CONFIG_PATH = JpEnv.JUPYTER_CONFIG_PATH
+        val JUPYTER_DATA_DIR = JpEnv.JUPYTER_DATA_DIR
+        val JUPYTER_PATH = JpEnv.JUPYTER_PATH
+        val JUPYTER_RUNTIME_DIR = JpEnv.JUPYTER_RUNTIME_DIR
         val SYSTEM_JUPYTER_PATH: List<Path> = listOf(
             "/usr/local/share/jupyter",
             "/usr/share/jupyter"
@@ -33,7 +33,7 @@ class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
     private val ENV_CONFIG_PATH = listOf(this.sysPrefixPath.resolve("etc").resolve("jupyter").toAbsolutePath())
 
     override fun findConfigDir(): Path {
-        val isNoConfig: Boolean = System.getenv(JpEnvVars.JUPYTER_NO_CONFIG) != null
+        val isNoConfig: Boolean = System.getenv(JpEnv.JUPYTER_NO_CONFIG) != null
         if (isNoConfig) {
             try {
                 return Files.createTempDirectory("jupyter-clean-cfg").toAbsolutePath()
@@ -48,7 +48,7 @@ class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
 
     override fun findConfigPath(): List<Path> {
 
-        if (System.getenv(JpEnvVars.JUPYTER_NO_CONFIG) != null) {
+        if (System.getenv(JpEnv.JUPYTER_NO_CONFIG) != null) {
             return listOf(this.findConfigDir())
         }
 
@@ -60,7 +60,7 @@ class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
 
         val userPath = this.findConfigDir()
         val envPath = ENV_CONFIG_PATH.filter { !SYSTEM_CONFIG_PATH.contains(it) }
-        if (System.getenv(JpEnvVars.JUPYTER_PREFER_ENV_PATH) != null) {
+        if (System.getenv(JpEnv.JUPYTER_PREFER_ENV_PATH) != null) {
             paths.addAll(envPath)
             paths.add(userPath)
         } else {
@@ -103,7 +103,7 @@ class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
         return p3
     }
 
-    override fun findDataPath(subdirs: List<Path>): List<Path> {
+    override fun findDataPath(): List<Path> {
         val paths: MutableList<Path> = mutableListOf<Path>()
         // JUPYTER_PATH
         val jpPaths: List<Path> = System.getenv(JUPYTER_PATH)
@@ -114,7 +114,7 @@ class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
 
         val userDataDir = this.findDataDir()
         val envDataDir: List<Path> = ENV_JUPYTER_PATH.filter { SYSTEM_JUPYTER_PATH.contains(it).not() }
-        if (System.getenv(JpEnvVars.JUPYTER_PREFER_ENV_PATH) != null) {
+        if (System.getenv(JpEnv.JUPYTER_PREFER_ENV_PATH) != null) {
             paths.addAll(envDataDir)
             paths.add(userDataDir)
         } else {
@@ -123,9 +123,55 @@ class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
         }
 
         paths.addAll(SYSTEM_JUPYTER_PATH)
-        paths.addAll(subdirs)
         return paths
     }
 
+//    override fun findSubDataPath(subdirs: List<Path>): List<Path> {
+//        val dataPath = this.findDataPath()
+//        val subPathList = dataPath.flatMap { path->
+//            subdirs.map{subdir->
+//                path.resolve(subdir).toAbsolutePath()
+//            }
+//        }
+//        return subPathList
+//    }
+//
+//    override fun findSubDataPathInclude(subdirs:List<Path>):List<Path>{
+//        return this.findDataPath() + this.findSubDataPath(subdirs)
+//    }
 
+    override fun findIPythonDir(): Path {
+        val ipythonDirName = ".ipython"
+        val userHome:Path = CommonPath.userHomePath
+//        val xdgConfig:Path? = CommonPath.xdgConfigPath
+        val explicitIpPath:Path? = (System.getenv(JpEnv.IPYTHONDIR) ?: System.getenv(JpEnv.IPYTHON_DIR_DEPRECATED))?.let{
+            Paths.get(it).toAbsolutePath()
+        }
+        val ipPath = if(explicitIpPath==null){
+            val ipPathOnHome = userHome.resolve(ipythonDirName)
+            ipPathOnHome
+        }else{
+            return explicitIpPath
+        }
+        val rt:Path = if(Files.exists(ipPath)){
+            if(false == Files.isWritable(ipPath)){
+                val tempDir = Files.createTempDirectory("/tmp")
+                println("IPython directory: $ipPath is not writable, use this temp directory instead: $tempDir")
+                tempDir
+            }else{
+                ipPath
+            }
+        }else if(false == Files.exists(ipPath)){
+            if(false == Files.exists(ipPath.parent)){
+                val tempDir = Files.createTempDirectory("/tmp")
+                println("IPython parent directory: ${ipPath.parent} is not writable, use this temp directory instead: $tempDir")
+                tempDir
+            }else{
+                ipPath
+            }
+        }else{
+            ipPath
+        }
+        return rt
+    }
 }
