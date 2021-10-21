@@ -7,11 +7,12 @@ import java.nio.file.Path
  *  see for detail: https://jupyter.readthedocs.io/en/latest/use/jupyter-directories.html
  */
 interface JupyterDirFinder {
-//    fun findAllConfigDirs():List<Path>
-//    fun findAllRuntimeDirs():List<Path>
-//    fun findAllDataDir():List<Path>
+    fun findRuntimeDir():Path
+    fun findRuntimePath():List<Path>
 
-    fun findConfigPath():Path
-    fun findRuntimePath():Path
-    fun findDataPath():Path
+    fun findDataDir(): Path
+    fun findDataPath(subdirs:List<Path> = emptyList()): List<Path>
+
+    fun findConfigDir(): Path
+    fun findConfigPath(): List<Path>
 }
