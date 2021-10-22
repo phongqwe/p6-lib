@@ -1,14 +1,16 @@
 package org.bitbucket.xadkile.taiga.jupyterclient.path
 
+import java.io.BufferedReader
 import java.io.File
 import java.io.IOException
+import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
  * Path finder for linux
- * [sysPrefix]  = TODO????
+ * [sysPrefix]  = should be injected from the one that manage the conda env
  */
 class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
     companion object {
@@ -26,11 +28,28 @@ class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
             "/usr/local/etc/jupyter",
             "/etc/jupyter",
         ).map { Paths.get(it) }
+
+        private fun getSysPrefix(pythonExecutablePath:String):Path{
+            // write sys.prefix to stdout
+            val getSysPrefixCode="import sys;sys.stdout.write(sys.prefix)"
+            val process:Process = ProcessBuilder(pythonExecutablePath,"-c",getSysPrefixCode).start()
+            val rt:Path = BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+                // read sys.prefix from stdin
+                val sysPrefix = reader.readLine()
+                Paths.get(sysPrefix)
+            }
+            return rt
+        }
+
+        fun fromPythonExecutable(pythonExecutablePath:String):LinuxJupyterDirFinder{
+            return LinuxJupyterDirFinder(getSysPrefix(pythonExecutablePath).toAbsolutePath().toString())
+        }
     }
 
     private val sysPrefixPath: Path = Paths.get(this.sysPrefix).toAbsolutePath()
-    private val ENV_JUPYTER_PATH: List<Path> =
-        listOf(sysPrefixPath.resolve("share").resolve("jupyter").toAbsolutePath())
+    private val ENV_JUPYTER_PATH: List<Path> = listOf(
+        sysPrefixPath.resolve("share").resolve("jupyter").toAbsolutePath()
+    )
     private val ENV_CONFIG_PATH = listOf(this.sysPrefixPath.resolve("etc").resolve("jupyter").toAbsolutePath())
 
     override fun findConfigDir(): Path {

@@ -20,13 +20,21 @@ data class KernelSpec(
 ) {
     companion object {
         /**
-         * [resourceDir] path to kernel folder
+         * read kernel.json in [kernelDir] to construct A KernelSpec
+         * [kernelDir] path to kernel folder that holds a "kernel.json"
          */
-        fun fromResourceDir(resourceDir: Path): KernelSpec {
-            val kernelFile = resourceDir.resolve("kernel.json")
-            val kernelFileContent = Files.readString(kernelFile, Charsets.UTF_8)
+        fun fromKernelDir(kernelDir: Path): KernelSpec {
+            val kernelJson = kernelDir.resolve("kernel.json")
+            return fromKernelJson(kernelJson)
+        }
+        /**
+         * read a kernel.json to construct A KernelSpec
+         * [kernelJson] a "kernel.json" file that describe instruction on how to start a kernel
+         */
+        fun fromKernelJson(kernelJson:Path):KernelSpec{
+            val kernelFileContent = Files.readString(kernelJson, Charsets.UTF_8)
             val gson = Gson()
-            val rt = gson.fromJson(kernelFileContent, KernelSpec::class.java).withResourceDir(resourceDir)
+            val rt = gson.fromJson(kernelFileContent, KernelSpec::class.java).withResourceDir(kernelJson.parent)
             return rt
         }
     }

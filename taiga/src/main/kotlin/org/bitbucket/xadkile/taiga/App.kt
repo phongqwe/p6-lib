@@ -22,7 +22,8 @@ internal class StreamGobbler(private val inputStream: InputStream, private val c
 //['/home/abc/Applications/anaconda3/envs/dl_hw_01/bin/python', '-m', 'ipykernel_launcher', '-f', '/tmp/tmpwmp8kgkt.json']
 
 fun main(){
-    KernelManagerImp().startKernel()
+    val python = "/home/abc/Applications/anaconda3/envs/dl_hw_01/bin/python"
+    KernelManagerImp().startKernel(python)
     // -m : run library module as script
     // ipykernel_launcher: launch kernel
 

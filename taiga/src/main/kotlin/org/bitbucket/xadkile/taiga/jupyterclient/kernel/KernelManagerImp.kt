@@ -2,14 +2,14 @@ package org.bitbucket.xadkile.taiga.jupyterclient.kernel
 
 import org.bitbucket.xadkile.taiga.jupyterclient.kernel.spec.KernelSpecManager
 import org.bitbucket.xadkile.taiga.jupyterclient.path.LinuxJupyterDirFinder
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 class KernelManagerImp : KernelManager {
-    // start a kernel return a kernel client
 
-
-    // TODO done, findout how to create args for this function
     fun makeProcessBuilder(
         connectionFile: KernelConnectionFileContent, //from where: generate it myself
         commandArgs: List<String>, // from kernel spec
@@ -57,19 +57,31 @@ class KernelManagerImp : KernelManager {
         runtimePath: Path?, // from JupyterPathFinder
         currentWorkingDirectory: Path?, // ??? maybe null
         envVars: Map<String, String> // from kernel spec
-    ): KernelClient {
+    ): Kernel {
         this.makeProcessBuilder(connectionFile, commandArgs, runtimePath, currentWorkingDirectory, envVars).inheritIO()
             .start()
-        return KernelClientImp(connectionFile)
+        return KernelImp(connectionFile)
     }
 
-    fun startKernel():KernelClient{
+    fun getSysPrefix(pythonExecutablePath:String):Path{
+        val process:Process = ProcessBuilder(pythonExecutablePath,"-c","import sys;sys.stdout.write(sys.prefix)").start()
+        val rt:Path = BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+            val sysPrefix = reader.readLine()
+            Paths.get(sysPrefix)
+        }
+        return rt
+    }
+    fun startKernel(pythonExecutablePath: String):Kernel{
         val cf = KernelConnectionFileContent.makeSHA256LocalOne("key-abc")
-        val dirFinder = LinuxJupyterDirFinder("/home/abc/Applications/anaconda3/envs/dl_hw_01")
+        val dirFinder = LinuxJupyterDirFinder.fromPythonExecutable(pythonExecutablePath)
         val specMan = KernelSpecManager.fromDirFinder(dirFinder)
         val spec = specMan.getKernelSpec("python3")
         val commandArgs = spec.argv
         val env = spec.env
+        val pythonExecutable = commandArgs[0]
+
+
+
         return this.startKernel(cf,commandArgs,dirFinder.findRuntimeDir(),null,env)
     }
 }

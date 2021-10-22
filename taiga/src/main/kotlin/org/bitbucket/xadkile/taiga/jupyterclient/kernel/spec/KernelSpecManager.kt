@@ -69,11 +69,15 @@ class KernelSpecManager(private val kernelDirList: List<Path>) {
         val resourceDir = this.findSpecDirectory(kernelName.toLowerCase())
             ?: throw IllegalStateException("No such kernel: ${kernelName}")
 //        return this.getKernelSpecByName(kernelName,resourceDir)
-        return KernelSpec.fromResourceDir(resourceDir)
+        return KernelSpec.fromKernelDir(resourceDir)
     }
+
+//    fun getAllKernelSpec():List<KernelSpec>{
+//
+//    }
 
     private fun getKernelSpecByName(kernelName: String, resourceDir: Path): KernelSpec {
         // TODO something to do with NATIVE_KERNEL_NAME
-        return KernelSpec.fromResourceDir(resourceDir)
+        return KernelSpec.fromKernelDir(resourceDir)
     }
 }
