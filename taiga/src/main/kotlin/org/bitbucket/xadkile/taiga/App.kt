@@ -1,5 +1,7 @@
 package org.bitbucket.xadkile.taiga
 
+import org.bitbucket.xadkile.taiga.jupyterclient.kernel.KernelManager
+import org.bitbucket.xadkile.taiga.jupyterclient.kernel.KernelManagerImp
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -20,9 +22,7 @@ internal class StreamGobbler(private val inputStream: InputStream, private val c
 //['/home/abc/Applications/anaconda3/envs/dl_hw_01/bin/python', '-m', 'ipykernel_launcher', '-f', '/tmp/tmpwmp8kgkt.json']
 
 fun main(){
-    val p1 = Paths.get(System.getProperty("user.home"))
-    val p2 = Paths.get(System.getProperty("user.home"))
-    println(p1==p2)
+    KernelManagerImp().startKernel()
     // -m : run library module as script
     // ipykernel_launcher: launch kernel
 

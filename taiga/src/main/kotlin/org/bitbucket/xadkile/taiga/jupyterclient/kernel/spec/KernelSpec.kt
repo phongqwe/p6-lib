@@ -7,28 +7,31 @@ import java.nio.file.Path
 
 
 data class KernelSpec(
-    public val argv: List<String>,
+    val argv: List<String> = emptyList(),
     @SerializedName("display_name")
-    public val displayName: String,
-    public val language: String,
+    val displayName: String ="",
+    val language: String ="",
     @SerializedName("interrput_mode")
-    public val interruptMode: InterruptMode,
-    public val env: Map<String, String>,
-    public val metadata: Map<String, Any>,
+    val interruptMode: InterruptMode = InterruptMode.NOT_YET,
+    val env: Map<String, String> = emptyMap(),
+    val metadata: Map<String, Any> = emptyMap(),
     @Transient
-    public val resourceDir: Path?
+    val resourceDir: Path? = null
 ) {
     companion object {
-        fun fromResourceDir(resourceDir: Path):KernelSpec{
+        /**
+         * [resourceDir] path to kernel folder
+         */
+        fun fromResourceDir(resourceDir: Path): KernelSpec {
             val kernelFile = resourceDir.resolve("kernel.json")
-            val kernelFileContent = Files.readString(kernelFile,Charsets.UTF_8)
+            val kernelFileContent = Files.readString(kernelFile, Charsets.UTF_8)
             val gson = Gson()
             val rt = gson.fromJson(kernelFileContent, KernelSpec::class.java).withResourceDir(resourceDir)
             return rt
         }
     }
 
-    fun withResourceDir(resourceDir: Path):KernelSpec{
+    fun withResourceDir(resourceDir: Path): KernelSpec {
         return this.copy(resourceDir = resourceDir)
     }
 }

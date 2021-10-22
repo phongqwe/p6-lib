@@ -1,4 +1,4 @@
 package org.bitbucket.xadkile.taiga.jupyterclient.kernel
 
-class KernelClientImp : KernelClient{
+class KernelClientImp(val cf:KernelConnectionFileContent) : KernelClient{
 }

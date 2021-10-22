@@ -1,6 +1,7 @@
 package org.bitbucket.xadkile.taiga.jupyterclient.kernel
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import java.net.ServerSocket
 
@@ -74,7 +75,7 @@ data class KernelConnectionFileContent(
     }
 
     fun toJson():String{
-        val gson = Gson()
+        val gson = GsonBuilder().setPrettyPrinting().create()
         return gson.toJson(this)
     }
 }

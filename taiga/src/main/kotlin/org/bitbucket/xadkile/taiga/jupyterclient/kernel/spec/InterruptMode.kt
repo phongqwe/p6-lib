@@ -7,6 +7,8 @@ enum class InterruptMode {
     signal,
 
     @SerializedName("message")
-    message
+    message,
+
+    NOT_YET
 }
 

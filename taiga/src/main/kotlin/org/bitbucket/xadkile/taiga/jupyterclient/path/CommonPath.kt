@@ -10,5 +10,6 @@ object CommonPath {
     val userHomePath: Path = Paths.get(System.getProperty("user.home")).toAbsolutePath()
     val xdgRuntimePath: Path? = System.getenv("XDG_RUNTIME_DIR")?.let { Paths.get(it).toAbsolutePath() }
     val xdgConfigPath: Path? = System.getenv("XDG_CONFIG_HOME ")?.let { Paths.get(it).toAbsolutePath() }
+    val xdgDataHome:Path? = System.getenv("XDG_DATA_HOME")?.let { Paths.get(it).toAbsolutePath() }
 }
 

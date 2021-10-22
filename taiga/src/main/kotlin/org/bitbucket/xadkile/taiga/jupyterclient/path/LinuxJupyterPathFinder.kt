@@ -8,6 +8,7 @@ import java.nio.file.Paths
 
 /**
  * Path finder for linux
+ * [sysPrefix]  = TODO????
  */
 class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
     companion object {
@@ -94,7 +95,7 @@ class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
             return p1
         }
 
-        val p2 = CommonPath.xdgRuntimePath?.resolve("jupyter")?.toAbsolutePath()
+        val p2 = CommonPath.xdgDataHome?.resolve("jupyter")?.toAbsolutePath()
         if (p2 != null) {
             return p2
         }
