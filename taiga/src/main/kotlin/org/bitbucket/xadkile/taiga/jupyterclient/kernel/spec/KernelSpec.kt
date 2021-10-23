@@ -5,7 +5,12 @@ import com.google.gson.annotations.SerializedName
 import java.nio.file.Files
 import java.nio.file.Path
 
-
+/**
+ * A [KernelSpec] represents the content of of a kernel.json
+ * It contains information needed to launch a kernel such as:
+ *  - command line executable, args
+ *  - misc info: such as kernel name
+ */
 data class KernelSpec(
     val argv: List<String> = emptyList(),
     @SerializedName("display_name")
@@ -14,9 +19,13 @@ data class KernelSpec(
     @SerializedName("interrput_mode")
     val interruptMode: InterruptMode = InterruptMode.NOT_YET,
     val env: Map<String, String> = emptyMap(),
-    val metadata: Map<String, Any> = emptyMap(),
+    // custom metadata info, may vary for different kernel
+    val metadata: Any? = null,
+    // resourceDir = kernel folder
     @Transient
-    val resourceDir: Path? = null
+    val resourceDir: Path? = null,
+    @Transient
+    val info:KernelSpecInfo? = null
 ) {
     companion object {
         /**
@@ -41,5 +50,8 @@ data class KernelSpec(
 
     fun withResourceDir(resourceDir: Path): KernelSpec {
         return this.copy(resourceDir = resourceDir)
+    }
+    fun withInfo(info:KernelSpecInfo):KernelSpec{
+        return this.copy(info = info)
     }
 }

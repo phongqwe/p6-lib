@@ -12,7 +12,7 @@ import java.nio.file.Paths
  * Path finder for linux
  * [sysPrefix]  = should be injected from the one that manage the conda env
  */
-class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
+class LinuxJPDirFinder(val sysPrefix: String) : JPDirFinder {
     companion object {
         val JUPYTER_CONFIG_DIR = JpEnv.JUPYTER_CONFIG_DIR
         val JUPYTER_CONFIG_PATH = JpEnv.JUPYTER_CONFIG_PATH
@@ -41,8 +41,8 @@ class LinuxJupyterDirFinder(val sysPrefix: String) : JupyterDirFinder {
             return rt
         }
 
-        fun fromPythonExecutable(pythonExecutablePath:String):LinuxJupyterDirFinder{
-            return LinuxJupyterDirFinder(getSysPrefix(pythonExecutablePath).toAbsolutePath().toString())
+        fun fromPythonExecutable(pythonExecutablePath:String):LinuxJPDirFinder{
+            return LinuxJPDirFinder(getSysPrefix(pythonExecutablePath).toAbsolutePath().toString())
         }
     }
 

@@ -1,6 +1,6 @@
 package org.bitbucket.xadkile.taiga.jupyterclient.kernel.spec
 
-import org.bitbucket.xadkile.taiga.jupyterclient.path.JupyterDirFinder
+import org.bitbucket.xadkile.taiga.jupyterclient.path.JPDirFinder
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -8,21 +8,24 @@ import java.util.regex.Pattern
 import java.util.stream.Collectors
 
 /**
- * @property kernelDirList kernel directories are extracted from data directories
+ *  [kernelParentDirList] is a directory that contains kernel folders
+ *  [kernelParentDirList] is extracted from data directories
  */
-class KernelSpecManager(private val kernelDirList: List<Path>) {
+class KernelSpecManager(private val kernelParentDirList: List<Path>) {
 
     companion object {
         val KERNELS = "kernels"
-        val NATIVE_KERNEL_NAME = "python3"
         fun fromDataDirs(dataPath: List<Path>, ipythonDir: Path): KernelSpecManager {
             val kernelDirs = dataPath.map {
                 it.resolve(KERNELS)
-            } + ipythonDir.resolve(KERNELS).toAbsolutePath()
+            }.filter { Files.exists(it) } + ipythonDir.resolve(KERNELS).toAbsolutePath()
             return KernelSpecManager(kernelDirs)
         }
 
-        fun fromDirFinder(dirFinder: JupyterDirFinder): KernelSpecManager {
+        /**
+         * create [KernelSpecManager] from a [JPDirFinder]
+         */
+        fun fromDirFinder(dirFinder: JPDirFinder): KernelSpecManager {
             return KernelSpecManager.fromDataDirs(dirFinder.findDataPath(), dirFinder.findIPythonDir())
         }
     }
@@ -34,50 +37,66 @@ class KernelSpecManager(private val kernelDirList: List<Path>) {
         return rt
     }
 
+    /**
+     * @return true if [dir] contains a kernel.json file, false otherwise
+     */
     private fun isKernelDir(dir: Path): Boolean {
         return Files.isDirectory(dir) && Files.isRegularFile(dir.resolve("kernel.json"))
     }
 
     /**
-     * Find the resource directory of a named kernel spec
-     * TODO how about native kernel
+     * Find the spec directory (contain kernel.json) for a kernel with [kernelName]
+     * return the first ok
      */
     private fun findSpecDirectory(kernelName: String): Path? {
-        for (kernelDir in this.kernelDirList) {
-            if (Files.exists(kernelDir)) {
-                try {
-                    val dirContentList = Files.list(kernelDir).collect(Collectors.toList())
-                    for (file in dirContentList) {
-                        val filePath = kernelDir.resolve(file)
-                        if (file.fileName.toString().toLowerCase() == kernelName && isKernelDir(filePath)) {
-                            return filePath
-                        }
+        for (kernelParentDir in this.kernelParentDirList) {
+            try {
+                val dirContentList = Files.list(kernelParentDir).collect(Collectors.toList())
+                for (kernelDir in dirContentList) {
+                    if ((kernelDir.fileName.toString() == kernelName) && isKernelDir(kernelDir)) {
+                        return kernelDir
                     }
-                } catch (e: IOException) {
-                    println("cannot get content of dir: $kernelDir")
-                    continue
                 }
+            } catch (e: IOException) {
+                println("cannot get content of dir: $kernelParentDir")
+                println("skip")
+                continue
             }
         }
         return null
     }
 
-    fun getKernelSpec(kernelName: String): KernelSpec {
+    fun getKernelSpecByName(kernelName: String): KernelSpec {
         if (false == checkKernelName(kernelName)) {
             println("Kernel name is invalid: $kernelName")
         }
-        val resourceDir = this.findSpecDirectory(kernelName.toLowerCase())
-            ?: throw IllegalStateException("No such kernel: ${kernelName}")
-//        return this.getKernelSpecByName(kernelName,resourceDir)
-        return KernelSpec.fromKernelDir(resourceDir)
+        val resourceDir = this.findSpecDirectory(kernelName)
+            ?: throw IllegalStateException("No such kernel: $kernelName")
+        return KernelSpec
+            .fromKernelDir(resourceDir)
+            .withInfo(KernelSpecInfo(kernelName,resourceDir))
     }
 
-//    fun getAllKernelSpec():List<KernelSpec>{
-//
-//    }
-
-    private fun getKernelSpecByName(kernelName: String, resourceDir: Path): KernelSpec {
-        // TODO something to do with NATIVE_KERNEL_NAME
-        return KernelSpec.fromKernelDir(resourceDir)
+    fun getAllKernelSpec(): List<KernelSpec> {
+        val rt = mutableListOf<KernelSpec>()
+        for (kernelParentDir in this.kernelParentDirList) {
+            try {
+                val dirContentList = Files.list(kernelParentDir).collect(Collectors.toList())
+                for (kernelDir in dirContentList) {
+                    if (isKernelDir(kernelDir)) {
+                        val kernelSpecInfo = KernelSpecInfo(kernelDir.fileName.toString(), kernelDir)
+                        val kernelSpec = KernelSpec
+                            .fromKernelDir(kernelDir)
+                            .withInfo(kernelSpecInfo)
+                        rt.add(kernelSpec)
+                    }
+                }
+            } catch (e: IOException) {
+                println("cannot get content of dir: $kernelParentDir")
+                println("skip")
+                continue
+            }
+        }
+        return rt
     }
 }

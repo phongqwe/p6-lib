@@ -1,7 +1,7 @@
 package org.bitbucket.xadkile.taiga.jupyterclient.kernel
 
 import org.bitbucket.xadkile.taiga.jupyterclient.kernel.spec.KernelSpecManager
-import org.bitbucket.xadkile.taiga.jupyterclient.path.LinuxJupyterDirFinder
+import org.bitbucket.xadkile.taiga.jupyterclient.path.LinuxJPDirFinder
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.file.Files
@@ -58,9 +58,10 @@ class KernelManagerImp : KernelManager {
         currentWorkingDirectory: Path?, // ??? maybe null
         envVars: Map<String, String> // from kernel spec
     ): Kernel {
-        this.makeProcessBuilder(connectionFile, commandArgs, runtimePath, currentWorkingDirectory, envVars).inheritIO()
+        val p = this.makeProcessBuilder(connectionFile, commandArgs, runtimePath, currentWorkingDirectory, envVars)
+            .inheritIO()
             .start()
-        return KernelImp(connectionFile)
+        return KernelImp(connectionFile,p)
     }
 
     fun getSysPrefix(pythonExecutablePath:String):Path{
@@ -73,15 +74,11 @@ class KernelManagerImp : KernelManager {
     }
     fun startKernel(pythonExecutablePath: String):Kernel{
         val cf = KernelConnectionFileContent.makeSHA256LocalOne("key-abc")
-        val dirFinder = LinuxJupyterDirFinder.fromPythonExecutable(pythonExecutablePath)
+        val dirFinder = LinuxJPDirFinder.fromPythonExecutable(pythonExecutablePath)
         val specMan = KernelSpecManager.fromDirFinder(dirFinder)
-        val spec = specMan.getKernelSpec("python3")
+        val spec = specMan.getKernelSpecByName("python3")
         val commandArgs = spec.argv
         val env = spec.env
-        val pythonExecutable = commandArgs[0]
-
-
-
         return this.startKernel(cf,commandArgs,dirFinder.findRuntimeDir(),null,env)
     }
 }

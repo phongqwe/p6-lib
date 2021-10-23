@@ -6,7 +6,7 @@ import java.nio.file.Path
  * find relevant jupyter directories
  *  see for detail: https://jupyter.readthedocs.io/en/latest/use/jupyter-directories.html
  */
-interface JupyterDirFinder {
+interface JPDirFinder {
     fun findRuntimeDir(): Path
     fun findRuntimePath(): List<Path>
 
