@@ -7,16 +7,17 @@ import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.Mess
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
 class Request(
-    val header: MessageHeader,
-    val parentHeader: MessageHeader?,
-    val metadata: MetaData?,
-    val content: Content,
-    val buffers: List<Any> = emptyList(),
-    val key:String
+    private val header: MessageHeader,
+    private val parentHeader: MessageHeader?,
+    private val metadata: MetaData?,
+    private val content: Content,
+    private val buffers: List<Any> = emptyList(),
+    private val key: String,
+    private val session: Session
 ) {
     companion object {
         fun make(session: Session, msgEncap: MessageEncap): Request {
-           return Request(
+            return Request(
                 header = MessageHeader.autoCreate(
                     sessionId = session.sessionId,
                     username = session.username,
@@ -25,10 +26,12 @@ class Request(
                 parentHeader = null,
                 content = msgEncap.getContent(),
                 metadata = null,
-                key = session.key
+                key = session.key,
+                session = session
             )
         }
     }
+
     /**
      * make payload to be sent to zmq
      * [key] is key in connection json file
@@ -40,6 +43,7 @@ class Request(
         rt.addAll(this.getHMACIngredientAsByteArray())
         return rt
     }
+
     /**
      * make a hmac sha256 sig from the content of this object
      * [key] is key in connection json file

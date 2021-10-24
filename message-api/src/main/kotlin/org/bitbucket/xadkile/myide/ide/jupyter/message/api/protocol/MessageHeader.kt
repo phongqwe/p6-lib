@@ -42,7 +42,6 @@ class MessageHeader(
         )
     }
 
-
     /**
      * [date] is ISO 8601 date
      * this need to implement an interface, so that JsonEmptyObj (aslo implement such interface) can be assigned to them
