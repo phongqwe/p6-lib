@@ -10,7 +10,7 @@
     <version>1.0</version>
     <modules>
         <module>maven-common-config</module>
-        <module>taiga</module>
+        <module>pissy</module>
     </modules>
 
 
