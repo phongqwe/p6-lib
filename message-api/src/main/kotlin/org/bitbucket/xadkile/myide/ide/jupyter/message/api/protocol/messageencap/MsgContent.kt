@@ -1,6 +1,6 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message
+package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.messageencap
 
-interface Content {
+interface MsgContent {
     /**
      * placeholder class only, must not add any function to this interface
      */

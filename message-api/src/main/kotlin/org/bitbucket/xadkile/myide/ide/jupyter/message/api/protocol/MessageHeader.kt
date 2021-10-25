@@ -1,12 +1,13 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
 
 import org.bitbucket.xadkile.myide.common.TimeUtils
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.messageencap.MsgType
 import java.util.*
 
 
 class MessageHeader(
     private val msgId: String,
-    private val msgType: String,
+    private val msgType: MsgType,
     private val username: String,
     private val sessionId: String,
     private val date: Date,
@@ -19,7 +20,7 @@ class MessageHeader(
          * [date] is now
          * [version] is [MSG_VERSION]
          */
-        fun autoCreate(msgType:String, sessionId:String, username:String): MessageHeader {
+        fun autoCreate(msgType:MsgType, sessionId:String, username:String): MessageHeader {
             return MessageHeader(
                 msgId = UUID.randomUUID().toString(),
                 msgType = msgType,
@@ -34,7 +35,7 @@ class MessageHeader(
     fun toFacade(): Facade {
         return Facade(
             msgId,
-            msgType,
+            msgType.toString(),
             username,
             sessionId,
             TimeUtils.now.fromDate(date),

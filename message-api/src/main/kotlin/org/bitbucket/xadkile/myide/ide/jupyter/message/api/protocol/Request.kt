@@ -2,29 +2,32 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
 
 import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HMACMaker
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.Content
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MessageEncap
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.messageencap.MsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.messageencap.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
 class Request(
     private val header: MessageHeader,
     private val parentHeader: MessageHeader?,
     private val metadata: MetaData?,
-    private val content: Content,
+    private val content: MsgContent,
     private val buffers: List<Any> = emptyList(),
     private val key: String,
     private val session: Session
 ) {
     companion object {
-        fun make(session: Session, msgEncap: MessageEncap): Request {
+        /**
+         * some info is auto generated
+         */
+        fun autoCreate(session: Session, msgType:MsgType, msgContent:MsgContent): Request {
             return Request(
                 header = MessageHeader.autoCreate(
                     sessionId = session.sessionId,
                     username = session.username,
-                    msgType = msgEncap.getMsgType(),
+                    msgType = msgType,
                 ),
                 parentHeader = null,
-                content = msgEncap.getContent(),
+                content = msgContent,
                 metadata = null,
                 key = session.key,
                 session = session
