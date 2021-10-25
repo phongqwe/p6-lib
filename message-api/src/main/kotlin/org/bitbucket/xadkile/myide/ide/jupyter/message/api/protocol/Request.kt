@@ -2,8 +2,8 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
 
 import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HMACMaker
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.messageencap.MsgContent
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.messageencap.MsgType
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
 class Request(

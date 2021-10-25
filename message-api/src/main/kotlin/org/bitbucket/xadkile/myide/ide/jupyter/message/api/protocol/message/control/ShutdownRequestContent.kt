@@ -1,7 +1,6 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.messageencap.control
+package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.control
 
-import com.google.gson.annotations.SerializedName
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.messageencap.MsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
 
 /**
  * Control.shutdown_request
