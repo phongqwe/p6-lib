@@ -28,6 +28,20 @@ class Session(
         }
 
     private var _isOpen: Boolean = true
+
+    /**
+     * see if this Session is fit for use
+     */
+    @Throws(IllegalStateException::class)
+    fun checkLegal(additionalInfo:String=""){
+        if(this.isClosed()){
+            throw IllegalStateException("Session is closed\n$additionalInfo")
+        }
+    }
+
+    fun isClosed():Boolean{
+        return !this.isOpen()
+    }
     fun isOpen(): Boolean {
         return _isOpen
     }

@@ -7,6 +7,7 @@ import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgT
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
 class Request(
+//    private val identities:List<String>,
     private val header: MessageHeader,
     private val parentHeader: MessageHeader?,
     private val metadata: MetaData?,
@@ -14,7 +15,7 @@ class Request(
     private val buffers: List<Any> = emptyList(),
     private val key: String,
     private val session: Session
-) {
+):PayloadMaker {
     companion object {
         /**
          * some info is auto generated
@@ -39,7 +40,7 @@ class Request(
      * make payload to be sent to zmq
      * [key] is key in connection json file
      */
-    fun makePayload(): List<ByteArray> {
+    override fun makePayload(): List<ByteArray> {
         val rt = mutableListOf<ByteArray>()
         rt.add("<IDS|MSG>".toByteArray(Charsets.US_ASCII))
         rt.add(this.makeHmacSig(this.key))

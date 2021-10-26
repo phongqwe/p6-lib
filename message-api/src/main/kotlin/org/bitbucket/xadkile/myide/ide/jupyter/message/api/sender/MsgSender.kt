@@ -3,6 +3,9 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.api.sender
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 
-interface MsgSender {
-    fun send(msgType: MsgType, msgContent:MsgContent)
+interface MsgSender<I:MsgContent,O> {
+    /**
+     * send a [msgContent] of type [msgType] to somewhere
+     */
+    fun send(msgType: MsgType, msgContent:I):O
 }

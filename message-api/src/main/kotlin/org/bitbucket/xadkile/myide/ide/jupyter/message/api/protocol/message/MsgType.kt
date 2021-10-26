@@ -7,4 +7,10 @@ interface MsgType {
     enum class Control : MsgType{
         shutdown_request, shutdown_reply
     }
+    enum class Shell: MsgType{
+        execute_request, execute_reply
+    }
+    enum class IOPub:MsgType{
+        display_data, execute_result
+    }
 }

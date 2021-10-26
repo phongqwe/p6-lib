@@ -12,7 +12,6 @@
         <module>ide</module>
         <module>message-api</module>
         <module>common</module>
-        <module>message-imp</module>
         <module>ide-features</module>
     </modules>
 
