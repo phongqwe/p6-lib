@@ -1,11 +1,16 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq.shell
 
+import arrow.core.Either
+import arrow.core.computations.ResultEffect.bind
+import arrow.core.getOrElse
+import arrow.core.rightIfNotNull
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.channel.ChannelInfo
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.shell.execute.ShellCodeExecutionContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgCounterImp
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.SequentialMsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
+import org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq.CantSendMsgException
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.TestInstance
@@ -55,13 +60,11 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
             allowStdin = false,
             stopOnError = true
         )
-//        val out:String = sender.send(MsgType.Shell.execute_request, input)
-//        if(out.isSuccess){
-            println("==OUT==\n${sender.send(MsgType.Shell.execute_request, input)}\n====")
-//        }
-
+        val out = sender.send(MsgType.Shell.execute_request, input)
+        if(out.isDefined()){
+            println("==OUT==\n${out.orNull()}\n====")
+        }
         Thread.sleep(10000)
-
         context.close()
     }
 }

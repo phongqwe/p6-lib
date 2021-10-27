@@ -27,9 +27,17 @@
         <retrofit.version>2.9.0</retrofit.version>
         <javafx.version>11.0.2</javafx.version>
         <tornadorfx.version>1.7.20</tornadorfx.version>
+        <arrow.version>1.0.0</arrow.version>
     </properties>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.arrow-kt</groupId>
+                <artifactId>arrow-stack</artifactId>
+                <version>${arrow.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <!-- tornadorfx -->
             <dependency>
                 <groupId>no.tornado</groupId>
