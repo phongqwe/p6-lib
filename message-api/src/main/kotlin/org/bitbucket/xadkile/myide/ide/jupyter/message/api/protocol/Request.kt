@@ -6,6 +6,7 @@ import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgC
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
+// TODO consider adding identities list just in case
 class Request(
 //    private val identities:List<String>,
     private val header: MessageHeader,
@@ -15,7 +16,7 @@ class Request(
     private val buffers: List<Any> = emptyList(),
     private val key: String,
     private val session: Session
-):PayloadMaker {
+) {
     companion object {
         /**
          * some info is auto generated
@@ -37,10 +38,13 @@ class Request(
     }
 
     /**
-     * make payload to be sent to zmq
-     * [key] is key in connection json file
+     * Return a payload to be sent to zmq in form of a [List] of [ByteArray].
+     *
+     * Element order must conform to the jupyter specification: [https://jupyter-client.readthedocs.io/en/latest/messaging.html#the-wire-protocol]
+     *
+     * [key] is key in connection json file.
      */
-    override fun makePayload(): List<ByteArray> {
+    fun makePayload(): List<ByteArray> {
         val rt = mutableListOf<ByteArray>()
         rt.add("<IDS|MSG>".toByteArray(Charsets.US_ASCII))
         rt.add(this.makeHmacSig(this.key))
@@ -49,8 +53,9 @@ class Request(
     }
 
     /**
-     * make a hmac sha256 sig from the content of this object
-     * [key] is key in connection json file
+     * Return a hmac sha256 sig from the content of this object.
+     *
+     * [key] is key in connection json file.
      */
     private fun makeHmacSig(key: String): ByteArray {
         val keyBA = key.toByteArray(Charsets.UTF_8)
@@ -64,7 +69,7 @@ class Request(
     }
 
     /**
-     * get ingredients to create a Hmac sha256 signature
+     * Return ingredients for use in the creation a Hmac sha256 signature
      */
     private fun getHMACIngredientAsStr(): List<String> {
         val gson = GsonBuilder().setPrettyPrinting().create()

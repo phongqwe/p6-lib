@@ -8,8 +8,8 @@ data class ChannelInfo(
     val protocol:String,
     val ipAddress:String,
     val port:Int
-):ChannelAddressMaker{
-    override fun makeAddress():String{
+){
+    fun makeAddress():String{
         return "$protocol://$ipAddress:$port"
     }
 

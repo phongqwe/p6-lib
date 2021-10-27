@@ -1,6 +1,5 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq
 
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.channel.ChannelAddressMaker
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.shell.execute.ShellCodeExecutionContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.sender.MsgSender
@@ -8,11 +7,11 @@ import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 
-class ShellCodeExecutionSender(val zmqContext: ZContext, session:Session, val channelAddressMaker: ChannelAddressMaker) : MsgSender<ShellCodeExecutionContent,String>{
+class ShellCodeExecutionSender(val zmqContext: ZContext, val session:Session, val address:String) : MsgSender<ShellCodeExecutionContent,String>{
     private val zmqMsgSender = ZMQMsgSender<ShellCodeExecutionContent>(
         socket = zmqContext.let {
             val socket = it.createSocket(SocketType.REQ)
-            socket.connect(channelAddressMaker.makeAddress())
+            socket.connect(address)
             socket
         },
         session=session

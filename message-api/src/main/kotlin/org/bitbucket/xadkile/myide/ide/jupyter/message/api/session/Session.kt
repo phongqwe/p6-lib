@@ -33,9 +33,9 @@ class Session(
      * see if this Session is fit for use
      */
     @Throws(IllegalStateException::class)
-    fun checkLegal(additionalInfo:String=""){
+    fun checkLegal(errorMessage:String=""){
         if(this.isClosed()){
-            throw IllegalStateException("Session is closed\n$additionalInfo")
+            throw IllegalStateException("Session is closed.\n$errorMessage")
         }
     }
 
@@ -72,5 +72,9 @@ class Session(
                 key = key
             )
         }
+    }
+
+    override fun toString():String{
+        TODO("add a more readable rep")
     }
 }

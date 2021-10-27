@@ -21,12 +21,12 @@ import kotlin.jvm.Throws
 class ZMQMsgSender<I:MsgContent>(val socket: ZMQ.Socket, val session: Session) : MsgSender<I,ZMQ.Socket> {
 
     init {
-        session.checkLegal("Use an open session to create ZMQMsgSender: $session")
+        session.checkLegal("Must use an OPEN Session to create ZMQMsgSender: $session")
     }
     @Throws(IllegalStateException::class)
     override fun send(msgType: MsgType, msgContent: I):ZMQ.Socket {
 
-        this.session.checkLegal()
+        this.session.checkLegal("Must use an OPEN Session to run ZMQMsgSender.send: $session")
         val request = Request.autoCreate(session, msgType, msgContent)
         val payload = request.makePayload()
 
