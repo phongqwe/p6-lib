@@ -1,3 +1,6 @@
+
+message-api/src/test/resources/jupyterConfig.json
+###
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar

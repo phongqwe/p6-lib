@@ -3,7 +3,9 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
 import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HMACMaker
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
 // TODO consider adding identities list just in case
@@ -21,12 +23,13 @@ class Request(
         /**
          * some info is auto generated
          */
-        fun autoCreate(session: Session, msgType:MsgType, msgContent:MsgContent): Request {
+        fun autoCreate(session: Session, msgType:MsgType, msgContent:MsgContent, msgId:String): Request {
             return Request(
                 header = MessageHeader.autoCreate(
                     sessionId = session.sessionId,
                     username = session.username,
                     msgType = msgType,
+                    msgId = msgId
                 ),
                 parentHeader = null,
                 content = msgContent,
@@ -37,6 +40,13 @@ class Request(
         }
     }
 
+    fun getSessionId():String{
+        return this.session.sessionId
+    }
+
+    fun getMsgId():String{
+        return this.header.getMsgId()
+    }
     /**
      * Return a payload to be sent to zmq in form of a [List] of [ByteArray].
      *

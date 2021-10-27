@@ -20,7 +20,7 @@
         <maven.compiler.target>11</maven.compiler.target>
         <karaf.version>4.3.2</karaf.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.5.21</kotlin.version>
+        <kotlin.version>1.5.31</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <firebase.version>8.0.1</firebase.version>
         <redis.version>3.6.0</redis.version>

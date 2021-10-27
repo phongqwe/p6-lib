@@ -22,7 +22,7 @@
         <bundle>mvn:commons-logging/commons-logging/1.2</bundle>
         <bundle>mvn:no.tornado/tornadofx/1.7.20</bundle>
         <!-- kotlin -->
-        <bundle>mvn:org.jetbrains.kotlin/kotlin-osgi-bundle/1.5.21</bundle>
+        <bundle>mvn:org.jetbrains.kotlin/kotlin-osgi-bundle/1.5.31</bundle>
         <!-- http -->
         <feature >http</feature>
         <feature >http-whiteboard</feature>

@@ -1,0 +1,4 @@
+{
+  "launchCmd":["<python_executable_dir>", "-m", "ipykernel_launcher", "-f"],
+  "connectFilePath": "<path to connection file>"
+}

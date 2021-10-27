@@ -74,7 +74,7 @@ class Session(
         }
     }
 
-    override fun toString():String{
-        TODO("add a more readable rep")
-    }
+//    override fun toString():String{
+//        TODO("add a more readable rep")
+//    }
 }
