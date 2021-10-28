@@ -13,4 +13,8 @@ interface MsgType {
     enum class IOPub:MsgType{
         display_data, execute_result
     }
+
+    fun parse(input:String):MsgType{
+        TODO("write this")
+    }
 }

@@ -1,10 +1,9 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq
 
-import arrow.core.Either
 import arrow.core.None
 import arrow.core.Option
 import arrow.core.Some
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.Request
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.OutRequest
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator
@@ -37,8 +36,8 @@ class ZMQMsgSender<I : MsgContent>(
     override fun send(msgType: MsgType, msgContent: I): Option<ZMQ.Socket> {
 
         this.session.checkLegal("Must use an OPEN Session to run ZMQMsgSender.send: $session")
-        val request = Request.autoCreate(session, msgType, msgContent, msgIdGenerator.next())
-        val payload = request.toFacade().makeSendPayload().map{ZFrame(it)}
+        val request = OutRequest.autoCreate(session, msgType, msgContent, msgIdGenerator.next())
+        val payload = request.makePayload().map{ZFrame(it)}
         val zmsg = ZMsg().also {
             it.addAll(payload)
         }

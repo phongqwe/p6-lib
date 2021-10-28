@@ -1,5 +1,6 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
 
+import arrow.core.computations.either
 import org.bitbucket.xadkile.myide.common.TimeUtils
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator
@@ -70,6 +71,19 @@ class MessageHeader(
 
         companion object {
             val empty = Facade(null, null, null, null, null, null)
+        }
+
+        fun toModel():MessageHeader{
+            val time = TimeUtils.parseJupyterTime(this.date)
+            TODO("complete this")
+//            return MessageHeader(
+//                msgId = msg_id ?: "",
+//                msgType = MsgType.Shell.execute_request,
+//                username=this.username ?: "",
+//                sessionId = this.session ?:"",
+//                date =
+//                version=version?:""
+//            )
         }
     }
 }

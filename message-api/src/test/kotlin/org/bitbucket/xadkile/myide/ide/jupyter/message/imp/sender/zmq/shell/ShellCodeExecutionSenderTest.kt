@@ -1,16 +1,13 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq.shell
 
-import arrow.core.Either
 import arrow.core.computations.ResultEffect.bind
-import arrow.core.getOrElse
-import arrow.core.rightIfNotNull
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.channel.ChannelInfo
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.InRequestFacade
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.shell.execute.ShellCodeExecutionContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgCounterImp
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.SequentialMsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
-import org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq.CantSendMsgException
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.TestInstance
@@ -19,18 +16,19 @@ import test.utils.TestOnJupyter
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
-    class ZZZ(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
+    class ZZZ(val subSocket: ZMQ.Socket, val session: Session) : ZThread.IDetachedRunnable {
         override fun run(args: Array<out Any>?) {
-            val strBuilder = mutableListOf<String>()
+            val msgL = mutableListOf<String>()
             while (true) {
                 val o = subSocket.recvStr()
-                strBuilder.add(o)
+                msgL.add(o)
                 while(subSocket.hasReceiveMore()){
                     val m = subSocket.recvStr()
-                    strBuilder.add(m)
+                    msgL.add(m)
                 }
-                println(strBuilder)
-                strBuilder.clear()
+                val z = InRequestFacade.fromRecvPayload(msgL.map{it.toByteArray(Charsets.UTF_8)}).bind()
+                println(z)
+                msgL.clear()
             }
         }
     }
@@ -50,7 +48,7 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
         println(subCHannel.makeAddress())
         subSocket.subscribe("")
 
-        val runnable = ZZZ(subSocket)
+        val runnable = ZZZ(subSocket,session)
         ZThread.start(runnable)
         val sender = ShellCodeExecutionSender(
             zmqContext = context,
