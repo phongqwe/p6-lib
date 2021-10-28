@@ -1,9 +1,11 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
 
-import arrow.core.computations.either
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.andThen
 import org.bitbucket.xadkile.myide.common.TimeUtils
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator
+import java.text.ParseException
 import java.util.*
 
 
@@ -40,7 +42,7 @@ class MessageHeader(
         }
     }
 
-    fun getMsgId():String{
+    fun getMsgId(): String {
         return this.msgId
     }
 
@@ -73,17 +75,25 @@ class MessageHeader(
             val empty = Facade(null, null, null, null, null, null)
         }
 
-        fun toModel():MessageHeader{
-            val time = TimeUtils.parseJupyterTime(this.date)
-            TODO("complete this")
-//            return MessageHeader(
-//                msgId = msg_id ?: "",
-//                msgType = MsgType.Shell.execute_request,
-//                username=this.username ?: "",
-//                sessionId = this.session ?:"",
-//                date =
-//                version=version?:""
-//            )
+        // TODO this need more refining
+        fun toModel() :Result<MessageHeader,Exception>{
+            val timeResult: Result<Date, ParseException> = TimeUtils.parseJupyterTime(this.date)
+            val rt = timeResult.andThen { date ->
+                val msgTypeEither: Result<MsgType, IllegalArgumentException> = MsgType.parse(msg_type ?: "")
+                msgTypeEither.andThen { msgType ->
+                    Ok(
+                        MessageHeader(
+                            msgId = msg_id ?: "",
+                            msgType = msgType,
+                            username = this.username ?: "",
+                            sessionId = this.session ?: "",
+                            date = date,
+                            version = version ?: ""
+                        )
+                    )
+                }
+            }
+            return rt
         }
     }
 }

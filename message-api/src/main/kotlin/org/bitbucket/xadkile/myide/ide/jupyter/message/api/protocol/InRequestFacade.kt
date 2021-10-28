@@ -104,15 +104,15 @@ class InRequestFacade(
 //        return this.copy(hmacSig = HmacMaker.makeHmacSha256SigStr(key,this.getHMACIngredients()))
 //    }
 
-    fun <META:MetaData,CONTENT:MsgContent>toModel():InRequest<META,CONTENT>{
-        val gson = Gson()
-        return InRequest(
-            identities = this.identities,
-            delimiter = this.delimiter,
-            header = gson.fromJson(this.header,MessageHeader.Facade::class.java),
-            parentHeader =
-        )
-    }
+//    fun <META:MetaData,CONTENT:MsgContent>toModel():InRequest<META,CONTENT>{
+//        val gson = Gson()
+//        return InRequest(
+//            identities = this.identities,
+//            delimiter = this.delimiter,
+//            header = gson.fromJson(this.header,MessageHeader.Facade::class.java),
+//            parentHeader =
+//        )
+//    }
     private fun getHMACIngredients():List<ByteArray>{
         return listOf(
             this.header, this.parentHeader,this.metaData,this.content

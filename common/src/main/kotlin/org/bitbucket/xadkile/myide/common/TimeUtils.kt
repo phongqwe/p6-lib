@@ -1,6 +1,8 @@
 package org.bitbucket.xadkile.myide.common
 
-import arrow.core.Either
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -28,11 +30,11 @@ object TimeUtils {
         }
     }
 
-    fun parseJupyterTime(dateStr:String?): Either<ParseException, Date> {
+    fun parseJupyterTime(dateStr:String?): Result<Date,ParseException> {
         try{
-            return Either.Right(dateFormat.parse(dateStr))
+            return Ok(dateFormat.parse(dateStr))
         }catch(e:ParseException){
-            return Either.Left(e)
+            return Err(e)
         }
     }
 }
