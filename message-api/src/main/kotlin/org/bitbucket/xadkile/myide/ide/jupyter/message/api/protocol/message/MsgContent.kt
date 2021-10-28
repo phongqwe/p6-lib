@@ -2,8 +2,12 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message
 
 interface MsgContent {
     /**
-     * placeholder class only, must not add any function to this interface
+     * must not add any function to [OutFacade]
      */
-    interface Facade
-    fun toFacade(): Facade
+    interface OutFacade
+    fun toFacade(): OutFacade
+
+    interface InFacade {
+        fun toModel():MsgContent
+    }
 }

@@ -1,6 +1,9 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.shell.execute
 
+import com.google.gson.Gson
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.`in`.parser.MsgContentInFacadeParser
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.`in`.parser.MsgContentInParser
 
 class ShellCodeExecutionContent(
     val code:String,
@@ -23,5 +26,23 @@ class ShellCodeExecutionContent(
         val user_expressions:Map<String,String>,
         val allow_stdin:Boolean,
         val stop_on_error:Boolean
-    ):MsgContent.Facade
+    ):MsgContent.OutFacade, MsgContent.InFacade{
+        override fun toModel(): ShellCodeExecutionContent {
+            return ShellCodeExecutionContent(
+                code,silent,store_history,user_expressions,allow_stdin,stop_on_error
+            )
+        }
+    }
+
+    class InFacadeParser(val gson:Gson) : MsgContentInFacadeParser<Facade>{
+        override fun parse(input: String): Facade {
+            return gson.fromJson(input,Facade::class.java)
+        }
+    }
+
+    class ModelParser: MsgContentInParser<Facade,ShellCodeExecutionContent>{
+        override fun parse(input: Facade): ShellCodeExecutionContent {
+            return input.toModel()
+        }
+    }
 }

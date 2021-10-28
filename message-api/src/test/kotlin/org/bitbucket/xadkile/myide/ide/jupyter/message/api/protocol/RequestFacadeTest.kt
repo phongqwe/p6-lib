@@ -3,8 +3,8 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
 import arrow.core.Either
 import arrow.core.computations.ResultEffect.bind
 import org.bitbucket.xadkile.myide.common.HmacMaker
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.out.OutRequest
 import org.junit.jupiter.api.Test
-import zmq.io.coder.IDecoder
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -35,7 +35,7 @@ internal class RequestFacadeTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestFacade.fromRecvPayload(payload).bind()
+        val facade = InRequestRawFacade.fromRecvPayload(payload).bind()
         assertTrue(facade.verifyHmac(key))
     }
 
@@ -48,7 +48,7 @@ internal class RequestFacadeTest {
             "header_123",
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestFacade.fromRecvPayload(payload)
+        val facade = InRequestRawFacade.fromRecvPayload(payload)
         assertTrue(facade.isLeft())
         facade.tapLeft {
             assertTrue(it is InvalidPayloadSizeException)
@@ -68,7 +68,7 @@ internal class RequestFacadeTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestFacade.fromRecvPayload(payload)
+        val facade = InRequestRawFacade.fromRecvPayload(payload)
         assertTrue(facade.isLeft())
         facade.tapLeft {
             assertTrue(it is NoSuchElementException)
@@ -88,7 +88,7 @@ internal class RequestFacadeTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestFacade.fromRecvPayload(payload).bind()
+        val facade = InRequestRawFacade.fromRecvPayload(payload).bind()
         assertEquals(input[0], facade.identities)
         assertEquals(input[1], facade.delimiter)
         assertEquals(input[2], facade.hmacSig)
@@ -111,7 +111,7 @@ internal class RequestFacadeTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestFacade.fromRecvPayload(payload).bind()
+        val facade = InRequestRawFacade.fromRecvPayload(payload).bind()
         assertEquals("", facade.identities)
         assertEquals(input[0], facade.delimiter)
         assertEquals(input[1], facade.hmacSig)
@@ -133,7 +133,7 @@ internal class RequestFacadeTest {
             "content_123",
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestFacade.fromRecvPayload(payload).bind()
+        val facade = InRequestRawFacade.fromRecvPayload(payload).bind()
         assertEquals("", facade.identities)
         assertEquals("", facade.identities)
         assertEquals(input[0], facade.delimiter)

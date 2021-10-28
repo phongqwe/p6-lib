@@ -1,4 +1,4 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq.shell
+package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.shell
 
 import arrow.core.Option
 import arrow.core.getOrElse
@@ -7,7 +7,7 @@ import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.shel
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.sender.MsgSender
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
-import org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq.ZMQMsgSender
+import org.bitbucket.xadkile.myide.ide.jupyter.message.imp.ZMQMsgSender
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ

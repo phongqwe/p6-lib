@@ -2,10 +2,10 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
 
 
 interface MetaData {
-    /**
-     * placeholder class only, must not add any function to this interface
-     */
-    interface Facade {
+
+    interface OutFacade
+    interface InFacade{
+        fun toModel():MetaData
     }
-    fun toFacade(): Facade
+    fun toFacade(): OutFacade
 }

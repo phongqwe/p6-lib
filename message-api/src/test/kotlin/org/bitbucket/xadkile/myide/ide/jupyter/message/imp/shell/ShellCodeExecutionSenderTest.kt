@@ -1,8 +1,8 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq.shell
+package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.shell
 
 import arrow.core.computations.ResultEffect.bind
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.channel.ChannelInfo
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.InRequestFacade
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.InRequestRawFacade
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.shell.execute.ShellCodeExecutionContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgCounterImp
@@ -26,7 +26,7 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
                     val m = subSocket.recvStr()
                     msgL.add(m)
                 }
-                val z = InRequestFacade.fromRecvPayload(msgL.map{it.toByteArray(Charsets.UTF_8)}).bind()
+                val z = InRequestRawFacade.fromRecvPayload(msgL.map{it.toByteArray(Charsets.UTF_8)}).bind()
                 println(z)
                 msgL.clear()
             }

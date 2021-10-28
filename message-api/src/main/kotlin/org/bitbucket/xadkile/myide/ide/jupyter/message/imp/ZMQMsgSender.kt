@@ -1,9 +1,9 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq
+package org.bitbucket.xadkile.myide.ide.jupyter.message.imp
 
 import arrow.core.None
 import arrow.core.Option
 import arrow.core.Some
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.OutRequest
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.out.OutRequest
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator

@@ -1,12 +1,14 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
+package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.out
 
 import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HmacMaker
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.InRequestRawFacade
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MessageHeader
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MetaData
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
-// TODO consider adding identities list just in case
 class OutRequest(
     private val identities:String,
     private val delimiter:String,
@@ -46,13 +48,13 @@ class OutRequest(
         }
     }
 
-    fun getSessionId(): String {
-        return this.session.sessionId
-    }
-
-    fun getMsgId(): String {
-        return this.header.getMsgId()
-    }
+//    fun getSessionId(): String {
+//        return this.session.sessionId
+//    }
+//
+//    fun getMsgId(): String {
+//        return this.header.getMsgId()
+//    }
 
     fun makePayload():List<ByteArray>{
         val gson=GsonBuilder().setPrettyPrinting().create()
@@ -74,11 +76,11 @@ class OutRequest(
     /**
      * @deprecated
      */
-    fun toFacade():InRequestFacade{
+    fun toFacade(): InRequestRawFacade {
         val ingredients = getHMACIngredientAsStr()
         val ingredientsAsByteArray = ingredients.map { it.toByteArray(Charsets.UTF_8) }
         val keyAsByteArray = this.key.toByteArray(Charsets.UTF_8)
-        return InRequestFacade(
+        return InRequestRawFacade(
             identities=this.identities,
             delimiter=this.delimiter,
             hmacSig = HmacMaker.makeHmacSha256SigStr(keyAsByteArray,ingredientsAsByteArray),

@@ -7,7 +7,7 @@ class IOPubDisplayDataContent(
     val metadata:Map<String,Any>,
     val transient:Map<String,Any>
 ):MsgContent {
-    override fun toFacade(): MsgContent.Facade {
+    override fun toFacade(): MsgContent.OutFacade {
         TODO("Not yet implemented")
     }
 }
