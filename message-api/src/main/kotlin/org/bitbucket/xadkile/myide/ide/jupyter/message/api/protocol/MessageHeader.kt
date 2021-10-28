@@ -60,22 +60,23 @@ class MessageHeader(
     /**
      * [date] is ISO 8601 date
      * this need to implement an interface, so that JsonEmptyObj (aslo implement such interface) can be assigned to them
+     *
      */
     data class Facade(
-        val msg_id: String?,
-        val msg_type: String?,
-        val username: String?,
-        val session: String?,
-        val date: String?,
-        val version: String?,
+        val msg_id: String,
+        val msg_type: String,
+        val username: String,
+        val session: String,
+        val date: String,
+        val version: String,
     ) {
         private constructor() : this("", "", "", "", "", "")
 
         companion object {
-            val empty = Facade(null, null, null, null, null, null)
+//            val empty = Facade(null, null, null, null, null, null)
         }
 
-        // TODO this need more refining
+        // TODO this need more refining on the null value
         fun toModel() :Result<MessageHeader,Exception>{
             val timeResult: Result<Date, ParseException> = TimeUtils.parseJupyterTime(this.date)
             val rt = timeResult.andThen { date ->

@@ -1,6 +1,7 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
 
 import arrow.core.Either
+import com.github.michaelbull.result.*
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HmacMaker
@@ -14,7 +15,7 @@ class InRequest<META:MetaData,CONTENT:MsgContent>(
     private val parentHeader: MessageHeader?,
     private val metadata: META?,
     private val content: CONTENT,
-    private val buffers: ByteArray,
+    private val buffer: ByteArray,
     private val key: String,
     private val session: Session
 ){
@@ -35,25 +36,6 @@ class InRequestFacade(
     val buffer: ByteArray
 ) {
     companion object {
-//        fun autoCreate(identities: String,
-//                       delimiter: String,
-//                       header: String,
-//                       parentHeader: String,
-//                       metaData: String,
-//                       content: String,
-//                       buffer: ByteArray, key:ByteArray):RequestFacade{
-//
-//            return RequestFacade(
-//                identities=identities,
-//                delimiter=delimiter,
-//                hmacSig = "",
-//                header =  header,
-//                parentHeader=parentHeader,
-//                metaData = metaData,
-//                content=content,
-//                buffer = buffer
-//            ).withGeneratedHmac(key)
-//        }
         /**
          * parse a list of byte array into a [InRequestFacade]
          */
@@ -100,19 +82,29 @@ class InRequestFacade(
         }
     }
 
-//    fun withGeneratedHmac(key:ByteArray):RequestFacade{
-//        return this.copy(hmacSig = HmacMaker.makeHmacSha256SigStr(key,this.getHMACIngredients()))
-//    }
+    inline fun <reified META:MetaData, reified CONTENT:MsgContent>
+            toModel(session: Session):InRequest<META,CONTENT>{
+        val gson = Gson()
+        val headerRs = gson.fromJson(this.header,MessageHeader.Facade::class.java).toModel()
+        val rt = headerRs.andThen { headerObj->
+            val parentHeaderRs = gson.fromJson(this.parentHeader,MessageHeader.Facade::class.java).toModel()
 
-//    fun <META:MetaData,CONTENT:MsgContent>toModel():InRequest<META,CONTENT>{
-//        val gson = Gson()
-//        return InRequest(
-//            identities = this.identities,
-//            delimiter = this.delimiter,
-//            header = gson.fromJson(this.header,MessageHeader.Facade::class.java),
-//            parentHeader =
-//        )
-//    }
+            parentHeaderRs.andThen { parentHeaderObj->
+                Ok(InRequest<MetaData,MsgContent>(
+                    identities = this.identities,
+                    delimiter = this.delimiter,
+                    header =headerObj,
+                    parentHeader = parentHeaderObj,
+                    metadata = gson.fromJson(this.metaData,META::class.java),
+                    content= gson.fromJson(this.content,CONTENT::class.java),
+                    buffer = this.buffer,
+                    key=session.key,
+                    session = session
+                ))
+            }
+        }
+        return rt.unwrap()
+    }
     private fun getHMACIngredients():List<ByteArray>{
         return listOf(
             this.header, this.parentHeader,this.metaData,this.content
