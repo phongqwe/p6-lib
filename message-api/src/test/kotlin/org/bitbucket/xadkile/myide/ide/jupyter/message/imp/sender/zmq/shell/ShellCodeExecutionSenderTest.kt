@@ -14,22 +14,29 @@ import org.bitbucket.xadkile.myide.ide.jupyter.message.imp.sender.zmq.CantSendMs
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.TestInstance
-import org.zeromq.SocketType
-import org.zeromq.ZContext
-import org.zeromq.ZMQ
-import org.zeromq.ZThread
+import org.zeromq.*
 import test.utils.TestOnJupyter
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
     class ZZZ(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
         override fun run(args: Array<out Any>?) {
+            val strBuilder = mutableListOf<String>()
             while (true) {
                 val o = subSocket.recvStr()
-                println(o)
+                strBuilder.add(o)
+                while(subSocket.hasReceiveMore()){
+                    val m = subSocket.recvStr()
+                    strBuilder.add(m)
+                }
+                println(strBuilder)
+                strBuilder.clear()
             }
         }
     }
+
+
+
     @Test
     fun send() {
         val context = ZContext()

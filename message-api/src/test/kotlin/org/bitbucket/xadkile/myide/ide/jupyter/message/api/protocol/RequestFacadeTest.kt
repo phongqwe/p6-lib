@@ -1,0 +1,140 @@
+package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol
+
+import arrow.core.computations.ResultEffect.bind
+import org.bitbucket.xadkile.myide.common.HmacMaker
+import org.junit.jupiter.api.Test
+import java.util.*
+import kotlin.NoSuchElementException
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+internal class RequestFacadeTest {
+    @Test
+    fun verifyHmac(){
+        val key = "1234".toByteArray()
+        val hmac = HmacMaker.makeHmacSha256SigStr(key, listOf(
+            "identities_123",
+            Request.jupyterDelimiter,
+            "header_123",
+            "parentHeader_123",
+            "metadata_123",
+            "content_123",
+            "buffer_123"
+        ).map { it.toByteArray(Charsets.UTF_8) })
+        val input = listOf(
+            "identities_123",
+            Request.jupyterDelimiter,
+            hmac,
+            "header_123",
+            "parentHeader_123",
+            "metadata_123",
+            "content_123",
+            "buffer_123"
+        )
+        val payload = input  .map{it.toByteArray(Charsets.UTF_8)}
+        val facade=RequestFacade.fromRecvPayload(payload).bind()
+    }
+    @Test
+    fun fromRecvPayload_complete_wrongSize(){
+        val input = listOf(
+            "identities_123",
+            Request.jupyterDelimiter+"wrong___",
+            "hmacSig_123",
+            "header_123",
+        )
+        val payload = input  .map{it.toByteArray(Charsets.UTF_8)}
+        val facade=RequestFacade.fromRecvPayload(payload)
+        assertTrue(facade.isLeft())
+        facade.tapLeft {
+            assertTrue(it is InvalidPayloadSizeException)
+        }
+    }
+
+    @Test
+    fun fromRecvPayload_complete_wrongDelimiter(){
+        val input = listOf(
+            "identities_123",
+            Request.jupyterDelimiter+"wrong___",
+            "hmacSig_123",
+            "header_123",
+            "parentHeader_123",
+            "metadata_123",
+            "content_123",
+            "buffer_123"
+        )
+        val payload = input  .map{it.toByteArray(Charsets.UTF_8)}
+        val facade=RequestFacade.fromRecvPayload(payload)
+        assertTrue(facade.isLeft())
+        facade.tapLeft {
+            assertTrue(it is NoSuchElementException)
+        }
+    }
+
+    @Test
+    fun fromRecvPayload_complete(){
+        val input = listOf(
+            "identities_123",
+            Request.jupyterDelimiter,
+            "hmacSig_123",
+            "header_123",
+            "parentHeader_123",
+            "metadata_123",
+            "content_123",
+            "buffer_123"
+        )
+        val payload = input  .map{it.toByteArray(Charsets.UTF_8)}
+        val facade=RequestFacade.fromRecvPayload(payload).bind()
+        assertEquals(input[0],facade.identities)
+        assertEquals(input[1],facade.delimiter)
+        assertEquals(input[2],facade.hmacSig)
+        assertEquals(input[3],facade.header)
+        assertEquals(input[4],facade.parentHeader)
+        assertEquals(input[5],facade.metaData)
+        assertEquals(input[6],facade.content)
+        assertTrue(Arrays.equals(input[7].toByteArray(),facade.buffer))
+    }
+    @Test
+    fun fromRecvPayload_noId(){
+        val input = listOf(
+            Request.jupyterDelimiter,
+            "hmacSig_123",
+            "header_123",
+            "parentHeader_123",
+            "metadata_123",
+            "content_123",
+            "buffer_123"
+        )
+         val payload = input  .map{it.toByteArray(Charsets.UTF_8)}
+        val facade=RequestFacade.fromRecvPayload(payload).bind()
+        assertEquals("",facade.identities)
+        assertEquals(input[0],facade.delimiter)
+        assertEquals(input[1],facade.hmacSig)
+        assertEquals(input[2],facade.header)
+        assertEquals(input[3],facade.parentHeader)
+        assertEquals(input[4],facade.metaData)
+        assertEquals(input[5],facade.content)
+        assertTrue(Arrays.equals(input[6].toByteArray(),facade.buffer))
+    }
+    @Test
+    fun fromRecvPayload_noId_noBuffer(){
+        val input = listOf(
+            Request.jupyterDelimiter,
+            "hmacSig_123",
+            "header_123",
+            "parentHeader_123",
+            "metadata_123",
+            "content_123",
+        )
+        val payload = input  .map{it.toByteArray(Charsets.UTF_8)}
+        val facade=RequestFacade.fromRecvPayload(payload).bind()
+        assertEquals("",facade.identities)
+        assertEquals("",facade.identities)
+        assertEquals(input[0],facade.delimiter)
+        assertEquals(input[1],facade.hmacSig)
+        assertEquals(input[2],facade.header)
+        assertEquals(input[3],facade.parentHeader)
+        assertEquals(input[4],facade.metaData)
+        assertEquals(input[5],facade.content)
+        assertTrue(facade.buffer.isEmpty())
+    }
+}

@@ -38,7 +38,7 @@ class ZMQMsgSender<I : MsgContent>(
 
         this.session.checkLegal("Must use an OPEN Session to run ZMQMsgSender.send: $session")
         val request = Request.autoCreate(session, msgType, msgContent, msgIdGenerator.next())
-        val payload = request.makePayload().map{ZFrame(it)}
+        val payload = request.toFacade().makeSendPayload().map{ZFrame(it)}
         val zmsg = ZMsg().also {
             it.addAll(payload)
         }

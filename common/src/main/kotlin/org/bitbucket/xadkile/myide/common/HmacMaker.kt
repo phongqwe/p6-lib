@@ -5,7 +5,7 @@ import com.google.common.hash.Hashing
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-object HMACMaker{
+object HmacMaker{
     /**
      * @dontuse
      */
@@ -35,6 +35,10 @@ object HMACMaker{
 
     fun makeHmacSha256SigInByteArray(key:ByteArray, elements:List<ByteArray>):ByteArray{
         return makeHmacSha256Sig(key,elements).toString().toByteArray(Charsets.UTF_8)
+    }
+
+    fun makeHmacSha256SigStr(key:ByteArray, elements:List<ByteArray>):String{
+        return makeHmacSha256Sig(key,elements).toString()
     }
 }
 
