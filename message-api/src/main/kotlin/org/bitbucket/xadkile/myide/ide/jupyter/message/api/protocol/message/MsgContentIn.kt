@@ -1,7 +1,7 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message
 
-interface InMsgContent {
-    interface Facade <C:InMsgContent>{
+interface MsgContentIn {
+    interface Facade <C:MsgContentIn>{
         fun toModel():C
     }
 }

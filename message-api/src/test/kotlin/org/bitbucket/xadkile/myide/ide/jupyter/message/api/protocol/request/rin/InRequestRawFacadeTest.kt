@@ -1,14 +1,12 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin
 
 import com.github.michaelbull.result.*
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HmacMaker
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.InvalidPayloadSizeException
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MessageHeader
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.InMsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContentIn
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin.parser.InMetaData
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rout.OutRequest
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 import org.junit.jupiter.api.Test
@@ -17,17 +15,17 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 internal class InRequestRawFacadeTest {
-    class InMeta(val m1: Int, val m2: String) : InMetaData
+    class InMeta(val m1: Int, val m2: String) : MetaDataIn
 
-    class MetaFacade(val meta1: Int = 0, val meta2: String = "") : InMetaData.InFacade<InMeta> {
+    class MetaFacade(val meta1: Int = 0, val meta2: String = "") : MetaDataIn.InFacade<InMeta> {
         override fun toModel(): InMeta {
             return InMeta(meta1, meta2)
         }
     }
 
-    class Content(val data: Int, val username: String) : InMsgContent
+    class Content(val data: Int, val username: String) : MsgContentIn
 
-    class ContentFacade(val data: Int, val name: String) : InMsgContent.Facade<Content> {
+    class ContentFacade(val data: Int, val name: String) : MsgContentIn.Facade<Content> {
         override fun toModel(): Content {
             return Content(data, name)
         }
@@ -49,7 +47,7 @@ internal class InRequestRawFacadeTest {
         )
 
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestRawFacade.fromRecvPayload(payload).unwrap()
+        val facade = RequestRawFacadeIn.fromRecvPayload(payload).unwrap()
         val model = facade.toModel<MetaFacade, ContentFacade,InMeta,Content>(
             session = Session("sessionId", "abc", "somekey")
         )
@@ -76,7 +74,7 @@ internal class InRequestRawFacadeTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestRawFacade.fromRecvPayload(payload).get()
+        val facade = RequestRawFacadeIn.fromRecvPayload(payload).get()
         assertTrue(facade?.verifyHmac(key) ?: false)
     }
 
@@ -89,7 +87,7 @@ internal class InRequestRawFacadeTest {
             "header_123",
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestRawFacade.fromRecvPayload(payload)
+        val facade = RequestRawFacadeIn.fromRecvPayload(payload)
         assertTrue(facade is Err)
         facade.onFailure {
             assertTrue(it is InvalidPayloadSizeException)
@@ -109,7 +107,7 @@ internal class InRequestRawFacadeTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestRawFacade.fromRecvPayload(payload)
+        val facade = RequestRawFacadeIn.fromRecvPayload(payload)
         assertTrue(facade is Err)
         facade.onFailure {
             assertTrue(it is NoSuchElementException)
@@ -129,7 +127,7 @@ internal class InRequestRawFacadeTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestRawFacade.fromRecvPayload(payload).unwrap()
+        val facade = RequestRawFacadeIn.fromRecvPayload(payload).unwrap()
         assertEquals(input[0], facade.identities)
         assertEquals(input[1], facade.delimiter)
         assertEquals(input[2], facade.hmacSig)
@@ -152,7 +150,7 @@ internal class InRequestRawFacadeTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestRawFacade.fromRecvPayload(payload).unwrap()
+        val facade = RequestRawFacadeIn.fromRecvPayload(payload).unwrap()
         assertEquals("", facade.identities)
         assertEquals(input[0], facade.delimiter)
         assertEquals(input[1], facade.hmacSig)
@@ -174,7 +172,7 @@ internal class InRequestRawFacadeTest {
             "content_123",
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = InRequestRawFacade.fromRecvPayload(payload).unwrap()
+        val facade = RequestRawFacadeIn.fromRecvPayload(payload).unwrap()
         assertEquals("", facade.identities)
         assertEquals("", facade.identities)
         assertEquals(input[0], facade.delimiter)

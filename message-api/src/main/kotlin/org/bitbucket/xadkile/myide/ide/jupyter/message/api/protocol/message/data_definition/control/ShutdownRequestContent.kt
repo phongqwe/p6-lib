@@ -1,12 +1,12 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.control
+package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.data_definition.control
 
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.OutMsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContentOut
 
 /**
  * Control.shutdown_request
  */
-class ShutdownRequestContent private constructor(val restart: Boolean): OutMsgContent {
-    override fun toFacade(): OutMsgContent.Facade {
+class ShutdownRequestContent private constructor(val restart: Boolean): MsgContentOut {
+    override fun toFacade(): MsgContentOut.Facade {
         return Facade(this.restart)
     }
 
@@ -19,6 +19,6 @@ class ShutdownRequestContent private constructor(val restart: Boolean): OutMsgCo
      * must create separated class for facade, otherwise gson will change attribute names to incorrect one
      */
     class Facade(val restart: Boolean):
-        OutMsgContent.Facade
+        MsgContentOut.Facade
 }
 

@@ -20,7 +20,7 @@ abstract class TestOnJupyter {
         this.jpConfig = JupyterTestConfig.fromFile()
         val processBuilder = ProcessBuilder(this.jpConfig.makeCmd())
         this.process = processBuilder.inheritIO().start()
-        Thread.sleep(1000)
+        Thread.sleep(2000)
         this.connectionFileContent = this.jpConfig.connectionFile()
         Thread.sleep(1000)
     }

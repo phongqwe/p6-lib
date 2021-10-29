@@ -1,6 +1,5 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message
 
-import arrow.core.Either
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result

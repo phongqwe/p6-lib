@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HmacMaker
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MessageHeader
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.ProtocolConstant
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.OutMsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContentOut
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
@@ -14,7 +14,7 @@ class OutRequest(
     private val header: MessageHeader,
     private val parentHeader: MessageHeader?,
     private val metadata: OutMetaData?,
-    private val content: OutMsgContent,
+    private val content: MsgContentOut,
     private val buffers: ByteArray,
 
     private val key: String,
@@ -27,7 +27,7 @@ class OutRequest(
          * some info is auto generated
          * [identities] is empty
          */
-        fun autoCreate(session: Session, msgType: MsgType, msgContent: OutMsgContent, msgId: String): OutRequest {
+        fun autoCreate(session: Session, msgType: MsgType, msgContent: MsgContentOut, msgId: String): OutRequest {
             return OutRequest(
                 identities = "",
                 delimiter = jupyterDelimiter,

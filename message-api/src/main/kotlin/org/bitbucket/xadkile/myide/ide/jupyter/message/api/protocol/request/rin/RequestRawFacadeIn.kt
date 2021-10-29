@@ -6,16 +6,14 @@ import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HmacMaker
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.InvalidPayloadSizeException
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MessageHeader
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rout.OutMetaData
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.ProtocolConstant
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.InMsgContent
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin.parser.*
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContentIn
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
 /**
  * For reading raw data from zmq sockets
  */
-class InRequestRawFacade(
+class RequestRawFacadeIn(
     val identities: String,
     val delimiter: String,
     val hmacSig: String,
@@ -27,11 +25,11 @@ class InRequestRawFacade(
 ):CanVerifyHmac {
     companion object {
         /**
-         * Parse a list of byte array into a [InRequestRawFacade].
+         * Parse a list of byte array into a [RequestRawFacadeIn].
          *
          * Detect the delimiter and use it as a pivot point to locate other elements
          */
-        fun fromRecvPayload(payload: List<ByteArray>): Result<InRequestRawFacade, Exception> {
+        fun fromRecvPayload(payload: List<ByteArray>): Result<RequestRawFacadeIn, Exception> {
             if (payload.size < 6) {
                 return Err(InvalidPayloadSizeException(payload.size))
             } else {
@@ -49,7 +47,7 @@ class InRequestRawFacade(
 
                         val theRestCount: Int = payload.size - delimiterIndex
 
-                        return Ok(InRequestRawFacade(
+                        return Ok(RequestRawFacadeIn(
                             identities = identities,
                             delimiter = String(payload[delimiterIndex]),
                             hmacSig = String(payload[delimiterIndex + 1]),
@@ -87,11 +85,11 @@ class InRequestRawFacade(
     }
 
     inline fun <
-            reified META_F : InMetaData.InFacade<META>, reified CONTENT_F : InMsgContent.Facade<CONTENT>,
-            META : InMetaData, CONTENT : InMsgContent,
+            reified META_F : MetaDataIn.InFacade<META>, reified CONTENT_F : MsgContentIn.Facade<CONTENT>,
+            META : MetaDataIn, CONTENT : MsgContentIn,
             > toModel(
         session: Session
-    ): Result<InRequest<META, CONTENT>, Exception> {
+    ): Result<RequestIn<META, CONTENT>, Exception> {
         val o1= this.toFacade<META_F,CONTENT_F,META,CONTENT>(session)
         val rt = o1.andThen {
             it.toModel()
@@ -101,13 +99,13 @@ class InRequestRawFacade(
 
 
     fun <
-            META_F : InMetaData.InFacade<META>, CONTENT_F : InMsgContent.Facade<CONTENT>,
-            META : InMetaData, CONTENT : InMsgContent,
+            META_F : MetaDataIn.InFacade<META>, CONTENT_F : MsgContentIn.Facade<CONTENT>,
+            META : MetaDataIn, CONTENT : MsgContentIn,
             > toModel(
-        metaDataFacadeParser: MetaDataInFacadeParser<META,META_F>,
-        contentInFacadeParser: InMsgContentFacadeParser<CONTENT,CONTENT_F>,
+        metaDataFacadeParser: MetaDataInFacadeParser<META, META_F>,
+        contentInFacadeParser: InMsgContentFacadeParser<CONTENT, CONTENT_F>,
         session: Session,
-    ): Result<InRequest<META, CONTENT>, Exception> {
+    ): Result<RequestIn<META, CONTENT>, Exception> {
         val o1 = this.toFacade(metaDataFacadeParser, contentInFacadeParser, session)
         val rt = o1.andThen {
             it.toModel()
@@ -118,11 +116,11 @@ class InRequestRawFacade(
 
 
     inline fun <
-            reified META_F : InMetaData.InFacade<META>, reified CONTENT_F : InMsgContent.Facade<CONTENT>,
-            META : InMetaData, CONTENT : InMsgContent,
+            reified META_F : MetaDataIn.InFacade<META>, reified CONTENT_F : MsgContentIn.Facade<CONTENT>,
+            META : MetaDataIn, CONTENT : MsgContentIn,
             > toFacade(
         session: Session,
-    ): Result<InRequestFacade<META,META_F,CONTENT,CONTENT_F>, Exception> {
+    ): Result<RequestFacadeIn<META,META_F,CONTENT,CONTENT_F>, Exception> {
         val gson = Gson()
         return this.toFacade(
             metaDataFacadeParser = {
@@ -136,18 +134,18 @@ class InRequestRawFacade(
     }
 
     fun <
-            META_F : InMetaData.InFacade<META>, CONTENT_F : InMsgContent.Facade<CONTENT>,
-            META : InMetaData, CONTENT : InMsgContent,
+            META_F : MetaDataIn.InFacade<META>, CONTENT_F : MsgContentIn.Facade<CONTENT>,
+            META : MetaDataIn, CONTENT : MsgContentIn,
             > toFacade(
-        metaDataFacadeParser: MetaDataInFacadeParser<META,META_F>,
-        contentInFacadeParser: InMsgContentFacadeParser<CONTENT,CONTENT_F>,
+        metaDataFacadeParser: MetaDataInFacadeParser<META, META_F>,
+        contentInFacadeParser: InMsgContentFacadeParser<CONTENT, CONTENT_F>,
         session: Session,
-    ): Result<InRequestFacade<META,META_F,CONTENT,CONTENT_F>, Exception> {
+    ): Result<RequestFacadeIn<META,META_F,CONTENT,CONTENT_F>, Exception> {
         val gson = Gson()
-        val rt = binding<InRequestFacade<META,META_F,CONTENT,CONTENT_F>, Exception> {
+        val rt = binding<RequestFacadeIn<META,META_F,CONTENT,CONTENT_F>, Exception> {
             val headerObj = gson.fromJson(header, MessageHeader.Facade::class.java)
             val parentHeaderObj = gson.fromJson(parentHeader, MessageHeader.Facade::class.java)
-            InRequestFacade(
+            RequestFacadeIn(
                 identities = identities,
                 delimiter = delimiter,
                 header = headerObj,

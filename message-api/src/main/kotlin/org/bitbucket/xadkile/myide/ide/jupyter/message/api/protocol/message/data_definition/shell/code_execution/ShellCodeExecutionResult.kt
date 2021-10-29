@@ -1,7 +1,6 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.shell.code_execution
+package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.data_definition.shell.code_execution
 
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.InMsgContent
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.OutMsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContentIn
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgStatus
 
 
@@ -25,13 +24,13 @@ class ShellCodeExecutionResult(
     val metadata: Any,
     val executionCount:Int
 
-) : InMsgContent {
+) : MsgContentIn {
     class Facade(
         val status: MsgStatus,
         val execution_count:Int,
         val payload:List<Any>,
         val user_expressions:Map<String,String>
-    ):InMsgContent.Facade<ShellCodeExecutionResult>{
+    ):MsgContentIn.Facade<ShellCodeExecutionResult>{
         override fun toModel(): ShellCodeExecutionResult {
             TODO()
         }

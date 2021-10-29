@@ -1,11 +1,10 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.shell
 
-import arrow.core.computations.ResultEffect.bind
 import com.github.michaelbull.result.unwrap
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.channel.ChannelInfo
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.shell.code_execution.ShellCodeExecutionContent
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin.InRequestRawFacade
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.data_definition.shell.code_execution.ShellCodeExecutionContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin.RequestRawFacadeIn
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgCounterImp
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.SequentialMsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
@@ -27,13 +26,12 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
                     val m = subSocket.recvStr()
                     msgL.add(m)
                 }
-                val z = InRequestRawFacade.fromRecvPayload(msgL.map{it.toByteArray(Charsets.UTF_8)}).unwrap()
+                val z = RequestRawFacadeIn.fromRecvPayload(msgL.map{it.toByteArray(Charsets.UTF_8)}).unwrap()
                 println(z)
                 msgL.clear()
             }
         }
     }
-
 
 
     @Test
@@ -67,8 +65,8 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
             stopOnError = true
         )
         val out = sender.send(MsgType.Shell.execute_request, input)
-        if(out.isDefined()){
-            println("==OUT==\n${out.orNull()}\n====")
+        if(out.isPresent()){
+            println("==OUT==\n${out.get()}\n====")
         }
         Thread.sleep(10000)
         context.close()

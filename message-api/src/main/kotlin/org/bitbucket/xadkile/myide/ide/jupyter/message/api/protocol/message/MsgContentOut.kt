@@ -1,6 +1,6 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message
 
-interface OutMsgContent {
+interface MsgContentOut {
     /**
      * must not add any function to [Facade]
      */

@@ -1,9 +1,9 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message
 
-object EmptyMsgContent : OutMsgContent {
+object EmptyMsgContent : MsgContentOut {
     override fun toFacade(): Facade {
         return Facade
     }
     object Facade :
-        OutMsgContent.Facade
+        MsgContentOut.Facade
 }
