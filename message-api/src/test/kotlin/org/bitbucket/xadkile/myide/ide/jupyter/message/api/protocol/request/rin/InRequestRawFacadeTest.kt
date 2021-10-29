@@ -17,8 +17,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 internal class InRequestRawFacadeTest {
-    class InMeta(val m1: Int, val m2: String) : InMetaData {
-    }
+    class InMeta(val m1: Int, val m2: String) : InMetaData
 
     class MetaFacade(val meta1: Int = 0, val meta2: String = "") : InMetaData.InFacade<InMeta> {
         override fun toModel(): InMeta {
@@ -33,7 +32,6 @@ internal class InRequestRawFacadeTest {
             return Content(data, name)
         }
     }
-
 
     @Test
     fun toModel() {
@@ -55,12 +53,8 @@ internal class InRequestRawFacadeTest {
         val model = facade.toModel<MetaFacade, ContentFacade,InMeta,Content>(
             session = Session("sessionId", "abc", "somekey")
         )
-        val facadeInternal = facade.toFacade<MetaFacade, ContentFacade,InMeta,Content>(session = Session("sessionId", "abc", "somekey"))
         assertTrue(model is Ok)
-        println(gson.toJson(facadeInternal))
-
     }
-
 
     @Test
     fun verifyHmac() {

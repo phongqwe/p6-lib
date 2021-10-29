@@ -24,7 +24,7 @@ class InRequestRawFacade(
     val metaData: String,
     val content: String,
     val buffer: ByteArray,
-) {
+):CanVerifyHmac {
     companion object {
         /**
          * Parse a list of byte array into a [InRequestRawFacade].
@@ -168,7 +168,7 @@ class InRequestRawFacade(
         ).map { it.toByteArray(Charsets.UTF_8) }
     }
 
-    fun verifyHmac(key: ByteArray): Boolean {
+    override fun verifyHmac(key: ByteArray): Boolean {
         return this.hmacSig == HmacMaker.makeHmacSha256SigStr(key, getHMACIngredients())
     }
 
