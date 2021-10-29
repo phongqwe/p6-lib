@@ -86,30 +86,65 @@ class InRequestRawFacade(
         }
     }
 
-    fun <
-            META_F : InMetaData.InFacade, CONTENT_F : InMsgContent.Facade,
+    inline fun <
+            reified META_F : InMetaData.InFacade<META>, reified CONTENT_F : InMsgContent.Facade<CONTENT>,
             META : InMetaData, CONTENT : InMsgContent,
             > toModel(
-        metaDataInParser: MetaDataInParser<META_F, META>,
-        contentInParser: InMsgContentParser<CONTENT_F, CONTENT>,
-        metaDataFacadeParser: MetaDataInFacadeParser<META_F>,
-        contentInFacadeParser: InMsgContentFacadeParser<CONTENT_F>,
-        session: Session,
+        session: Session
     ): Result<InRequest<META, CONTENT>, Exception> {
-        val o1 = this.toFacade(metaDataFacadeParser, contentInFacadeParser, session)
+        val o1= this.toFacade<META_F,CONTENT_F,META,CONTENT>(session)
         val rt = o1.andThen {
-            it.toModel(metaDataInParser, contentInParser)
+            it.toModel()
         }
         return rt
     }
 
-    private fun <META_F : InMetaData.InFacade, CONTENT_F : InMsgContent.Facade> toFacade(
-        metaDataFacadeParser: MetaDataInFacadeParser<META_F>,
-        contentInFacadeParser: InMsgContentFacadeParser<CONTENT_F>,
+
+    fun <
+            META_F : InMetaData.InFacade<META>, CONTENT_F : InMsgContent.Facade<CONTENT>,
+            META : InMetaData, CONTENT : InMsgContent,
+            > toModel(
+        metaDataFacadeParser: MetaDataInFacadeParser<META,META_F>,
+        contentInFacadeParser: InMsgContentFacadeParser<CONTENT,CONTENT_F>,
         session: Session,
-    ): Result<InRequestFacade<META_F, CONTENT_F>, Exception> {
+    ): Result<InRequest<META, CONTENT>, Exception> {
+        val o1 = this.toFacade(metaDataFacadeParser, contentInFacadeParser, session)
+        val rt = o1.andThen {
+            it.toModel()
+        }
+        return rt
+    }
+
+
+
+    inline fun <
+            reified META_F : InMetaData.InFacade<META>, reified CONTENT_F : InMsgContent.Facade<CONTENT>,
+            META : InMetaData, CONTENT : InMsgContent,
+            > toFacade(
+        session: Session,
+    ): Result<InRequestFacade<META,META_F,CONTENT,CONTENT_F>, Exception> {
         val gson = Gson()
-        val rt = binding<InRequestFacade<META_F, CONTENT_F>, Exception> {
+        return this.toFacade(
+            metaDataFacadeParser = {
+                gson.fromJson(it, META_F::class.java)
+            },
+            contentInFacadeParser = {
+                gson.fromJson(it, CONTENT_F::class.java)
+            },
+            session
+        )
+    }
+
+    fun <
+            META_F : InMetaData.InFacade<META>, CONTENT_F : InMsgContent.Facade<CONTENT>,
+            META : InMetaData, CONTENT : InMsgContent,
+            > toFacade(
+        metaDataFacadeParser: MetaDataInFacadeParser<META,META_F>,
+        contentInFacadeParser: InMsgContentFacadeParser<CONTENT,CONTENT_F>,
+        session: Session,
+    ): Result<InRequestFacade<META,META_F,CONTENT,CONTENT_F>, Exception> {
+        val gson = Gson()
+        val rt = binding<InRequestFacade<META,META_F,CONTENT,CONTENT_F>, Exception> {
             val headerObj = gson.fromJson(header, MessageHeader.Facade::class.java)
             val parentHeaderObj = gson.fromJson(parentHeader, MessageHeader.Facade::class.java)
             InRequestFacade(

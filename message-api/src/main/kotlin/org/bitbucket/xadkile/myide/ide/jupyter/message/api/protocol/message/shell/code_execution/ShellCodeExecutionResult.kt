@@ -31,7 +31,7 @@ class ShellCodeExecutionResult(
         val execution_count:Int,
         val payload:List<Any>,
         val user_expressions:Map<String,String>
-    ):InMsgContent.Facade{
+    ):InMsgContent.Facade<ShellCodeExecutionResult>{
         override fun toModel(): ShellCodeExecutionResult {
             TODO()
         }

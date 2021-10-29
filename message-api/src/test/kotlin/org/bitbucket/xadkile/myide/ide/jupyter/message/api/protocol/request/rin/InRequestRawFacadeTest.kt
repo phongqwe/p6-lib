@@ -2,6 +2,7 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin
 
 import com.github.michaelbull.result.*
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HmacMaker
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.InvalidPayloadSizeException
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MessageHeader
@@ -19,15 +20,15 @@ internal class InRequestRawFacadeTest {
     class InMeta(val m1: Int, val m2: String) : InMetaData {
     }
 
-    class MetaFacade(val meta1: Int = 0, val meta2: String = "") : InMetaData.InFacade {
-        override fun toModel(): InMetaData {
+    class MetaFacade(val meta1: Int = 0, val meta2: String = "") : InMetaData.InFacade<InMeta> {
+        override fun toModel(): InMeta {
             return InMeta(meta1, meta2)
         }
     }
 
     class Content(val data: Int, val username: String) : InMsgContent
 
-    class ContentFacade(val data: Int, val name: String) : InMsgContent.Facade {
+    class ContentFacade(val data: Int, val name: String) : InMsgContent.Facade<Content> {
         override fun toModel(): Content {
             return Content(data, name)
         }
@@ -37,7 +38,7 @@ internal class InRequestRawFacadeTest {
     @Test
     fun toModel() {
         val dHeader = MessageHeader.autoCreate(MsgType.Shell.execute_request, "msgid", "s", "").toFacade()
-        val gson = Gson()
+        val gson = GsonBuilder().setPrettyPrinting().create()
         val input = listOf(
             "identities_123",
             OutRequest.jupyterDelimiter,
@@ -51,20 +52,12 @@ internal class InRequestRawFacadeTest {
 
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
         val facade = InRequestRawFacade.fromRecvPayload(payload).unwrap()
-        val model = facade.toModel(
-            metaDataFacadeParser = {
-                gson.fromJson(it, MetaFacade::class.java)
-            },
-            metaDataInParser = {
-                it.toModel()
-            },
-            contentInFacadeParser = {
-                gson.fromJson(it, ContentFacade::class.java)
-            },
-            contentInParser = { it.toModel() },
+        val model = facade.toModel<MetaFacade, ContentFacade,InMeta,Content>(
             session = Session("sessionId", "abc", "somekey")
         )
+        val facadeInternal = facade.toFacade<MetaFacade, ContentFacade,InMeta,Content>(session = Session("sessionId", "abc", "somekey"))
         assertTrue(model is Ok)
+        println(gson.toJson(facadeInternal))
 
     }
 

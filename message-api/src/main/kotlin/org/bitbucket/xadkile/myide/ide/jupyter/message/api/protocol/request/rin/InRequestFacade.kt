@@ -6,11 +6,9 @@ import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MessageHeade
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rout.OutMetaData
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.InMsgContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin.parser.InMetaData
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin.parser.MetaDataInParser
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin.parser.InMsgContentParser
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
-internal class InRequestFacade<META_F : InMetaData.InFacade, CONTENT_F : InMsgContent.Facade>(
+class InRequestFacade<META:InMetaData,META_F : InMetaData.InFacade<META>, CONTENT:InMsgContent,CONTENT_F : InMsgContent.Facade<CONTENT>>(
     private val identities: String,
     private val delimiter: String,
     private val header: MessageHeader.Facade,
@@ -21,20 +19,20 @@ internal class InRequestFacade<META_F : InMetaData.InFacade, CONTENT_F : InMsgCo
     private val key: String,
     private val session: Session,
 ) {
-    fun <META : InMetaData, CONTENT : InMsgContent> toModel(
-        metaDataInParser: MetaDataInParser<META_F,META>,
-        contentInParser: InMsgContentParser<CONTENT_F,CONTENT>,
+    fun toModel(
+//        metaDataInParser: MetaDataInParser<META_F,META>,
+//        contentInParser: InMsgContentParser<CONTENT_F,CONTENT>,
     ): Result<InRequest<META, CONTENT>, Exception> {
         val o = binding<InRequest<META, CONTENT>, Exception> {
             val header = this@InRequestFacade.header.toModel().bind()
             val parentHeader = this@InRequestFacade.parentHeader?.toModel()?.bind()
-            val k = InRequest(
+            val k = InRequest<META,CONTENT>(
                 identities = this@InRequestFacade.identities,
                 delimiter = this@InRequestFacade.delimiter,
                 header = header,
                 parentHeader = parentHeader,
-                metadata = this@InRequestFacade.metadata?.let { metaDataInParser.parse(it) },
-                content = contentInParser.parse(this@InRequestFacade.content),
+                metadata = this@InRequestFacade.metadata?.toModel(),
+                content = this@InRequestFacade.content.toModel(),
                 buffer = this@InRequestFacade.buffer,
                 key = this@InRequestFacade.key,
                 session = this@InRequestFacade.session
