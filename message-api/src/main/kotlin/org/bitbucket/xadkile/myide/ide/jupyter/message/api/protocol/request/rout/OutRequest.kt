@@ -1,11 +1,10 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.out
+package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rout
 
 import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HmacMaker
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.InRequestRawFacade
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MessageHeader
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MetaData
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.ProtocolConstant
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.OutMsgContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
@@ -14,21 +13,21 @@ class OutRequest(
     private val delimiter:String,
     private val header: MessageHeader,
     private val parentHeader: MessageHeader?,
-    private val metadata: MetaData?,
-    private val content: MsgContent,
+    private val metadata: OutMetaData?,
+    private val content: OutMsgContent,
     private val buffers: ByteArray,
 
     private val key: String,
     private val session: Session
 ) {
     companion object {
-        val jupyterDelimiter = "<IDS|MSG>"
+        val jupyterDelimiter = ProtocolConstant.messageDelimiter
 
         /**
          * some info is auto generated
          * [identities] is empty
          */
-        fun autoCreate(session: Session, msgType: MsgType, msgContent: MsgContent, msgId: String): OutRequest {
+        fun autoCreate(session: Session, msgType: MsgType, msgContent: OutMsgContent, msgId: String): OutRequest {
             return OutRequest(
                 identities = "",
                 delimiter = jupyterDelimiter,
@@ -70,25 +69,6 @@ class OutRequest(
             ingredients[2].toByteArray(Charsets.UTF_8),
             ingredients[3].toByteArray(Charsets.UTF_8),
             this.buffers
-        )
-    }
-
-    /**
-     * @deprecated
-     */
-    fun toFacade(): InRequestRawFacade {
-        val ingredients = getHMACIngredientAsStr()
-        val ingredientsAsByteArray = ingredients.map { it.toByteArray(Charsets.UTF_8) }
-        val keyAsByteArray = this.key.toByteArray(Charsets.UTF_8)
-        return InRequestRawFacade(
-            identities=this.identities,
-            delimiter=this.delimiter,
-            hmacSig = HmacMaker.makeHmacSha256SigStr(keyAsByteArray,ingredientsAsByteArray),
-            header =  ingredients[0],
-            parentHeader=ingredients[1],
-            metaData = ingredients[2],
-            content=ingredients[3],
-            buffer = this.buffers
         )
     }
 

@@ -1,9 +1,8 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.shell
 
 import arrow.core.Option
-import arrow.core.getOrElse
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.shell.execute.ShellCodeExecutionContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.shell.code_execution.ShellCodeExecutionContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.sender.MsgSender
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session

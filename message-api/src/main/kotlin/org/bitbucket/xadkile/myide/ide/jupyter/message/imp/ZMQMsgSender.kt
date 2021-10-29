@@ -3,8 +3,8 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.imp
 import arrow.core.None
 import arrow.core.Option
 import arrow.core.Some
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.out.OutRequest
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rout.OutRequest
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.OutMsgContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.sender.MsgSender
@@ -23,7 +23,7 @@ import org.zeromq.ZMsg
  *  [ZMQ.Socket] for zmq connection
  *
  */
-class ZMQMsgSender<I : MsgContent>(
+class ZMQMsgSender<I : OutMsgContent>(
     val socket: ZMQ.Socket,
     val session: Session,
     val msgIdGenerator: MsgIdGenerator
