@@ -3,34 +3,27 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
+import com.google.gson.annotations.SerializedName
 
 /**
  * msg_type is defined in jupyter document
  * https://jupyter-client.readthedocs.io/en/latest/messaging.html
  */
-interface MsgType {
-    enum class Control : MsgType {
-        shutdown_request, shutdown_reply
-    }
+enum class MsgType {
+    @SerializedName("shutdown_request")
+    Control_shutdown_request,
+    @SerializedName("shutdown_reply")
+    Control_shutdown_reply,
 
-    enum class Shell : MsgType {
-        execute_request, execute_reply
-    }
+    @SerializedName("execute_request")
+    Shell_execute_request,
+    @SerializedName("execute_reply")
+    Shell_execute_reply,
 
-    enum class IOPub : MsgType {
-        display_data, execute_result
-    }
+    @SerializedName("display_data")
+    IOPub_display_data,
+    @SerializedName("execute_result")
+    IOPub_execute_result,
 
-    companion object {
-        fun parse(type: String): Result<MsgType,IllegalArgumentException> {
-            val all: List<MsgType> = (Control.values().asList()) + Shell.values().asList() + (IOPub.values().asList())
-            try {
-                val z = all.first { it.toString() == type }
-                return Ok(z)
-            } catch (e: NoSuchElementException) {
-                return Err(IllegalArgumentException("${type} is not a MsgType"))
-            }
-        }
-    }
-
+    ;
 }

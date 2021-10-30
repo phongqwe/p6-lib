@@ -1,7 +1,10 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.shell
 
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.channel.IsShellChannel
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.data_definition.shell.code_execution.ShellCodeExecutionContent
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.data_definition.Shell
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.sender.MsgSender
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
@@ -11,15 +14,16 @@ import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import java.util.*
 
-class ShellCodeExecutionSender(
+class ExecuteRequestSender constructor(
     private val zmqContext: ZContext,
     private val session: Session,
+    @IsShellChannel
     private val address: String,
-    val msgIdGenerator: MsgIdGenerator
-) : MsgSender<ShellCodeExecutionContent, Optional<String>> {
+    private val msgIdGenerator: MsgIdGenerator
+) : MsgSender<Shell.ExecuteRequest.Out.Content, Optional<String>> {
 
     private val zmqMsgSender =
-        ZMQMsgSender<ShellCodeExecutionContent>(
+        ZMQMsgSender<Shell.ExecuteRequest.Out.Content>(
             socket = zmqContext.createSocket(SocketType.REQ).also {
                 it.connect(address)
             },
@@ -30,7 +34,7 @@ class ShellCodeExecutionSender(
     /**
      * Send a shell.code_execution message, return response msg. The response does not carry computation result, only carries status
      */
-    override fun send(msgType: MsgType, msgContent: ShellCodeExecutionContent): Optional<String> {
+    override fun send(msgType: MsgType, msgContent: Shell.ExecuteRequest.Out.Content): Optional<String> {
         val sockResult: Optional<ZMQ.Socket> = zmqMsgSender.send(msgType, msgContent)
         val rt:Optional<String> = sockResult.map { sock ->
             val strBuilder = StringBuilder()

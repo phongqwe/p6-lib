@@ -10,14 +10,4 @@ enum class MsgStatus {
     error,
     aborted
     ;
-//    companion object {
-//        fun parse(input:String):Result<MsgStatus,Exception>{
-//            val status = try {
-//                Ok(valueOf(input))
-//            } catch (e: Exception) {
-//                Err(e)
-//            }
-//            return status
-//        }
-//    }
 }

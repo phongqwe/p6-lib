@@ -1,19 +1,18 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin
+package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message
 
 import com.github.michaelbull.result.*
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HmacMaker
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.InvalidPayloadSizeException
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MessageHeader
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.ProtocolConstant
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContentIn
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.ProtocolUtils
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
 /**
  * For reading raw data from zmq sockets
  */
-class RequestRawFacadeIn(
+class JPRawMessage(
     val identities: String,
     val delimiter: String,
     val hmacSig: String,
@@ -22,14 +21,14 @@ class RequestRawFacadeIn(
     val metaData: String,
     val content: String,
     val buffer: ByteArray,
-):CanVerifyHmac {
+): CanVerifyHmac {
     companion object {
         /**
-         * Parse a list of byte array into a [RequestRawFacadeIn].
+         * Parse a list of byte array into a [JPRawMessage].
          *
          * Detect the delimiter and use it as a pivot point to locate other elements
          */
-        fun fromRecvPayload(payload: List<ByteArray>): Result<RequestRawFacadeIn, Exception> {
+        fun fromRecvPayload(payload: List<ByteArray>): Result<JPRawMessage, Exception> {
             if (payload.size < 6) {
                 return Err(InvalidPayloadSizeException(payload.size))
             } else {
@@ -47,7 +46,7 @@ class RequestRawFacadeIn(
 
                         val theRestCount: Int = payload.size - delimiterIndex
 
-                        return Ok(RequestRawFacadeIn(
+                        return Ok(JPRawMessage(
                             identities = identities,
                             delimiter = String(payload[delimiterIndex]),
                             hmacSig = String(payload[delimiterIndex + 1]),
@@ -84,80 +83,21 @@ class RequestRawFacadeIn(
         }
     }
 
-    inline fun <
-            reified META_F : MetaDataIn.InFacade<META>, reified CONTENT_F : MsgContentIn.Facade<CONTENT>,
-            META : MetaDataIn, CONTENT : MsgContentIn,
-            > toModel(
-        session: Session
-    ): Result<RequestIn<META, CONTENT>, Exception> {
-        val o1= this.toFacade<META_F,CONTENT_F,META,CONTENT>(session)
-        val rt = o1.andThen {
-            it.toModel()
-        }
-        return rt
-    }
 
-
-    fun <
-            META_F : MetaDataIn.InFacade<META>, CONTENT_F : MsgContentIn.Facade<CONTENT>,
-            META : MetaDataIn, CONTENT : MsgContentIn,
-            > toModel(
-        metaDataFacadeParser: MetaDataInFacadeParser<META, META_F>,
-        contentInFacadeParser: InMsgContentFacadeParser<CONTENT, CONTENT_F>,
-        session: Session,
-    ): Result<RequestIn<META, CONTENT>, Exception> {
-        val o1 = this.toFacade(metaDataFacadeParser, contentInFacadeParser, session)
-        val rt = o1.andThen {
-            it.toModel()
-        }
-        return rt
-    }
-
-
-
-    inline fun <
-            reified META_F : MetaDataIn.InFacade<META>, reified CONTENT_F : MsgContentIn.Facade<CONTENT>,
-            META : MetaDataIn, CONTENT : MsgContentIn,
-            > toFacade(
-        session: Session,
-    ): Result<RequestFacadeIn<META,META_F,CONTENT,CONTENT_F>, Exception> {
-        val gson = Gson()
-        return this.toFacade(
-            metaDataFacadeParser = {
-                gson.fromJson(it, META_F::class.java)
-            },
-            contentInFacadeParser = {
-                gson.fromJson(it, CONTENT_F::class.java)
-            },
-            session
+    inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent>
+            toModel(session: Session, ): JPMessage<META, CONTENT> {
+        val gson = ProtocolUtils.msgGson
+        return JPMessage(
+            identities = this.identities,
+            delimiter=this.delimiter,
+            header = gson.fromJson(this.header,MessageHeader::class.java),
+            parentHeader = gson.fromJson(this.parentHeader,MessageHeader::class.java),
+            metadata = gson.fromJson(metaData,META::class.java),
+            content = gson.fromJson(content,CONTENT::class.java),
+            buffers = buffer,
+            key = session.key,
+            session = session
         )
-    }
-
-    fun <
-            META_F : MetaDataIn.InFacade<META>, CONTENT_F : MsgContentIn.Facade<CONTENT>,
-            META : MetaDataIn, CONTENT : MsgContentIn,
-            > toFacade(
-        metaDataFacadeParser: MetaDataInFacadeParser<META, META_F>,
-        contentInFacadeParser: InMsgContentFacadeParser<CONTENT, CONTENT_F>,
-        session: Session,
-    ): Result<RequestFacadeIn<META,META_F,CONTENT,CONTENT_F>, Exception> {
-        val gson = Gson()
-        val rt = binding<RequestFacadeIn<META,META_F,CONTENT,CONTENT_F>, Exception> {
-            val headerObj = gson.fromJson(header, MessageHeader.Facade::class.java)
-            val parentHeaderObj = gson.fromJson(parentHeader, MessageHeader.Facade::class.java)
-            RequestFacadeIn(
-                identities = identities,
-                delimiter = delimiter,
-                header = headerObj,
-                parentHeader = parentHeaderObj,
-                metadata = metaDataFacadeParser.parse(metaData),
-                content = contentInFacadeParser.parse(content),
-                buffer = buffer,
-                key = session.key,
-                session = session
-            )
-        }
-        return rt
     }
 
     private fun getHMACIngredients(): List<ByteArray> {

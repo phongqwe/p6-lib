@@ -1,7 +1,7 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.imp
 
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rout.OutRequest
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContentOut
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.JPMessage
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContent
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.sender.MsgSender
@@ -21,7 +21,7 @@ import java.util.*
  *  [ZMQ.Socket] for zmq connection
  *
  */
-class ZMQMsgSender<I : MsgContentOut>(
+class ZMQMsgSender<I : MsgContent>(
     val socket: ZMQ.Socket,
     val session: Session,
     val msgIdGenerator: MsgIdGenerator
@@ -36,7 +36,7 @@ class ZMQMsgSender<I : MsgContentOut>(
      */
     override fun send(msgType: MsgType, msgContent: I): Optional<ZMQ.Socket> {
         this.session.checkLegal("Must use an OPEN Session to run ZMQMsgSender.send: $session")
-        val request = OutRequest.autoCreate(session, msgType, msgContent, msgIdGenerator.next())
+        val request = JPMessage.autoCreate(session, msgType, msgContent, msgIdGenerator.next())
         val payload = request.makePayload().map{ZFrame(it)}
         val zmsg = ZMsg().also {
             it.addAll(payload)

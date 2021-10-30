@@ -1,24 +1,21 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rout
+package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message
 
-import com.google.gson.GsonBuilder
 import org.bitbucket.xadkile.myide.common.HmacMaker
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.MessageHeader
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.ProtocolConstant
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgContentOut
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.ProtocolUtils
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
 
-class OutRequest(
-    private val identities:String,
-    private val delimiter:String,
-    private val header: MessageHeader,
-    private val parentHeader: MessageHeader?,
-    private val metadata: OutMetaData?,
-    private val content: MsgContentOut,
-    private val buffers: ByteArray,
-
-    private val key: String,
-    private val session: Session
+class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
+    val identities:String,
+    val delimiter:String,
+    val header: MessageHeader,
+    val parentHeader: MessageHeader?,
+    val metadata: META?,
+    val content: CONTENT,
+    val buffers: ByteArray,
+    val key: String,
+    val session: Session
 ) {
     companion object {
         val jupyterDelimiter = ProtocolConstant.messageDelimiter
@@ -27,8 +24,8 @@ class OutRequest(
          * some info is auto generated
          * [identities] is empty
          */
-        fun autoCreate(session: Session, msgType: MsgType, msgContent: MsgContentOut, msgId: String): OutRequest {
-            return OutRequest(
+        fun <CONTENT : MsgContent> autoCreate(session: Session, msgType: MsgType, msgContent: CONTENT, msgId: String): JPMessage<MsgMetaData, CONTENT> {
+            return JPMessage(
                 identities = "",
                 delimiter = jupyterDelimiter,
                 header = MessageHeader.autoCreate(
@@ -47,16 +44,10 @@ class OutRequest(
         }
     }
 
-//    fun getSessionId(): String {
-//        return this.session.sessionId
-//    }
-//
-//    fun getMsgId(): String {
-//        return this.header.getMsgId()
-//    }
+
+
 
     fun makePayload():List<ByteArray>{
-        val gson=GsonBuilder().setPrettyPrinting().create()
         val ingredients = getHMACIngredientAsStr()
         val ingredientsAsByteArray = ingredients.map { it.toByteArray(Charsets.UTF_8) }
         val keyAsByteArray = this.key.toByteArray(Charsets.UTF_8)
@@ -76,12 +67,12 @@ class OutRequest(
      * Return ingredients for use in the creation a Hmac sha256 signature
      */
     private fun getHMACIngredientAsStr(): List<String> {
-        val gson = GsonBuilder().setPrettyPrinting().create()
+        val gson = ProtocolUtils.msgGson
         val rt = listOf(
-            gson.toJson(this.header.toFacade()),
-            this.parentHeader?.toFacade()?.let { gson.toJson(it) } ?: "{}",
-            this.metadata?.toFacade()?.let { gson.toJson(it) } ?: "{}",
-            gson.toJson(this.content.toFacade()),
+            gson.toJson(this.header),
+            this.parentHeader?.let { gson.toJson(it) } ?: "{}",
+            this.metadata?.let { gson.toJson(it) } ?: "{}",
+            gson.toJson(this.content),
         )
         return rt
     }

@@ -2,9 +2,8 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.shell
 
 import com.github.michaelbull.result.unwrap
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.channel.ChannelInfo
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.data_definition.shell.code_execution.ShellCodeExecutionContent
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin.RequestRawFacadeIn
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.JPRawMessage
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.data_definition.Shell
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgCounterImp
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.SequentialMsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
@@ -26,7 +25,7 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
                     val m = subSocket.recvStr()
                     msgL.add(m)
                 }
-                val z = RequestRawFacadeIn.fromRecvPayload(msgL.map{it.toByteArray(Charsets.UTF_8)}).unwrap()
+                val z = JPRawMessage.fromRecvPayload(msgL.map{it.toByteArray(Charsets.UTF_8)}).unwrap()
                 println(z)
                 msgL.clear()
             }
@@ -49,14 +48,14 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
 
         val runnable = ZZZ(subSocket,session)
         ZThread.start(runnable)
-        val sender = ShellCodeExecutionSender(
+        val sender = ExecuteRequestSender(
             zmqContext = context,
             session = session,
             address = channelInfo.makeAddress(),
             msgIdGenerator = SequentialMsgIdGenerator(session.sessionId, MsgCounterImp())
         )
 
-        val input = ShellCodeExecutionContent(
+        val input = Shell.ExecuteRequest.Out.Content(
             code = "x=1+1*2;y=x*2;y",
             silent = false,
             storeHistory = true,
@@ -64,7 +63,7 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
             allowStdin = false,
             stopOnError = true
         )
-        val out = sender.send(MsgType.Shell.execute_request, input)
+        val out = sender.send(Shell.ExecuteRequest.msgType, input)
         if(out.isPresent()){
             println("==OUT==\n${out.get()}\n====")
         }

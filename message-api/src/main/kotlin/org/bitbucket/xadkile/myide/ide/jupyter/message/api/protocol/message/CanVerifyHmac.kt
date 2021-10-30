@@ -1,4 +1,4 @@
-package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.request.rin
+package org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message
 
 import org.bitbucket.xadkile.myide.common.HmacMaker
 
