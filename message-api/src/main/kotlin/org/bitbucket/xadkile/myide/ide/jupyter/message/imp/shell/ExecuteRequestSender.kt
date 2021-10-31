@@ -2,6 +2,7 @@ package org.bitbucket.xadkile.myide.ide.jupyter.message.imp.shell
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.channel.IsShellAddress
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.channel.IsShellChannel
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgType
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.data_definition.Shell
@@ -13,12 +14,15 @@ import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import java.util.*
+import javax.inject.Inject
+import javax.inject.Named
 
-class ExecuteRequestSender constructor(
+class ExecuteRequestSender @Inject constructor(
     private val zmqContext: ZContext,
     private val session: Session,
-    @IsShellChannel
+    @IsShellAddress
     private val address: String,
+    @Named("sequential")
     private val msgIdGenerator: MsgIdGenerator
 ) : MsgSender<Shell.ExecuteRequest.Out.Content, Optional<String>> {
 

@@ -1,8 +1,10 @@
 package org.bitbucket.xadkile.myide.ide.jupyter.message.di
 
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgCounterImp
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.SequentialMsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
@@ -11,10 +13,12 @@ import javax.inject.Named
 import javax.inject.Singleton
 
 
-
-
 @Module
-abstract class MsgIdGeneratorModule {
+interface MsgIdGeneratorModule {
+
+    @Binds
+    abstract fun bindMsgCounter(counter:MsgCounterImp):MsgCounter
+
     companion object {
         @JvmStatic
         @Provides
@@ -25,12 +29,6 @@ abstract class MsgIdGeneratorModule {
             msgCounter: MsgCounter
         ): MsgIdGenerator {
             return SequentialMsgIdGenerator(uuid,msgCounter)
-        }
-        @JvmStatic
-        @Provides
-        @SessionUUID
-        fun sessionUUID(session: Session):String{
-            return session.sessionId
         }
     }
 }

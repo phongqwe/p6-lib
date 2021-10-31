@@ -4,9 +4,8 @@ import com.github.michaelbull.result.unwrap
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.channel.ChannelInfo
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.JPRawMessage
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.data_definition.Shell
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.MsgCounterImp
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.utils.SequentialMsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.session.Session
+import org.bitbucket.xadkile.myide.ide.jupyter.message.di.DaggerMessageApiComponent
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.TestInstance
@@ -15,7 +14,7 @@ import test.utils.TestOnJupyter
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
-    class ZZZ(val subSocket: ZMQ.Socket, val session: Session) : ZThread.IDetachedRunnable {
+    class ZListener(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
         override fun run(args: Array<out Any>?) {
             val msgL = mutableListOf<String>()
             while (true) {
@@ -35,25 +34,29 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
 
     @Test
     fun send() {
+
         val context = ZContext()
         val connectionFile = this.connectionFileContent
         val session = Session.autoCreate(connectionFile.key)
-        val channelInfo = ChannelInfo("Shell", "tcp", connectionFile.ip, connectionFile.controlPort)
-        val subCHannel = ChannelInfo("Shell", "tcp", connectionFile.ip, connectionFile.iopubPort)
+
+        val shellChannel = ChannelInfo("Shell", "tcp", connectionFile.ip, connectionFile.shellPort)
+        val iopubChannel = ChannelInfo("IOPub", "tcp", connectionFile.ip, connectionFile.iopubPort)
 
         val subSocket = context.createSocket(SocketType.SUB)
-        subSocket.connect(subCHannel.makeAddress())
-        println(subCHannel.makeAddress())
+        subSocket.connect(iopubChannel.makeAddress())
         subSocket.subscribe("")
 
-        val runnable = ZZZ(subSocket,session)
+        val runnable = ZListener(subSocket)
         ZThread.start(runnable)
-        val sender = ExecuteRequestSender(
-            zmqContext = context,
-            session = session,
-            address = channelInfo.makeAddress(),
-            msgIdGenerator = SequentialMsgIdGenerator(session.sessionId, MsgCounterImp())
-        )
+
+        val msgApiComponent = DaggerMessageApiComponent
+            .builder()
+            .session(session)
+            .shellChannel(shellChannel)
+            .zContext(context)
+            .build()
+
+         val sender2:ExecuteRequestSender = msgApiComponent.shellExecuteRequestSender()
 
         val input = Shell.ExecuteRequest.Out.Content(
             code = "x=1+1*2;y=x*2;y",
@@ -63,7 +66,7 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
             allowStdin = false,
             stopOnError = true
         )
-        val out = sender.send(Shell.ExecuteRequest.msgType, input)
+        val out = sender2.send(Shell.ExecuteRequest.msgType, input)
         if(out.isPresent()){
             println("==OUT==\n${out.get()}\n====")
         }
