@@ -9,7 +9,7 @@
     <packaging>pom</packaging>
     <version>1.0</version>
     <modules>
-        <module>ide</module>
+        <module>isp-ide</module>
         <module>message-api</module>
         <module>common</module>
         <module>ide-features</module>

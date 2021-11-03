@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName
 import org.junit.jupiter.api.Test
 import java.lang.reflect.Type;
 import com.google.gson.reflect.TypeToken;
-import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgStatus
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.MsgStatus
 import java.util.*
 
 
@@ -14,7 +14,7 @@ class Bench {
     class Z(
         val id:String,
         val date: Date,
-        val status:MsgStatus,
+        val status: MsgStatus,
         val info:Map<String,Any>
     )
     @Test
