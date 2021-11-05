@@ -1,4 +1,4 @@
-package org.bitbucket.xadkile.isp.ide.jupyter.message.api.session
+package org.bitbucket.xadkile.isp.ide.jupyter.message.api.connection
 
 import java.util.*
 

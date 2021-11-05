@@ -18,7 +18,7 @@ data class KernelConnectionFileContent(
     @SerializedName("control_port")
     val controlPort:Int,
     @SerializedName("hb_port")
-    val hbPort:Int,
+    val heartBeatPort:Int,
     val ip:String,
     val key:String,
     @SerializedName("transport")
@@ -70,6 +70,15 @@ data class KernelConnectionFileContent(
             name = "StdIn",
             ipAddress = this.ip,
             port = this.stdinPort
+        )
+    }
+
+    fun createHeartBeatChannel():ChannelInfo{
+        return ChannelInfo.tcp.copy(
+            protocol=this.protocol,
+            name = "HeartBeat",
+            ipAddress = this.ip,
+            port = this.heartBeatPort
         )
     }
 }

@@ -2,8 +2,8 @@ package org.bitbucket.xadkile.isp.ide.jupyter.message.di
 
 import dagger.Module
 import dagger.Provides
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.session.SessionInfo
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.session.SessionUUID
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.connection.SessionInfo
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.connection.SessionUUID
 
 @Module
 interface SessionModule {

@@ -6,7 +6,7 @@ import org.bitbucket.xadkile.isp.common.HmacMaker
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.InvalidPayloadSizeException
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.MessageHeader
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.other.ProtocolUtils
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.session.SessionInfo
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.connection.SessionInfo
 import org.junit.jupiter.api.Test
 import java.util.*
 import kotlin.test.assertEquals

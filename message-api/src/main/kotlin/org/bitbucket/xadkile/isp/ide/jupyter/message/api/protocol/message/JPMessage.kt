@@ -4,8 +4,12 @@ import org.bitbucket.xadkile.isp.common.HmacMaker
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.MessageHeader
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.ProtocolConstant
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.other.ProtocolUtils
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.session.SessionInfo
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.connection.SessionInfo
 
+
+/**
+ * TODO Remove key and session from this
+ */
 class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
     val identities:String,
     val delimiter:String,
@@ -45,8 +49,14 @@ class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
                 buffer = ByteArray(0)
             )
         }
+        fun <META : MsgMetaData, CONTENT : MsgContent> fromPayload(payload:List<String>):JPMessage<META,CONTENT>{
+            TODO("write this")
+        }
     }
 
+    /**
+     * TODO inject key here
+     */
     override fun makePayload():List<ByteArray>{
         val ingredients = getHMACIngredientAsStr()
         val ingredientsAsByteArray = ingredients.map { it.toByteArray(Charsets.UTF_8) }

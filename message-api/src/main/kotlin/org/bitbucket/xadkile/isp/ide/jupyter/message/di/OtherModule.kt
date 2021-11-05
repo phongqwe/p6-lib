@@ -6,7 +6,7 @@ import dagger.Provides
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.other.MsgCounterImp
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.other.MsgIdGenerator
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.other.SequentialMsgIdGenerator
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.session.SessionUUID
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.connection.SessionUUID
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
 import javax.inject.Named
 import javax.inject.Singleton

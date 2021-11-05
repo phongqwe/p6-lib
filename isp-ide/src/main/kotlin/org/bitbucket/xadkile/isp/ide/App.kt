@@ -1,10 +1,8 @@
 package org.bitbucket.xadkile.isp.ide
 
-import tornadofx.*
+import kotlinx.coroutines.*
 
 fun main(args: Array<String>) {
-    launch<UIApp>(args)
-//    throw Exception("l1\nl2\nl3")
-
+    tornadofx.launch<UIApp>(args)
 }
 

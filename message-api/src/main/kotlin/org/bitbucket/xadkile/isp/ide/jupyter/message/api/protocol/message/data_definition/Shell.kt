@@ -20,7 +20,6 @@ object Shell{
     object ExecuteRequest {
         val msgType = MsgType.Shell_execute_request
         object Out{
-
             class Content(
                 val code: String,
                 val silent: Boolean,
@@ -33,6 +32,7 @@ object Shell{
                 @SerializedName("stop_on_error")
                 val stopOnError: Boolean,
             ): MsgContent
+            class MetaData : MsgMetaData{}
         }
         object In{
             class Content(

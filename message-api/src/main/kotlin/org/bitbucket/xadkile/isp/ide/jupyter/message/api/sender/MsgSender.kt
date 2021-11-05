@@ -7,6 +7,7 @@ import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.MsgTyp
 interface MsgSender<I: MsgContent,O> {
     /**
      * send a [msgContent] of type [msgType] to somewhere
+     * TODO reconsider this. Should this only accept Content or should this accept the whole message
      */
     fun send(msgType: MsgType, msgContent:I):O
 }
