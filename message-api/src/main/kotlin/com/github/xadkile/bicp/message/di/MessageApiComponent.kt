@@ -6,7 +6,7 @@ import com.github.xadkile.bicp.message.api.channel.ChannelInfo
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.connection.SessionInfo
-import com.github.xadkile.bicp.message.imp.shell.ExecuteRequestSender
+import com.github.xadkile.bicp.message.api.sender.shell.ExecuteRequestSender
 import org.zeromq.ZContext
 import javax.inject.Singleton
 

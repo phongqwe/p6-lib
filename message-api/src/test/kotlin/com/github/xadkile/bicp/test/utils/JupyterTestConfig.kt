@@ -1,4 +1,4 @@
-package test.utils
+package com.github.xadkile.bicp.test.utils
 
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.unwrap

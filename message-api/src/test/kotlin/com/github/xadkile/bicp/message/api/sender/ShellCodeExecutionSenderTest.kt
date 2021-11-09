@@ -1,16 +1,16 @@
-package org.bitbucket.xadkile.isp.ide.jupyter.message.imp.shell
+package com.github.xadkile.bicp.message.api.sender
 
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.connection.SessionInfo
 import com.github.xadkile.bicp.message.di.DaggerMessageApiComponent
-import com.github.xadkile.bicp.message.imp.shell.ExecuteRequestSender
+import com.github.xadkile.bicp.message.api.sender.shell.ExecuteRequestSender
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.*
-import test.utils.TestOnJupyter
+import com.github.xadkile.bicp.test.utils.TestOnJupyter
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ShellCodeExecutionSenderTest : TestOnJupyter(){

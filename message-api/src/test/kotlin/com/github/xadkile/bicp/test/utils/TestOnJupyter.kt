@@ -1,4 +1,4 @@
-package test.utils
+package com.github.xadkile.bicp.test.utils
 
 import com.google.gson.Gson
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
@@ -14,7 +14,7 @@ import java.nio.file.Paths
  */
 abstract class TestOnJupyter {
     lateinit var process:Process
-    lateinit var jpConfig:JupyterTestConfig
+    lateinit var jpConfig: JupyterTestConfig
     lateinit var connectionFileContent: KernelConnectionFileContent
     @BeforeAll
     fun before(){

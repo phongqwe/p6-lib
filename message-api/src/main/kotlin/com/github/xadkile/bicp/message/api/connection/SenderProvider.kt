@@ -2,7 +2,7 @@ package com.github.xadkile.bicp.message.api.connection
 
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.sender.MsgSender
-import com.github.xadkile.bicp.message.imp.shell.ResponseZ
+import com.github.xadkile.bicp.message.api.sender.shell.ResponseZ
 import java.util.*
 
 /**

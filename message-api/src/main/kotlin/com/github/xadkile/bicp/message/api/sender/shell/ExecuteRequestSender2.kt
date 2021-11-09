@@ -1,9 +1,9 @@
-package com.github.xadkile.bicp.message.imp.shell
+package com.github.xadkile.bicp.message.api.sender.shell
 
 import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.sender.MsgSender2
-import com.github.xadkile.bicp.message.imp.ZMQMsgSender2
+import com.github.xadkile.bicp.message.api.sender.ZMQMsgSender2
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
 import java.util.*

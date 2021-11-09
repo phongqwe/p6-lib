@@ -1,10 +1,9 @@
-package com.github.xadkile.bicp.message.imp
+package com.github.xadkile.bicp.message.api.sender
 
 import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.protocol.message.MsgContent
 import com.github.xadkile.bicp.message.api.protocol.message.MsgType
 import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
-import com.github.xadkile.bicp.message.api.sender.MsgSender
 import com.github.xadkile.bicp.message.api.connection.SessionInfo
 import org.zeromq.ZFrame
 import org.zeromq.ZMQ

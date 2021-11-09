@@ -1,4 +1,4 @@
-package org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message
+package com.github.xadkile.bicp.message.api.protocol.message
 
 import com.github.michaelbull.result.*
 import com.google.gson.annotations.SerializedName

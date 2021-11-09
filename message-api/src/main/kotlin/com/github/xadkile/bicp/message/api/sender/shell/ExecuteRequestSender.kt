@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.imp.shell
+package com.github.xadkile.bicp.message.api.sender.shell
 
 import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.protocol.message.MsgType
@@ -7,7 +7,7 @@ import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
 import com.github.xadkile.bicp.message.api.protocol.other.ProtocolUtils
 import com.github.xadkile.bicp.message.api.sender.MsgSender
 import com.github.xadkile.bicp.message.api.connection.SessionInfo
-import com.github.xadkile.bicp.message.imp.ZMQMsgSender
+import com.github.xadkile.bicp.message.api.sender.ZMQMsgSender
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
