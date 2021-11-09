@@ -241,6 +241,7 @@
                                 <sourceDirs>
                                     <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
                                     <sourceDir>${project.basedir}/src/test/java</sourceDir>
+<!--                                    <sourceDir>${maven.compiler.target}/generated-sources</sourceDir>-->
                                 </sourceDirs>
 
                             </configuration>

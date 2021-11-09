@@ -1,7 +1,7 @@
 package test.utils
 
 import com.google.gson.Gson
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.KernelConnectionFileContent
+import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import java.net.URL

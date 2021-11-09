@@ -3,7 +3,7 @@ package test.utils
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.unwrap
 import com.google.gson.Gson
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.KernelConnectionFileContent
+import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Paths

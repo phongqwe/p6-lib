@@ -1,5 +1,6 @@
 package org.bitbucket.xadkile.isp.ide.jupyterclient.kernel
 
+import com.github.xadkile.bicp.ide.jupyterclient.kernel.KernelJson
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

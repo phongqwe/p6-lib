@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName
 import org.junit.jupiter.api.Test
 import java.lang.reflect.Type;
 import com.google.gson.reflect.TypeToken;
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.MsgStatus
+import com.github.xadkile.bicp.message.api.protocol.message.MsgStatus
 import java.util.*
 import kotlinx.coroutines.*
 

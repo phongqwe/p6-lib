@@ -1,10 +1,11 @@
 package org.bitbucket.xadkile.isp.ide.jupyter.message.imp.shell
 
 import com.github.michaelbull.result.unwrap
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.JPRawMessage
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_interface_definition.Shell
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.connection.SessionInfo
-import org.bitbucket.xadkile.isp.ide.jupyter.message.di.DaggerMessageApiComponent
+import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
+import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.connection.SessionInfo
+import com.github.xadkile.bicp.message.di.DaggerMessageApiComponent
+import com.github.xadkile.bicp.message.imp.shell.ExecuteRequestSender
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.TestInstance
@@ -52,7 +53,7 @@ internal class ShellCodeExecutionSenderTest : TestOnJupyter(){
         val runnable = ZListener(ioPubSocket)
         ZThread.start(runnable)
 
-         val sender2:ExecuteRequestSender = msgApiComponent.shellExecuteRequestSender()
+         val sender2: ExecuteRequestSender = msgApiComponent.shellExecuteRequestSender()
 
         val input = Shell.ExecuteRequest.Out.Content(
             code = "x=1+1*2;y=x*2;y",
