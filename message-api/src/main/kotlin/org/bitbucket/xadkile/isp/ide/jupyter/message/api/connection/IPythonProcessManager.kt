@@ -1,5 +1,6 @@
 package org.bitbucket.xadkile.isp.ide.jupyter.message.api.connection
 
+import com.github.michaelbull.result.Result
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.KernelConnectionFileContent
 
 /**
@@ -7,20 +8,33 @@ import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.KernelConnecti
  */
 interface IPythonProcessManager {
     /**
-     * Once IPython process is launch successfully, connection file info must be available for use
+     * Start IPython process and read connection file.
+     *
+     * It is guarantee that once IPython start, a connection file and a Process object are available for use
+     *
+     * Return true if successfully launch IPython kerne, false otherwise.
      */
-    fun launchIPythonProcess(): Boolean
+    fun startIPython(): Result<Unit, Exception>
 
-    fun getIPythonProcess():Process
+    /**
+     * Kill the current IPython process and delete the current connection file
+     */
+    fun stopIPython():Result<Unit, Exception>
+
+    fun getIPythonProcess():Process?
 
     /**
      * Terminate the current process and launch a new IPython Process
+     *
+     * Connection file content is also updated
      */
-    fun restartIPython():Boolean
+    fun restartIPython():Result<Unit, Exception>
 
     /**
-     * get connection info file content
+     * Return connection info file content.
+     *
+     * Connection file info is available for use only when IPython process is launch successfully
      */
-    fun getConnectionInfo(): KernelConnectionFileContent
-
+    fun getConnectionFileContent(): KernelConnectionFileContent?
 }
+

@@ -1,4 +1,4 @@
-package org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_definition
+package org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_interface_definition
 
 import com.google.gson.annotations.SerializedName
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.MsgContent

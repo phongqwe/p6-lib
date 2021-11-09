@@ -2,7 +2,7 @@ package org.bitbucket.xadkile.isp.ide.jupyter.message.imp.shell
 
 import com.github.michaelbull.result.unwrap
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.JPRawMessage
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_definition.Shell
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_interface_definition.Shell
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.connection.SessionInfo
 import org.bitbucket.xadkile.isp.ide.jupyter.message.di.DaggerMessageApiComponent
 import org.junit.jupiter.api.Test

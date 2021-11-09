@@ -2,7 +2,7 @@ package org.bitbucket.xadkile.isp.ide.jupyter.message.imp.shell
 
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.JPMessage
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.MsgType
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_definition.Shell
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_interface_definition.Shell
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.other.MsgIdGenerator
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.other.ProtocolUtils
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.sender.MsgSender

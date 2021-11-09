@@ -4,9 +4,9 @@ import dagger.Module
 import dagger.Provides
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.channel.ChannelInfo
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.KernelConnectionFileContent
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_definition.Control
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_definition.IOPub
-import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_definition.Shell
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_interface_definition.Control
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_interface_definition.IOPub
+import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.message.data_interface_definition.Shell
 import javax.inject.Singleton
 
 @Module

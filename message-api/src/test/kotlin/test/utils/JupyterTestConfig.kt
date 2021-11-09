@@ -1,5 +1,7 @@
 package test.utils
 
+import com.github.michaelbull.result.get
+import com.github.michaelbull.result.unwrap
 import com.google.gson.Gson
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol.KernelConnectionFileContent
 import java.net.URL
@@ -9,7 +11,7 @@ import java.nio.file.Paths
 
 class JupyterTestConfig(private val launchCmd: List<String> = emptyList(), private val connectFilePath: String = "") {
     fun makeCmd(): List<String> = launchCmd + connectFilePath
-    fun connectionFile() = KernelConnectionFileContent.fromJsonFile(Paths.get(this.connectFilePath))
+    fun connectionFile() = KernelConnectionFileContent.fromJsonFile(Paths.get(this.connectFilePath)).unwrap()
 
     companion object {
         fun fromFile(): JupyterTestConfig {

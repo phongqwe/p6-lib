@@ -1,13 +1,22 @@
 package org.bitbucket.xadkile.isp.ide.jupyter.message.api.protocol
 
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import org.bitbucket.xadkile.isp.ide.jupyter.message.api.channel.ChannelInfo
+import java.io.IOException
 import java.net.ServerSocket
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
+/**
+ * TODO test this
+ * An class to store connection file content
+ */
 data class KernelConnectionFileContent(
     @SerializedName("shell_port")
     val shellPort:Int,
@@ -29,11 +38,19 @@ data class KernelConnectionFileContent(
     val kernelName:String
 ){
     companion object CO{
-        fun fromJsonFile(jsonFilePath: Path):KernelConnectionFileContent{
-            val fileContent = Files.readString(jsonFilePath)
-            val gson = Gson()
-            val rt = gson.fromJson(fileContent,KernelConnectionFileContent::class.java)
-            return rt
+        fun fromJsonFile(jsonFilePath: Path):Result<KernelConnectionFileContent,IOException>{
+            try{
+                val fileContent = Files.readString(jsonFilePath)
+                val gson = Gson()
+                val rt = gson.fromJson(fileContent,KernelConnectionFileContent::class.java)
+                return Ok(rt)
+            }catch(e:IOException){
+                return Err(e)
+            }
+
+        }
+        fun fromJsonFile(filePath:String):Result<KernelConnectionFileContent,IOException>{
+            return fromJsonFile(Paths.get(filePath))
         }
     }
 

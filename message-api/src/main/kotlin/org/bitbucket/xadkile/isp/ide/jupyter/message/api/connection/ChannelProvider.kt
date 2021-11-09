@@ -10,3 +10,4 @@ interface ChannelProvider {
     fun getShellChannel(): ChannelInfo
     fun getControlChannel(): ChannelInfo
 }
+
