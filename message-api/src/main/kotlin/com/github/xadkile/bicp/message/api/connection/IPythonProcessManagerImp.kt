@@ -10,7 +10,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
 
-// TODO test this
 class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IPythonConfig) : IPythonProcessManager {
 
     private val launchCmd: List<String> by lazy {
@@ -43,14 +42,12 @@ class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IP
     }
 
     override fun stopIPython(): Result<Unit, Exception> {
-        if (this.isRunning().not()) {
+        if (this.isNotRunning()) {
             return Ok(Unit)
         }
         try {
-            // clear objects relate to connection
             if (this.process != null) {
                 this.process?.onExit()?.thenApply {
-                    this._connectionFileContent = null
                     // delete connection file
                     val cpath = this.connectionFilePath
                     if (cpath != null) {
@@ -62,6 +59,7 @@ class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IP
                             }
                         }
                         this.connectionFilePath = null
+                        this._connectionFileContent = null
                     }
                 }
                 this.process?.destroy()
@@ -99,8 +97,28 @@ class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IP
         return this._connectionFileContent
     }
 
+    override fun getSession(): SessionInfo2?{
+        if(this.isRunning()){
+            return SessionInfo2.autoCreate(this._connectionFileContent!!.key)
+        }else{
+            return null
+        }
+    }
+
     private fun isRunning(): Boolean {
         return (this.process?.isAlive
             ?: false) && this.connectionFilePath != null && this._connectionFileContent != null
+    }
+
+    private fun isNotRunning(): Boolean {
+        return !this.isRunning()
+    }
+
+    override fun getChannelProvider(): ChannelProvider? {
+        if(this.isRunning()){
+            return ChannelProviderImp(this._connectionFileContent!!)
+        }else{
+            return null
+        }
     }
 }

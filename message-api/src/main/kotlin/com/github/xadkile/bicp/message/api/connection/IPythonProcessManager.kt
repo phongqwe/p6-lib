@@ -46,5 +46,9 @@ interface IPythonProcessManager {
      * Connection file info is available for use only when IPython process is launch successfully
      */
     fun getConnectionFileContent(): KernelConnectionFileContent?
+
+    fun getSession():Session?
+
+    fun getChannelProvider():ChannelProvider?
 }
 
