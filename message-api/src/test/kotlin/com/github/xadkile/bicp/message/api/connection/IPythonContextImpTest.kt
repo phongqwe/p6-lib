@@ -1,8 +1,6 @@
 package com.github.xadkile.bicp.message.api.connection
 
-import com.github.michaelbull.result.Err
-import com.github.michaelbull.result.Ok
-import com.github.michaelbull.result.getError
+import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.test.utils.JupyterTestConfig
 import org.junit.jupiter.api.*
 
@@ -11,30 +9,32 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class IPythonProcessManagerImpTest {
-    lateinit var pm :IPythonProcessManagerImp
+internal class IPythonContextImpTest {
+    lateinit var pm :IPythonContextImp
     lateinit var ipythonConfig:IPythonConfig
     @BeforeEach
     fun beforeEach(){
         ipythonConfig = JupyterTestConfig.fromFile().toAppConfig()
-        pm = IPythonProcessManagerImp(ipythonConfig)
+        pm = IPythonContextImp(ipythonConfig)
     }
 
     @AfterEach
     fun afterAll(){
-        if(pm.getIPythonProcess()!=null){
+        if(pm.getIPythonProcess().get()!=null){
             pm.stopIPython()
         }
     }
 
     @Test
     fun startIPython_FromNotStartedYet() {
-        assertNull(pm.getIPythonProcess())
+        assertTrue(pm.getIPythonProcess() is Err)
         val rs = pm.startIPython()
         assertTrue(rs is Ok)
-        assertNotNull(pm.getIPythonProcess())
-        assertNotNull(pm.getConnectionFileContent())
-        assertTrue(pm.getIPythonProcess()?.isAlive ?: false)
+        assertTrue(pm.getIPythonProcess() is Ok)
+        assertTrue(pm.getIPythonProcess().get()?.isAlive ?: false)
+        assertTrue(pm.getConnectionFileContent() is Ok)
+        assertTrue(pm.getChannelProvider() is Ok)
+        assertTrue(pm.getSession() is Ok)
         assertTrue(Files.exists(Paths.get(ipythonConfig.connectionFilePath)))
     }
 
@@ -51,9 +51,11 @@ internal class IPythonProcessManagerImpTest {
         pm.startIPython()
         val rs = pm.stopIPython()
         assertTrue(rs is Ok)
-        assertNull(pm.getIPythonProcess())
-        assertNull(pm.getConnectionFileContent())
-        assertFalse(pm.getIPythonProcess()?.isAlive ?: false)
+        assertTrue(pm.getIPythonProcess() is Err)
+        assertFalse(pm.getIPythonProcess().get()?.isAlive ?: false)
+        assertTrue(pm.getConnectionFileContent() is Err)
+        assertTrue(pm.getSession() is Err)
+        assertTrue(pm.getChannelProvider() is Err)
         assertFalse(Files.exists(Paths.get(ipythonConfig.connectionFilePath)))
     }
     @Test
@@ -68,10 +70,10 @@ internal class IPythonProcessManagerImpTest {
     @Test
     fun restartIPython() {
         pm.startIPython()
-        val oldConnectionFile = pm.getConnectionFileContent()
+        val oldConnectionFile = pm.getConnectionFileContent().get()
         assertNotNull(oldConnectionFile)
         val rs = pm.restartIPython()
-        val newConnectionFile = pm.getConnectionFileContent()
+        val newConnectionFile = pm.getConnectionFileContent().get()
         assertTrue(rs is Ok)
         assertNotNull(newConnectionFile)
         assertNotEquals(oldConnectionFile,newConnectionFile)

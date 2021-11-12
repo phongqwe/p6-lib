@@ -6,7 +6,7 @@ import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 /**
  * manage IPython process, also provide connection info
  */
-interface IPythonProcessManager {
+interface IPythonContext {
     /**
      * Start IPython process and read connection file.
      *
@@ -27,9 +27,8 @@ interface IPythonProcessManager {
      *
      * It must be guaranteed that connection file is deleted, process is completely killed after calling stop.
      */
-    fun stopIPython():Result<Unit, Exception>
+    fun stopIPython(): Result<Unit, Exception>
 
-    fun getIPythonProcess():Process?
 
     /**
      * Terminate the current process and launch a new IPython Process.
@@ -38,17 +37,20 @@ interface IPythonProcessManager {
      *
      * This function can only be used on already running manager. Attempt to call it on stopped manager must be prohibited.
      */
-    fun restartIPython():Result<Unit, Exception>
+    fun restartIPython(): Result<Unit, Exception>
+
+
+    fun getIPythonProcess(): Result<Process, Exception>
 
     /**
      * Return connection info file content.
      *
      * Connection file info is available for use only when IPython process is launch successfully
      */
-    fun getConnectionFileContent(): KernelConnectionFileContent?
+    fun getConnectionFileContent(): Result<KernelConnectionFileContent, Exception>
 
-    fun getSession():Session?
+    fun getSession(): Result<Session, Exception>
 
-    fun getChannelProvider():ChannelProvider?
+    fun getChannelProvider(): Result<ChannelProvider, Exception>
 }
 

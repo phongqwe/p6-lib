@@ -10,7 +10,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
 
-class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IPythonConfig) : IPythonProcessManager {
+class IPythonContextImp @Inject constructor(private val ipythonConfig: IPythonConfig) : IPythonContext {
 
     private val launchCmd: List<String> by lazy {
         this.ipythonConfig.makeLaunchCmmd()
@@ -19,6 +19,12 @@ class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IP
     private var process: Process? = null
     private var _connectionFileContent: KernelConnectionFileContent? = null
     private var connectionFilePath: Path? = null
+    private var _session: Session? = null
+    private var _channelProvider: ChannelProvider? = null
+
+    companion object {
+        private val ipythonNotRunningMsg = "IPython process is not running"
+    }
 
     override fun startIPython(): Result<Unit, Exception> {
         if (this.isRunning()) {
@@ -34,6 +40,8 @@ class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IP
                     this._connectionFileContent = it
                 }
                 this.connectionFilePath = Paths.get(ipythonConfig.connectionFilePath)
+                this._channelProvider = ChannelProviderImp(this._connectionFileContent!!)
+                this._session = SessionInfo2.autoCreate(this._connectionFileContent?.key!!)
                 return rt
             } catch (e: Exception) {
                 return Err(e)
@@ -58,18 +66,21 @@ class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IP
                                 delay(50)
                             }
                         }
-                        this.connectionFilePath = null
-                        this._connectionFileContent = null
+
                     }
                 }
                 this.process?.destroy()
                 runBlocking {
                     // wait until the process is dead completely
-                    while (this@IPythonProcessManagerImp.process?.isAlive == true) {
+                    while (this@IPythonContextImp.process?.isAlive == true) {
                         delay(50)
                     }
                 }
                 this.process = null
+                this.connectionFilePath = null
+                this._connectionFileContent = null
+                this._session = null
+                this._channelProvider = null
             }
             return Ok(Unit)
         } catch (e: Exception) {
@@ -77,8 +88,12 @@ class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IP
         }
     }
 
-    override fun getIPythonProcess(): Process? {
-        return this.process
+    override fun getIPythonProcess(): Result<Process,Exception> {
+        if(this.isRunning()){
+            return Ok(this.process!!)
+        }else{
+            return Err(FaultyConnectionException(ipythonNotRunningMsg))
+        }
     }
 
     override fun restartIPython(): Result<Unit, Exception> {
@@ -93,15 +108,28 @@ class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IP
         }
     }
 
-    override fun getConnectionFileContent(): KernelConnectionFileContent? {
-        return this._connectionFileContent
+    override fun getConnectionFileContent(): Result<KernelConnectionFileContent,Exception> {
+        if(this.isRunning()){
+            return Ok(this._connectionFileContent!!)
+        }else{
+            return Err(FaultyConnectionException(ipythonNotRunningMsg))
+        }
+
     }
 
-    override fun getSession(): SessionInfo2?{
-        if(this.isRunning()){
-            return SessionInfo2.autoCreate(this._connectionFileContent!!.key)
-        }else{
-            return null
+    override fun getSession(): Result<Session,Exception> {
+        if (this.isRunning()) {
+            return Ok(this._session!!)
+        } else {
+            return Err(FaultyConnectionException(ipythonNotRunningMsg))
+        }
+    }
+
+    override fun getChannelProvider(): Result<ChannelProvider,Exception> {
+        if (this.isRunning()) {
+            return Ok(this._channelProvider!!)
+        } else {
+            return Err(FaultyConnectionException(ipythonNotRunningMsg))
         }
     }
 
@@ -114,11 +142,4 @@ class IPythonProcessManagerImp @Inject constructor(private val ipythonConfig: IP
         return !this.isRunning()
     }
 
-    override fun getChannelProvider(): ChannelProvider? {
-        if(this.isRunning()){
-            return ChannelProviderImp(this._connectionFileContent!!)
-        }else{
-            return null
-        }
-    }
 }
