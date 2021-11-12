@@ -8,14 +8,18 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 
-data class IPythonConfig(val launchCmd:List<String>,val connectionFilePath:String) {
+data class IPythonConfig(val launchCmd:List<String>,
+                         val connectionFilePath:String,
+                         val milliSecStartTime:Long,
+                         val milliSecStopTime:Long
+) {
 
     companion object {
-        fun fromFile(filePath: Path):Result<com.github.xadkile.bicp.message.api.connection.IPythonConfig,IOException>{
+        fun fromFile(filePath: Path):Result<IPythonConfig,IOException>{
             try{
                 val fileContent = Files.readString(filePath)
-                val rt: com.github.xadkile.bicp.message.api.connection.IPythonConfig = ProtocolUtils.msgGson.fromJson(fileContent,
-                    com.github.xadkile.bicp.message.api.connection.IPythonConfig::class.java)
+                val rt: IPythonConfig = ProtocolUtils.msgGson.fromJson(fileContent,
+                    IPythonConfig::class.java)
                 return Ok(rt)
             }catch (e:IOException){
                 return Err(e)
@@ -23,7 +27,7 @@ data class IPythonConfig(val launchCmd:List<String>,val connectionFilePath:Strin
         }
     }
 
-    fun makeLaunchCmmd():String {
-        return (launchCmd + connectionFilePath).joinToString(" ")
+    fun makeLaunchCmmd():List<String> {
+        return (launchCmd + connectionFilePath)
     }
 }
