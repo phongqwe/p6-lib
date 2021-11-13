@@ -1,6 +1,6 @@
 {
   "launchCmd":["<python_executable_dir>", "-m", "ipykernel_launcher", "-f"],
-  "connectFilePath": "<path to connection file>",
+  "connectionFilePath": "<path to connection file>",
   "milliSecStartTime": 1234, // in milli second
   "milliSecStopTime": 4567 // in milli second
 }

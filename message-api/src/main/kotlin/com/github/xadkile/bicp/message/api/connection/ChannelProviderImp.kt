@@ -16,5 +16,4 @@ class ChannelProviderImp(private val connectFile: KernelConnectionFileContent) :
     override fun getControlChannel(): ChannelInfo {
         return this.connectFile.createControlChannel()
     }
-
 }

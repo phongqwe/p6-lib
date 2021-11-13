@@ -1,7 +1,9 @@
 package com.github.xadkile.bicp.test.utils
 
+import com.github.xadkile.bicp.message.api.connection.IPythonConfig
+import com.github.xadkile.bicp.message.api.connection.IPythonContext
+import com.github.xadkile.bicp.message.api.connection.IPythonContextImp
 import com.google.gson.Gson
-import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import java.net.URL
@@ -13,21 +15,18 @@ import java.nio.file.Paths
  * Extend this, then add my test as normal. Use [connectionFileContent] to get a connection file content
  */
 abstract class TestOnJupyter {
-    lateinit var process:Process
-    lateinit var jpConfig: JupyterTestConfig
-    lateinit var connectionFileContent: KernelConnectionFileContent
+    lateinit var ipythonConfig:IPythonConfig
+    lateinit var ipythonContext:IPythonContext
     @BeforeAll
     fun before(){
-        this.jpConfig = JupyterTestConfig.fromFile()
-        val processBuilder = ProcessBuilder(this.jpConfig.makeCmd())
-        this.process = processBuilder.inheritIO().start()
+        this.ipythonConfig = TestResource.ipythonConfigForTest()
+        this.ipythonContext=IPythonContextImp(this.ipythonConfig)
+        this.ipythonContext.startIPython()
         Thread.sleep(2000)
-        this.connectionFileContent = this.jpConfig.connectionFile()
-        Thread.sleep(1000)
     }
 
     @AfterAll
     fun afterAll(){
-        this.process.destroy()
+        this.ipythonContext.stopIPython()
     }
 }

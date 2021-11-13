@@ -21,6 +21,7 @@ class IPythonContextImp @Inject constructor(private val ipythonConfig: IPythonCo
     private var connectionFilePath: Path? = null
     private var _session: Session? = null
     private var _channelProvider: ChannelProvider? = null
+    private var _msgEncoder:MsgEncoder? = null
 
     companion object {
         private val ipythonNotRunningMsg = "IPython process is not running"
@@ -41,7 +42,8 @@ class IPythonContextImp @Inject constructor(private val ipythonConfig: IPythonCo
                 }
                 this.connectionFilePath = Paths.get(ipythonConfig.connectionFilePath)
                 this._channelProvider = ChannelProviderImp(this._connectionFileContent!!)
-                this._session = SessionInfo2.autoCreate(this._connectionFileContent?.key!!)
+                this._session = SessionImp.autoCreate(this._connectionFileContent?.key!!)
+                this._msgEncoder = MsgEncoderImp(this._connectionFileContent?.key!!)
                 return rt
             } catch (e: Exception) {
                 return Err(e)
@@ -81,6 +83,7 @@ class IPythonContextImp @Inject constructor(private val ipythonConfig: IPythonCo
                 this._connectionFileContent = null
                 this._session = null
                 this._channelProvider = null
+                this._msgEncoder=null
             }
             return Ok(Unit)
         } catch (e: Exception) {
@@ -133,12 +136,24 @@ class IPythonContextImp @Inject constructor(private val ipythonConfig: IPythonCo
         }
     }
 
-    private fun isRunning(): Boolean {
+    override fun getSenderProvider(): SenderProvider {
+        TODO("Not yet implemented")
+    }
+
+    override fun getMsgEncoder(): Result<MsgEncoder, Exception> {
+        if(this.isRunning()){
+            return Ok(this._msgEncoder!!)
+        }else{
+            return Err(FaultyConnectionException(ipythonNotRunningMsg))
+        }
+    }
+
+    fun isRunning(): Boolean {
         return (this.process?.isAlive
             ?: false) && this.connectionFilePath != null && this._connectionFileContent != null
     }
 
-    private fun isNotRunning(): Boolean {
+    fun isNotRunning(): Boolean {
         return !this.isRunning()
     }
 

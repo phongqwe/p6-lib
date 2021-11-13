@@ -1,14 +1,16 @@
 package com.github.xadkile.bicp.message.api.protocol.message
 
 import com.github.xadkile.bicp.common.HmacMaker
+import com.github.xadkile.bicp.message.api.connection.Session
 import com.github.xadkile.bicp.message.api.protocol.MessageHeader
 import com.github.xadkile.bicp.message.api.protocol.ProtocolConstant
 import com.github.xadkile.bicp.message.api.protocol.other.ProtocolUtils
 import com.github.xadkile.bicp.message.api.connection.SessionInfo
 
-
 /**
- * TODO Remove key and session from this
+ * Should message message contain key?
+ * key is tied to session info.
+ * message is created when it is needed, and consumed immediately and not lingering around.
  */
 class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
     val identities:String,
@@ -18,9 +20,8 @@ class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
     val metadata: META?,
     val content: CONTENT,
     val buffer: ByteArray,
-    val key: String,
-    val session: SessionInfo
-):PayloadMaker {
+    // val key:String
+) {
     companion object {
         val delimiter = ProtocolConstant.messageDelimiter
 
@@ -31,52 +32,56 @@ class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
          * [metadata] is null
          * [buffer] is empty
          */
-        fun <CONTENT : MsgContent> autoCreate(session: SessionInfo, msgType: MsgType, msgContent: CONTENT, msgId: String): JPMessage<MsgMetaData, CONTENT> {
+        fun <META : MsgMetaData,CONTENT : MsgContent> autoCreate(
+            sessionId: String,
+            username:String,
+            msgType: MsgType,
+            msgContent: CONTENT,
+            msgId: String,
+        ): JPMessage<META, CONTENT> {
             return JPMessage(
                 identities = "",
                 delimiter = delimiter,
                 header = MessageHeader.autoCreate(
-                    sessionId = session.sessionId,
-                    username = session.username,
+                    sessionId = sessionId,
+                    username = username,
                     msgType = msgType,
                     msgId = msgId
                 ),
                 parentHeader = null,
                 content = msgContent,
                 metadata = null,
-                key = session.key,
-                session = session,
                 buffer = ByteArray(0)
             )
         }
+
         fun <META : MsgMetaData, CONTENT : MsgContent> fromPayload(payload:List<String>):JPMessage<META,CONTENT>{
             TODO("write this")
         }
     }
 
     /**
-     * TODO inject key here
      */
-    override fun makePayload():List<ByteArray>{
-        val ingredients = getHMACIngredientAsStr()
-        val ingredientsAsByteArray = ingredients.map { it.toByteArray(Charsets.UTF_8) }
-        val keyAsByteArray = this.key.toByteArray(Charsets.UTF_8)
-        return listOf(
-            this.identities.toByteArray(Charsets.UTF_8),
-            this.delimiter.toByteArray(Charsets.UTF_8),
-            HmacMaker.makeHmacSha256SigInByteArray(keyAsByteArray,ingredientsAsByteArray),
-            ingredients[0].toByteArray(Charsets.UTF_8),
-            ingredients[1].toByteArray(Charsets.UTF_8),
-            ingredients[2].toByteArray(Charsets.UTF_8),
-            ingredients[3].toByteArray(Charsets.UTF_8),
-            this.buffer
-        )
-    }
+//    fun makePayload(key:String):List<ByteArray>{
+//        val ingredients = getHMACIngredientAsStr()
+//        val ingredientsAsByteArray = ingredients.map { it.toByteArray(Charsets.UTF_8) }
+//        val keyAsByteArray = key.toByteArray(Charsets.UTF_8)
+//        return listOf(
+//            this.identities.toByteArray(Charsets.UTF_8),
+//            this.delimiter.toByteArray(Charsets.UTF_8),
+//            HmacMaker.makeHmacSha256SigInByteArray(keyAsByteArray,ingredientsAsByteArray),
+//            ingredients[0].toByteArray(Charsets.UTF_8),
+//            ingredients[1].toByteArray(Charsets.UTF_8),
+//            ingredients[2].toByteArray(Charsets.UTF_8),
+//            ingredients[3].toByteArray(Charsets.UTF_8),
+//            this.buffer
+//        )
+//    }
 
     /**
      * Return ingredients for use in the creation a Hmac sha256 signature
      */
-    private fun getHMACIngredientAsStr(): List<String> {
+    fun getHMACIngredientAsStr(): List<String> {
         val gson = ProtocolUtils.msgGson
         val rt = listOf(
             gson.toJson(this.header),

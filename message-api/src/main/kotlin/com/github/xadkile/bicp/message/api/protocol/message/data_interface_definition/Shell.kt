@@ -19,7 +19,7 @@ object Shell{
 
     object ExecuteRequest {
         val msgType = MsgType.Shell_execute_request
-        object Out{
+        object Input{
             class Content(
                 val code: String,
                 val silent: Boolean,
@@ -34,7 +34,7 @@ object Shell{
             ): MsgContent
             class MetaData : MsgMetaData{}
         }
-        object In{
+        object Output{
             class Content(
                 val status: MsgStatus,
                 @SerializedName("execution_count")

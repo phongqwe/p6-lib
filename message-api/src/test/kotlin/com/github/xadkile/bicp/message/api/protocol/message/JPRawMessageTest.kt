@@ -38,7 +38,6 @@ internal class JPRawMessageTest {
                 .fromRecvPayload(payload)
                 .unwrap()
         val model: JPMessage<Meta, Content> = facade.toModel<Meta, Content>(
-            session = SessionInfo("sessionId", "abc", "somekey")
         )
         assertEquals(Content(123,"abc"),model.content)
         assertEquals(Meta(1,"xxxx"),model.metadata)

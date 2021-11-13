@@ -6,7 +6,7 @@ import com.github.xadkile.bicp.message.api.connection.SessionInfo
 import com.github.xadkile.bicp.message.api.connection.SessionUUID
 
 @Module
-interface SessionModule {
+interface ContextModule {
     companion object {
         @JvmStatic
         @Provides

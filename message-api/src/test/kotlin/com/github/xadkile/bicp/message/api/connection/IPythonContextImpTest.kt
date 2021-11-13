@@ -1,7 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.bicp.test.utils.JupyterTestConfig
+import com.github.xadkile.bicp.test.utils.TestResource
 import org.junit.jupiter.api.*
 
 import org.junit.jupiter.api.Assertions.*
@@ -14,7 +14,7 @@ internal class IPythonContextImpTest {
     lateinit var ipythonConfig:IPythonConfig
     @BeforeEach
     fun beforeEach(){
-        ipythonConfig = JupyterTestConfig.fromFile().toAppConfig()
+        ipythonConfig = TestResource.ipythonConfigForTest()
         pm = IPythonContextImp(ipythonConfig)
     }
 
@@ -35,6 +35,7 @@ internal class IPythonContextImpTest {
         assertTrue(pm.getConnectionFileContent() is Ok)
         assertTrue(pm.getChannelProvider() is Ok)
         assertTrue(pm.getSession() is Ok)
+        assertTrue(pm.getMsgEncoder() is Ok)
         assertTrue(Files.exists(Paths.get(ipythonConfig.connectionFilePath)))
     }
 
@@ -56,6 +57,7 @@ internal class IPythonContextImpTest {
         assertTrue(pm.getConnectionFileContent() is Err)
         assertTrue(pm.getSession() is Err)
         assertTrue(pm.getChannelProvider() is Err)
+        assertTrue(pm.getMsgEncoder() is Err)
         assertFalse(Files.exists(Paths.get(ipythonConfig.connectionFilePath)))
     }
     @Test

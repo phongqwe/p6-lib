@@ -10,7 +10,7 @@ interface IPythonContext {
     /**
      * Start IPython process and read connection file.
      *
-     * It is guarantee that once IPython start, a connection file and a Process object are available for use
+     * It is guarantee that once IPython start, components objects are available for use. They include: IPython Process, connection file object, session object, channel provider, sender factory.
      *
      * run [startIPython] on a already running manager does not change the state of this manager, return Ok result
      *
@@ -52,5 +52,9 @@ interface IPythonContext {
     fun getSession(): Result<Session, Exception>
 
     fun getChannelProvider(): Result<ChannelProvider, Exception>
+
+    fun getSenderProvider():SenderProvider
+
+    fun getMsgEncoder():Result<MsgEncoder,Exception>
 }
 

@@ -85,7 +85,7 @@ class JPRawMessage(
 
 
     inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent>
-            toModel(session: SessionInfo, ): JPMessage<META, CONTENT> {
+            toModel(): JPMessage<META, CONTENT> {
         val gson = ProtocolUtils.msgGson
         return JPMessage(
             identities = this.identities,
@@ -95,8 +95,6 @@ class JPRawMessage(
             metadata = gson.fromJson(metaData,META::class.java),
             content = gson.fromJson(content,CONTENT::class.java),
             buffer = buffer,
-            key = session.key,
-            session = session
         )
     }
 

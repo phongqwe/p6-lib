@@ -1,60 +1,41 @@
 package com.github.xadkile.bicp.message.api.sender.shell
 
+import com.github.xadkile.bicp.message.api.connection.MsgEncoder
 import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
-import com.github.xadkile.bicp.message.api.protocol.message.MsgType
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
-import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
-import com.github.xadkile.bicp.message.api.protocol.other.ProtocolUtils
 import com.github.xadkile.bicp.message.api.sender.MsgSender
-import com.github.xadkile.bicp.message.api.connection.SessionInfo
 import com.github.xadkile.bicp.message.api.sender.ZMQMsgSender
-import org.zeromq.SocketType
-import org.zeromq.ZContext
 import org.zeromq.ZMQ
+import org.zeromq.ZMsg
 import java.util.*
 import javax.inject.Inject
-import javax.inject.Named
 
-typealias ResponseZ = JPMessage<Shell.ExecuteRequest.In.MetaData, Shell.ExecuteRequest.In.Content>
+typealias ExecuteRequestResponseMessage = JPMessage<Shell.ExecuteRequest.Output.MetaData, Shell.ExecuteRequest.Output.Content>
+typealias ExecuteRequestInputMessage = JPMessage<Shell.ExecuteRequest.Input.MetaData, Shell.ExecuteRequest.Input.Content>
 
 class ExecuteRequestSender @Inject constructor(
-    private val zmqContext: ZContext,
-    private val sessionInfo: SessionInfo,
-    @Shell.Address
-    private val address: String,
-    @Named("sequential")
-    private val msgIdGenerator: MsgIdGenerator
-) : MsgSender<Shell.ExecuteRequest.Out.Content,
-        Optional<ResponseZ>> {
+    private val socket: ZMQ.Socket,
+    private val msgEncoder:MsgEncoder
+) : MsgSender<
+        Shell.ExecuteRequest.Input.MetaData,
+        Shell.ExecuteRequest.Input.Content,
+        Optional<ExecuteRequestResponseMessage>
+        > {
 
-    private val zmqMsgSender =
-        ZMQMsgSender<Shell.ExecuteRequest.Out.Content>(
-            socket = zmqContext.createSocket(SocketType.REQ).also {
-                it.connect(address)
-            },
-            sessionInfo = sessionInfo,
-            msgIdGenerator = msgIdGenerator
-        )
+    private val zmqMsgSender = ZMQMsgSender(socket)
 
     /**
      * Send a shell.code_execution message, return response msg. The response does not carry computation result, only carries status
      */
-    override fun send(msgType: MsgType, msgContent: Shell.ExecuteRequest.Out.Content): Optional<ResponseZ> {
-        val socketResult: Optional<ZMQ.Socket> = zmqMsgSender.send(msgType, msgContent)
-        val rt:Optional<List<String>> = socketResult.map { socket ->
-            val strBuilder = mutableListOf<String>()
-            val first:String? = socket.recvStr()
-            if (first != null && first.isNotEmpty()) strBuilder.add((first))
-            while (socket.hasReceiveMore()) {
-                val n:String? = socket.recvStr()
-                if (n != null && n.isNotEmpty()) strBuilder.add((n))
-            }
+    override fun send(message: ExecuteRequestInputMessage): Optional<ExecuteRequestResponseMessage> {
+        val socketResult: Optional<ZMsg> = zmqMsgSender.send(this.msgEncoder.encodeMessage(message))
+        val rt: Optional<List<String>> = socketResult.map { msg ->
+            val strBuilder: List<String> = msg.map { frame -> frame.getString(Charsets.UTF_8) }
             strBuilder
         }
-        val rt2 = rt.map { str->
-            ProtocolUtils.msgGson.fromJson(str[5],Shell.ExecuteRequest.In.Content::class.java)
+        val rt2:Optional<ExecuteRequestResponseMessage> = rt.map {
+            JPMessage.fromPayload(it)
         }
-        TODO()
-//        return rt2
+        return rt2
     }
 }
