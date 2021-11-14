@@ -1,8 +1,10 @@
 package com.github.xadkile.bicp.message.api.sender.shell
 
+import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.sender.ZMQMsgSender
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -42,11 +44,13 @@ internal class ExecuteRequestSenderTest : TestOnJupyter() {
         val runnable = ZListener(ioPubSocket)
         ZThread.start(runnable)
 
-
         val shellSocket = context.createSocket(SocketType.REQ).also {
             it.connect(connectionFile.createShellChannel().makeAddress())
         }
-        val sender2 = ExecuteRequestSender(shellSocket)
+        val sender2 = ExecuteRequestSender(
+            shellSocket,
+            this.ipythonContext.getMsgEncoder().unwrap(),
+        )
 
         val message:ExecuteRequestInputMessage = ExecuteRequestInputMessage.autoCreate(
             sessionId = session.getSessionId(),
@@ -63,10 +67,10 @@ internal class ExecuteRequestSenderTest : TestOnJupyter() {
             "1235plm"
         )
         val out = sender2.send(
-            message,this.ipythonContext.getConnectionFileContent().unwrap().key
+            message
         )
-        if (out.isPresent()) {
-            println("==OUT==\n${out.get()}\n====")
+        if (out is Ok) {
+            println("==OUT==\n${out.unwrap()}\n====")
         }
         Thread.sleep(10000)
         context.close()

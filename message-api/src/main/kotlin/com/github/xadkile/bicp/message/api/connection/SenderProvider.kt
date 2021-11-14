@@ -1,25 +1,15 @@
 package com.github.xadkile.bicp.message.api.connection
 
-import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
+import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.sender.MsgSender
-import com.github.xadkile.bicp.message.api.sender.shell.ExecuteRequestResponseMessage
-import java.util.*
+import com.github.xadkile.bicp.message.api.sender.shell.ExecuteRequestInputMessage
+import com.github.xadkile.bicp.message.api.sender.shell.ExecuteRequestOutputMessage
 
 /**
  * provide instances of sender
  */
 interface SenderProvider {
-    fun getExecuteRequestSender(): MsgSender<
-            Shell.ExecuteRequest.Input.MetaData,
-            Shell.ExecuteRequest.Input.Content,
-            Optional<ExecuteRequestResponseMessage>>
+    fun getSingletonExecuteRequestSender(): MsgSender<ExecuteRequestInputMessage, Result<ExecuteRequestOutputMessage,Exception>>
+    fun getNewExecuteRequestSender(): MsgSender<ExecuteRequestInputMessage, Result<ExecuteRequestOutputMessage,Exception>>
 }
 
-//class SenderProviderImp : SenderProvider{
-//    override fun getExecuteRequestSender(): MsgSender<
-//            Shell.ExecuteRequest.Input.MetaData,
-//            Shell.ExecuteRequest.Input.Content,
-//            Optional<ExecuteRequestResponseMessage>> {
-//        TODO()
-//    }
-//}

@@ -1,19 +1,14 @@
 package com.github.xadkile.bicp.message.di
 
+import com.github.xadkile.bicp.message.api.connection.IPythonContext
+import com.github.xadkile.bicp.message.api.connection.IPythonContextImp
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
-import com.github.xadkile.bicp.message.api.connection.SessionInfo
-import com.github.xadkile.bicp.message.api.connection.SessionUUID
 
+/**
+ */
 @Module
 interface ContextModule {
-    companion object {
-        @JvmStatic
-        @Provides
-        @SessionUUID
-        fun sessionUUID(session: SessionInfo):String{
-            return session.sessionId
-        }
-
-    }
+    @Binds
+    fun ipythonContext(context:IPythonContextImp):IPythonContext
 }

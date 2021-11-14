@@ -3,7 +3,7 @@ package com.github.xadkile.bicp.message.api.connection
 import com.github.xadkile.bicp.common.HmacMaker
 import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
 
-class MsgEncoderImp(val key: String) : MsgEncoder {
+class MsgEncoderImp internal constructor(val key: String) : MsgEncoder {
     override fun encodeMessage(message: JPMessage<*, *>): List<ByteArray> {
             val ingredients = message.getHMACIngredientAsStr()
             val ingredientsAsByteArray = ingredients.map { it.toByteArray(Charsets.UTF_8) }

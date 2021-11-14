@@ -1,9 +1,8 @@
 package com.github.xadkile.bicp.message.api.protocol
 
-import com.google.gson.annotations.SerializedName
 import com.github.xadkile.bicp.message.api.protocol.message.MsgType
+import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
-import java.time.ZonedDateTime
 
 
 data class MessageHeader(

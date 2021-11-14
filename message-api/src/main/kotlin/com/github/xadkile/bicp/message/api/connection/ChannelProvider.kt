@@ -1,7 +1,5 @@
 package com.github.xadkile.bicp.message.api.connection
 
-import com.github.xadkile.bicp.message.api.channel.ChannelInfo
-
 /**
  * provide channel info with the up-to-date connection info
  */

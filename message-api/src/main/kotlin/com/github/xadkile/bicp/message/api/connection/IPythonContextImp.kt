@@ -2,29 +2,39 @@ package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
+import com.github.xadkile.bicp.message.api.protocol.other.MsgCounterImp
+import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
+import com.github.xadkile.bicp.message.api.protocol.other.SequentialMsgIdGenerator
+import com.github.xadkile.bicp.message.api.exception.FaultyIPythonConnectionException
+import com.github.xadkile.bicp.message.api.exception.IPythonContextIllegalStateException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
+import org.zeromq.ZContext
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
+import javax.inject.Singleton
 
-class IPythonContextImp @Inject constructor(private val ipythonConfig: IPythonConfig) : IPythonContext {
+@Singleton
+class IPythonContextImp @Inject internal constructor(
+     var ipythonConfig: IPythonConfig, var zcontext:ZContext) : IPythonContext {
 
-    private val launchCmd: List<String> by lazy {
-        this.ipythonConfig.makeLaunchCmmd()
-    }
-
+    private val launchCmd: List<String> = this.ipythonConfig.makeLaunchCmmd()
     private var process: Process? = null
-    private var _connectionFileContent: KernelConnectionFileContent? = null
+    private var connectionFileContent: KernelConnectionFileContent? = null
     private var connectionFilePath: Path? = null
-    private var _session: Session? = null
-    private var _channelProvider: ChannelProvider? = null
-    private var _msgEncoder:MsgEncoder? = null
+    private var session: Session? = null
+    private var channelProvider: ChannelProvider? = null
+    private var msgEncoder:MsgEncoder? = null
+    private var msgIdGenerator:MsgIdGenerator? = null
+    private var msgCounter: MsgCounter? = null
+    private var senderProvider:SenderProvider?=null
 
     companion object {
-        private val ipythonNotRunningMsg = "IPython process is not running"
+        private val faultyConnection = FaultyIPythonConnectionException("IPython process is not running")
     }
 
     override fun startIPython(): Result<Unit, Exception> {
@@ -38,12 +48,15 @@ class IPythonContextImp @Inject constructor(private val ipythonConfig: IPythonCo
                 val cf: Result<KernelConnectionFileContent, IOException> =
                     KernelConnectionFileContent.fromJsonFile(ipythonConfig.connectionFilePath)
                 val rt: Result<Unit, Exception> = cf.map {
-                    this._connectionFileContent = it
+                    this.connectionFileContent = it
                 }
                 this.connectionFilePath = Paths.get(ipythonConfig.connectionFilePath)
-                this._channelProvider = ChannelProviderImp(this._connectionFileContent!!)
-                this._session = SessionImp.autoCreate(this._connectionFileContent?.key!!)
-                this._msgEncoder = MsgEncoderImp(this._connectionFileContent?.key!!)
+                this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
+                this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
+                this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
+                this.msgCounter = MsgCounterImp()
+                this.msgIdGenerator = SequentialMsgIdGenerator(this.session!!.getSessionId(), this.msgCounter!!)
+                this.senderProvider = SenderProviderImp(this.channelProvider!!,this.zcontext,this.msgEncoder!!)
                 return rt
             } catch (e: Exception) {
                 return Err(e)
@@ -80,10 +93,13 @@ class IPythonContextImp @Inject constructor(private val ipythonConfig: IPythonCo
                 }
                 this.process = null
                 this.connectionFilePath = null
-                this._connectionFileContent = null
-                this._session = null
-                this._channelProvider = null
-                this._msgEncoder=null
+                this.connectionFileContent = null
+                this.session = null
+                this.channelProvider = null
+                this.msgEncoder=null
+                this.msgIdGenerator = null
+                this.msgCounter = null
+                this.senderProvider = null
             }
             return Ok(Unit)
         } catch (e: Exception) {
@@ -95,7 +111,7 @@ class IPythonContextImp @Inject constructor(private val ipythonConfig: IPythonCo
         if(this.isRunning()){
             return Ok(this.process!!)
         }else{
-            return Err(FaultyConnectionException(ipythonNotRunningMsg))
+            return Err(faultyConnection)
         }
     }
 
@@ -107,54 +123,60 @@ class IPythonContextImp @Inject constructor(private val ipythonConfig: IPythonCo
                 }
             return rt
         } else {
-            return Err(IllegalStateException("IPythonProcessManager is stopped, thus cannot be restarted"))
+            return Err(IPythonContextIllegalStateException("IPythonProcessManager is stopped, thus cannot be restarted"))
         }
     }
 
     override fun getConnectionFileContent(): Result<KernelConnectionFileContent,Exception> {
         if(this.isRunning()){
-            return Ok(this._connectionFileContent!!)
+            return Ok(this.connectionFileContent!!)
         }else{
-            return Err(FaultyConnectionException(ipythonNotRunningMsg))
+            return Err(faultyConnection)
         }
-
     }
 
     override fun getSession(): Result<Session,Exception> {
         if (this.isRunning()) {
-            return Ok(this._session!!)
+            return Ok(this.session!!)
         } else {
-            return Err(FaultyConnectionException(ipythonNotRunningMsg))
+            return Err(faultyConnection)
         }
     }
 
     override fun getChannelProvider(): Result<ChannelProvider,Exception> {
         if (this.isRunning()) {
-            return Ok(this._channelProvider!!)
+            return Ok(this.channelProvider!!)
         } else {
-            return Err(FaultyConnectionException(ipythonNotRunningMsg))
+            return Err(faultyConnection)
         }
     }
 
-    override fun getSenderProvider(): SenderProvider {
-        TODO("Not yet implemented")
+    override fun getSenderProvider(): Result<SenderProvider, Exception> {
+        return Err(IllegalStateException("zz"))
     }
 
     override fun getMsgEncoder(): Result<MsgEncoder, Exception> {
         if(this.isRunning()){
-            return Ok(this._msgEncoder!!)
+            return Ok(this.msgEncoder!!)
         }else{
-            return Err(FaultyConnectionException(ipythonNotRunningMsg))
+            return Err(faultyConnection)
+        }
+    }
+
+    override fun getMsgIdGenerator(): Result<MsgIdGenerator, Exception> {
+        if(this.isRunning()){
+            return Ok(this.msgIdGenerator!!)
+        }else{
+           return Err(faultyConnection)
         }
     }
 
     fun isRunning(): Boolean {
         return (this.process?.isAlive
-            ?: false) && this.connectionFilePath != null && this._connectionFileContent != null
+            ?: false) && this.connectionFilePath != null && this.connectionFileContent != null
     }
 
     fun isNotRunning(): Boolean {
         return !this.isRunning()
     }
-
 }

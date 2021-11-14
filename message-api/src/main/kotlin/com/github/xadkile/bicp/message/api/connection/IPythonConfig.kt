@@ -8,7 +8,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 
-data class IPythonConfig(val launchCmd:List<String>,
+data class IPythonConfig internal constructor(val launchCmd:List<String>,
                          val connectionFilePath:String,
                          val milliSecStartTime:Long,
                          val milliSecStopTime:Long

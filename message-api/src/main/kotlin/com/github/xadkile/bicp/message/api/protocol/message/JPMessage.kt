@@ -1,11 +1,8 @@
 package com.github.xadkile.bicp.message.api.protocol.message
 
-import com.github.xadkile.bicp.common.HmacMaker
-import com.github.xadkile.bicp.message.api.connection.Session
 import com.github.xadkile.bicp.message.api.protocol.MessageHeader
 import com.github.xadkile.bicp.message.api.protocol.ProtocolConstant
 import com.github.xadkile.bicp.message.api.protocol.other.ProtocolUtils
-import com.github.xadkile.bicp.message.api.connection.SessionInfo
 
 /**
  * Should message message contain key?
@@ -20,7 +17,6 @@ class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
     val metadata: META?,
     val content: CONTENT,
     val buffer: ByteArray,
-    // val key:String
 ) {
     companion object {
         val delimiter = ProtocolConstant.messageDelimiter

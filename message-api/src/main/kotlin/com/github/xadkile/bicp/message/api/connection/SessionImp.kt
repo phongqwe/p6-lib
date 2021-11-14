@@ -5,7 +5,7 @@ import java.util.*
 /**
  * Provide user name, encryption key, and session id. These are for making message
  */
-data class SessionImp constructor(
+data class SessionImp internal constructor(
     private val sessionId: String,
     private val username: String,
     private val key: String

@@ -23,7 +23,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.bitbucket.xadkile.myide</groupId>
+            <groupId>com.github.xadkile</groupId>
             <artifactId>message-api</artifactId>
             <version>${project.version}</version>
         </dependency>

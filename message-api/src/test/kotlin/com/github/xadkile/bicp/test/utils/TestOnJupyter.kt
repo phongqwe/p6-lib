@@ -3,12 +3,9 @@ package com.github.xadkile.bicp.test.utils
 import com.github.xadkile.bicp.message.api.connection.IPythonConfig
 import com.github.xadkile.bicp.message.api.connection.IPythonContext
 import com.github.xadkile.bicp.message.api.connection.IPythonContextImp
-import com.google.gson.Gson
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import java.net.URL
-import java.nio.file.Files
-import java.nio.file.Paths
+import org.zeromq.ZContext
 
 /**
  * This test class will start jupyter before running any test, and destroy jupyter process after all of its tests are done.
@@ -17,10 +14,12 @@ import java.nio.file.Paths
 abstract class TestOnJupyter {
     lateinit var ipythonConfig:IPythonConfig
     lateinit var ipythonContext:IPythonContext
+    lateinit var zcontext:ZContext
     @BeforeAll
     fun before(){
+        this.zcontext = ZContext()
         this.ipythonConfig = TestResource.ipythonConfigForTest()
-        this.ipythonContext=IPythonContextImp(this.ipythonConfig)
+        this.ipythonContext=IPythonContextImp(this.ipythonConfig,zcontext)
         this.ipythonContext.startIPython()
         Thread.sleep(2000)
     }

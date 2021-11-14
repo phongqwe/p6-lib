@@ -3,7 +3,7 @@ package com.github.xadkile.bicp.message.api.connection
 import com.github.xadkile.bicp.message.api.channel.ChannelInfo
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 
-class ChannelProviderImp(private val connectFile: KernelConnectionFileContent) :
+class ChannelProviderImp internal constructor(private val connectFile: KernelConnectionFileContent) :
     ChannelProvider {
     override fun getIOPubChannel(): ChannelInfo {
         return this.connectFile.createIOPubChannel()

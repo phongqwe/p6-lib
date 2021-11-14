@@ -1,8 +1,8 @@
 package com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition
 
-import com.google.gson.annotations.SerializedName
 import com.github.xadkile.bicp.message.api.protocol.message.MsgContent
 import com.github.xadkile.bicp.message.api.protocol.message.MsgType
+import com.google.gson.annotations.SerializedName
 import javax.inject.Qualifier
 
 object IOPub {

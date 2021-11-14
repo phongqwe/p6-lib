@@ -1,13 +1,14 @@
 package com.github.xadkile.bicp.message.api.protocol.message
 
-import com.github.michaelbull.result.*
-import com.google.gson.annotations.SerializedName
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.get
+import com.github.michaelbull.result.onFailure
+import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.common.HmacMaker
 import com.github.xadkile.bicp.message.api.protocol.InvalidPayloadSizeException
 import com.github.xadkile.bicp.message.api.protocol.MessageHeader
 import com.github.xadkile.bicp.message.api.protocol.other.ProtocolUtils
-import com.github.xadkile.bicp.message.api.connection.SessionInfo
-import com.github.xadkile.bicp.message.api.protocol.message.*
+import com.google.gson.annotations.SerializedName
 import org.junit.jupiter.api.Test
 import java.util.*
 import kotlin.test.assertEquals

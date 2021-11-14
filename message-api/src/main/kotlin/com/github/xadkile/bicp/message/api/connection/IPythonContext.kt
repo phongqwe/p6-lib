@@ -2,6 +2,7 @@ package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
+import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
 
 /**
  * manage IPython process, also provide connection info
@@ -53,8 +54,10 @@ interface IPythonContext {
 
     fun getChannelProvider(): Result<ChannelProvider, Exception>
 
-    fun getSenderProvider():SenderProvider
+    fun getSenderProvider():Result<SenderProvider,Exception>
 
     fun getMsgEncoder():Result<MsgEncoder,Exception>
+
+    fun getMsgIdGenerator():Result<MsgIdGenerator,Exception>
 }
 
