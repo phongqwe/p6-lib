@@ -1,10 +1,9 @@
 package com.github.xadkile.bicp.message.api.connection
 
-import com.github.michaelbull.result.Err
-import com.github.michaelbull.result.Ok
-import com.github.michaelbull.result.get
-import com.github.michaelbull.result.getError
+import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.test.utils.TestResource
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -29,6 +28,61 @@ internal class IPythonContextImpTest {
         if(pm.getIPythonProcess().get()!=null){
             pm.stopIPython()
         }
+    }
+
+
+    @Test
+    fun testListeners(){
+//        pm.startIPython()
+//        var externalStop = false
+//        var internalStop = false
+//        pm.addOnAfterProcessStopListener {
+//            internalStop = true
+//        }
+//        pm.addOnBeforeProcessStopListener{
+//            internalStop = true
+//        }
+//        pm.addOnUnexpectedProcessStopListener{
+//            externalStop = true
+//        }
+//        val process = pm.getIPythonProcess().unwrap()
+//        process.destroy()
+//        runBlocking {
+//            while(process.isAlive){
+//                delay(50)
+//            }
+//        }
+//        assertTrue(externalStop)
+//        assertFalse(internalStop)
+//        externalStop = false
+//        internalStop = false
+//        pm.startIPython()
+//        pm.stopIPython()
+//        assertTrue(internalStop)
+//        assertFalse(externalStop)
+    }
+
+
+    @Test
+    fun testListeners2(){
+        pm.startIPython()
+        var externalStop = false
+        var internalStop = false
+        pm.addOnAfterProcessStopListener {
+            internalStop = true
+        }
+        pm.addOnBeforeProcessStopListener{
+            internalStop = true
+        }
+        pm.addOnUnexpectedProcessStopListener{
+            externalStop = true
+        }
+        val ipythonProcess = pm.getIPythonProcess().unwrap()
+        println(ipythonProcess.pid())
+        // kill using OS command line
+        ProcessBuilder().command("kill",ipythonProcess.pid().toString()).start()
+        assertTrue(externalStop)
+        assertFalse(internalStop)
     }
 
     @Test

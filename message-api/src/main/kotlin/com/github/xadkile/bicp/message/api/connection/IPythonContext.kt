@@ -3,6 +3,8 @@ package com.github.xadkile.bicp.message.api.connection
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
+import java.io.InputStream
+import java.io.OutputStream
 
 /**
  * manage IPython process, also provide connection info
@@ -43,6 +45,9 @@ interface IPythonContext {
 
     fun getIPythonProcess(): Result<Process, Exception>
 
+    fun getIPythonInputStream():Result<InputStream,Exception>
+    fun getIPythonOutputStream():Result<OutputStream,Exception>
+
     /**
      * Return connection info file content.
      *
@@ -59,5 +64,36 @@ interface IPythonContext {
     fun getMsgEncoder():Result<MsgEncoder,Exception>
 
     fun getMsgIdGenerator():Result<MsgIdGenerator,Exception>
+
+    /**
+     * add a listener that is invoked before a legal/normal stopping of a process
+     */
+    fun addOnBeforeProcessStopListener(listener:OnIPythonProcessStoppedListener)
+
+    /**
+     * remove the legal/normal on-before-process-stop listener
+     */
+    fun removeBeforeOnProcessStopListener()
+
+    /**
+     * add a listener that is invoked after a legal/normal stopping of a process
+     */
+    fun addOnAfterProcessStopListener(listener:OnIPythonProcessStoppedListener)
+
+    /**
+     * remove the legal/normal on-after-process-stop listener
+     */
+    fun removeAfterOnProcessStopListener()
+
+    /**
+     * Add a listener that is invoked when the ipython process is killed NOT by this app. For example: killed by the OS itself, killed directly by the user using OS tools (system monitor, task manager,etc)
+     */
+    fun addOnUnexpectedProcessStopListener(listener:OnIPythonProcessStoppedListener)
+
+    /**
+     * remove the unexpected-process-stop listener
+     */
+    fun removeOnProcessUnexpectedStopListener()
+
 }
 

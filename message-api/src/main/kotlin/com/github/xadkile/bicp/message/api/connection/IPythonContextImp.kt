@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.*
+import com.github.xadkile.bicp.message.api.connection.process_watcher.ProcessWatcher
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.protocol.other.MsgCounterImp
 import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
@@ -12,6 +13,8 @@ import kotlinx.coroutines.runBlocking
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
 import org.zeromq.ZContext
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -33,6 +36,12 @@ class IPythonContextImp @Inject internal constructor(
     private var msgCounter: MsgCounter? = null
     private var senderProvider:SenderProvider?=null
 
+    private var onBeforeStopListener:OnIPythonProcessStoppedListener = OnIPythonProcessStoppedListener.Nothing
+    private var onAfterStopListener:OnIPythonProcessStoppedListener = OnIPythonProcessStoppedListener.Nothing
+    private var onUnexpectedStopListener:OnIPythonProcessStoppedListener = OnIPythonProcessStoppedListener.Nothing
+    private var isCallingInternalStop = false
+    private var processWatcher:ProcessWatcher?=null
+
     companion object {
         private val faultyConnection = FaultyIPythonConnectionException("IPython process is not running")
     }
@@ -45,6 +54,13 @@ class IPythonContextImp @Inject internal constructor(
             try {
                 this.process = processBuilder.inheritIO().start()
                 Thread.sleep(this.ipythonConfig.milliSecStartTime)
+                this.process?.onExit()?.thenApply {
+                    if(isCallingInternalStop.not()){
+                        this.onUnexpectedStopListener.run(this)
+                    }
+
+                    destroyResource()
+                }
                 val cf: Result<KernelConnectionFileContent, IOException> =
                     KernelConnectionFileContent.fromJsonFile(ipythonConfig.connectionFilePath)
                 val rt: Result<Unit, Exception> = cf.map {
@@ -57,6 +73,7 @@ class IPythonContextImp @Inject internal constructor(
                 this.msgCounter = MsgCounterImp()
                 this.msgIdGenerator = SequentialMsgIdGenerator(this.session!!.getSessionId(), this.msgCounter!!)
                 this.senderProvider = SenderProviderImp(this.channelProvider!!,this.zcontext,this.msgEncoder!!)
+                this.isCallingInternalStop = false
                 return rt
             } catch (e: Exception) {
                 return Err(e)
@@ -65,25 +82,15 @@ class IPythonContextImp @Inject internal constructor(
     }
 
     override fun stopIPython(): Result<Unit, Exception> {
+        isCallingInternalStop = true
         if (this.isNotRunning()) {
+            isCallingInternalStop =false
             return Ok(Unit)
         }
         try {
             if (this.process != null) {
-                this.process?.onExit()?.thenApply {
-                    // delete connection file
-                    val cpath = this.connectionFilePath
-                    if (cpath != null) {
-                        Files.delete(cpath)
-                        runBlocking {
-                            // wait until file is deleted completely
-                            while (Files.exists(cpath)) {
-                                delay(50)
-                            }
-                        }
-
-                    }
-                }
+                // destroying ipython process will destroy other resource too
+                this.onBeforeStopListener.run(this)
                 this.process?.destroy()
                 runBlocking {
                     // wait until the process is dead completely
@@ -91,20 +98,37 @@ class IPythonContextImp @Inject internal constructor(
                         delay(50)
                     }
                 }
-                this.process = null
-                this.connectionFilePath = null
-                this.connectionFileContent = null
-                this.session = null
-                this.channelProvider = null
-                this.msgEncoder=null
-                this.msgIdGenerator = null
-                this.msgCounter = null
-                this.senderProvider = null
+                this.onAfterStopListener.run(this)
             }
+            isCallingInternalStop =false
             return Ok(Unit)
         } catch (e: Exception) {
             return Err(e)
         }
+    }
+
+    private fun destroyResource(){
+        val cpath = this.connectionFilePath
+
+        if (cpath != null) {
+            // delete connection file
+            Files.delete(cpath)
+            runBlocking {
+                // wait until file is deleted completely
+                while (Files.exists(cpath)) {
+                    delay(50)
+                }
+            }
+            this.connectionFilePath = null
+        }
+        this.process = null
+        this.connectionFileContent = null
+        this.session = null
+        this.channelProvider = null
+        this.msgEncoder=null
+        this.msgIdGenerator = null
+        this.msgCounter = null
+        this.senderProvider = null
     }
 
     override fun getIPythonProcess(): Result<Process,Exception> {
@@ -113,6 +137,14 @@ class IPythonContextImp @Inject internal constructor(
         }else{
             return Err(faultyConnection)
         }
+    }
+
+    override fun getIPythonInputStream(): Result<InputStream, Exception> {
+        return this.getIPythonProcess().map { it.inputStream }
+    }
+
+    override fun getIPythonOutputStream(): Result<OutputStream, Exception> {
+        return this.getIPythonProcess().map { it.outputStream }
     }
 
     override fun restartIPython(): Result<Unit, Exception> {
@@ -178,5 +210,29 @@ class IPythonContextImp @Inject internal constructor(
 
     fun isNotRunning(): Boolean {
         return !this.isRunning()
+    }
+
+    override fun addOnBeforeProcessStopListener(listener: OnIPythonProcessStoppedListener) {
+        this.onBeforeStopListener  = listener
+    }
+
+    override fun removeBeforeOnProcessStopListener() {
+        this.onBeforeStopListener = OnIPythonProcessStoppedListener.Nothing
+    }
+
+    override fun addOnAfterProcessStopListener(listener: OnIPythonProcessStoppedListener) {
+        this.onAfterStopListener = listener
+    }
+
+    override fun removeAfterOnProcessStopListener() {
+        this.onAfterStopListener = OnIPythonProcessStoppedListener.Nothing
+    }
+
+    override fun addOnUnexpectedProcessStopListener(listener: OnIPythonProcessStoppedListener) {
+        this.onUnexpectedStopListener=listener
+    }
+
+    override fun removeOnProcessUnexpectedStopListener() {
+        this.onUnexpectedStopListener = OnIPythonProcessStoppedListener.Nothing
     }
 }
