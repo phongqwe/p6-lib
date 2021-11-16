@@ -18,5 +18,8 @@ class TestResource {
                 return o
             }
         }
+
+        fun defaultIPythonProcessCommand():List<String> = this.ipythonConfigForTest().launchCmd
+        fun dummyProcess(count:Int) = listOf("java","-jar","dummy_process.jar",count.toString())
     }
 }

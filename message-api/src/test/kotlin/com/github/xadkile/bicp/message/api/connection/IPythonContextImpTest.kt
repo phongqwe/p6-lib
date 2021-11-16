@@ -2,8 +2,6 @@ package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.test.utils.TestResource
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -68,15 +66,15 @@ internal class IPythonContextImpTest {
         pm.startIPython()
         var externalStop = false
         var internalStop = false
-        pm.addOnAfterProcessStopListener {
+        pm.setOnAfterProcessStopListener {
             internalStop = true
         }
-        pm.addOnBeforeProcessStopListener{
+        pm.setOnBeforeProcessStopListener{
             internalStop = true
         }
-        pm.addOnUnexpectedProcessStopListener{
-            externalStop = true
-        }
+//        pm.addOnUnexpectedProcessStopListener{
+//            externalStop = true
+//        }
         val ipythonProcess = pm.getIPythonProcess().unwrap()
         println(ipythonProcess.pid())
         // kill using OS command line

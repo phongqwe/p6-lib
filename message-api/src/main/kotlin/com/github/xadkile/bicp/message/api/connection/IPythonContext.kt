@@ -68,7 +68,7 @@ interface IPythonContext {
     /**
      * add a listener that is invoked before a legal/normal stopping of a process
      */
-    fun addOnBeforeProcessStopListener(listener:OnIPythonProcessStoppedListener)
+    fun setOnBeforeProcessStopListener(listener:OnIPythonProcessStoppedListener)
 
     /**
      * remove the legal/normal on-before-process-stop listener
@@ -78,22 +78,13 @@ interface IPythonContext {
     /**
      * add a listener that is invoked after a legal/normal stopping of a process
      */
-    fun addOnAfterProcessStopListener(listener:OnIPythonProcessStoppedListener)
+    fun setOnAfterProcessStopListener(listener:OnIPythonProcessStoppedListener)
 
     /**
      * remove the legal/normal on-after-process-stop listener
      */
     fun removeAfterOnProcessStopListener()
 
-    /**
-     * Add a listener that is invoked when the ipython process is killed NOT by this app. For example: killed by the OS itself, killed directly by the user using OS tools (system monitor, task manager,etc)
-     */
-    fun addOnUnexpectedProcessStopListener(listener:OnIPythonProcessStoppedListener)
-
-    /**
-     * remove the unexpected-process-stop listener
-     */
-    fun removeOnProcessUnexpectedStopListener()
-
+    //TODO add on start process event listener
 }
 

@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.*
+import com.github.xadkile.bicp.message.api.connection.process_watcher.OnStopWatcher
 import com.github.xadkile.bicp.message.api.connection.process_watcher.ProcessWatcher
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.protocol.other.MsgCounterImp
@@ -38,9 +39,6 @@ class IPythonContextImp @Inject internal constructor(
 
     private var onBeforeStopListener:OnIPythonProcessStoppedListener = OnIPythonProcessStoppedListener.Nothing
     private var onAfterStopListener:OnIPythonProcessStoppedListener = OnIPythonProcessStoppedListener.Nothing
-    private var onUnexpectedStopListener:OnIPythonProcessStoppedListener = OnIPythonProcessStoppedListener.Nothing
-    private var isCallingInternalStop = false
-    private var processWatcher:ProcessWatcher?=null
 
     companion object {
         private val faultyConnection = FaultyIPythonConnectionException("IPython process is not running")
@@ -55,10 +53,6 @@ class IPythonContextImp @Inject internal constructor(
                 this.process = processBuilder.inheritIO().start()
                 Thread.sleep(this.ipythonConfig.milliSecStartTime)
                 this.process?.onExit()?.thenApply {
-                    if(isCallingInternalStop.not()){
-                        this.onUnexpectedStopListener.run(this)
-                    }
-
                     destroyResource()
                 }
                 val cf: Result<KernelConnectionFileContent, IOException> =
@@ -73,7 +67,6 @@ class IPythonContextImp @Inject internal constructor(
                 this.msgCounter = MsgCounterImp()
                 this.msgIdGenerator = SequentialMsgIdGenerator(this.session!!.getSessionId(), this.msgCounter!!)
                 this.senderProvider = SenderProviderImp(this.channelProvider!!,this.zcontext,this.msgEncoder!!)
-                this.isCallingInternalStop = false
                 return rt
             } catch (e: Exception) {
                 return Err(e)
@@ -82,9 +75,7 @@ class IPythonContextImp @Inject internal constructor(
     }
 
     override fun stopIPython(): Result<Unit, Exception> {
-        isCallingInternalStop = true
         if (this.isNotRunning()) {
-            isCallingInternalStop =false
             return Ok(Unit)
         }
         try {
@@ -100,7 +91,6 @@ class IPythonContextImp @Inject internal constructor(
                 }
                 this.onAfterStopListener.run(this)
             }
-            isCallingInternalStop =false
             return Ok(Unit)
         } catch (e: Exception) {
             return Err(e)
@@ -212,7 +202,7 @@ class IPythonContextImp @Inject internal constructor(
         return !this.isRunning()
     }
 
-    override fun addOnBeforeProcessStopListener(listener: OnIPythonProcessStoppedListener) {
+    override fun setOnBeforeProcessStopListener(listener: OnIPythonProcessStoppedListener) {
         this.onBeforeStopListener  = listener
     }
 
@@ -220,19 +210,11 @@ class IPythonContextImp @Inject internal constructor(
         this.onBeforeStopListener = OnIPythonProcessStoppedListener.Nothing
     }
 
-    override fun addOnAfterProcessStopListener(listener: OnIPythonProcessStoppedListener) {
+    override fun setOnAfterProcessStopListener(listener: OnIPythonProcessStoppedListener) {
         this.onAfterStopListener = listener
     }
 
     override fun removeAfterOnProcessStopListener() {
         this.onAfterStopListener = OnIPythonProcessStoppedListener.Nothing
-    }
-
-    override fun addOnUnexpectedProcessStopListener(listener: OnIPythonProcessStoppedListener) {
-        this.onUnexpectedStopListener=listener
-    }
-
-    override fun removeOnProcessUnexpectedStopListener() {
-        this.onUnexpectedStopListener = OnIPythonProcessStoppedListener.Nothing
     }
 }
