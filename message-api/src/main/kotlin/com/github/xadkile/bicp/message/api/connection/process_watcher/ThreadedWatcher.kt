@@ -6,6 +6,9 @@ import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.exception.ProcessWatcherIllegalState
 import com.github.xadkile.bicp.message.api.exception.UnknownException
 
+/**
+ * A process watcher that run on a separated thread
+ */
 class ThreadedWatcher: ProcessWatcher {
     var thread: Thread?= null
     private var process: Process? = null
