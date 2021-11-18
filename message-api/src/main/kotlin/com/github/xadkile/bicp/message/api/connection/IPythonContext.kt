@@ -8,6 +8,7 @@ import java.io.OutputStream
 
 /**
  * manage IPython process, also provide connection info
+ * TODO long: need to add something to watch for unexpected kill of IPython
  */
 interface IPythonContext {
     /**
@@ -68,7 +69,7 @@ interface IPythonContext {
     /**
      * add a listener that is invoked before a legal/normal stopping of a process
      */
-    fun setOnBeforeProcessStopListener(listener:OnIPythonProcessStoppedListener)
+    fun setOnBeforeProcessStopListener(listener:OnIPythonContextEvent)
 
     /**
      * remove the legal/normal on-before-process-stop listener
@@ -78,13 +79,14 @@ interface IPythonContext {
     /**
      * add a listener that is invoked after a legal/normal stopping of a process
      */
-    fun setOnAfterProcessStopListener(listener:OnIPythonProcessStoppedListener)
+    fun setOnAfterProcessStopListener(listener:OnIPythonContextEvent)
 
     /**
      * remove the legal/normal on-after-process-stop listener
      */
     fun removeAfterOnProcessStopListener()
 
-    //TODO add on start process event listener
+    fun setOnStartProcessListener(listener:OnIPythonContextEvent)
+    fun removeOnProcessStartListener()
 }
 

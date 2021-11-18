@@ -28,59 +28,25 @@ internal class IPythonContextImpTest {
         }
     }
 
-
     @Test
-    fun testListeners(){
-//        pm.startIPython()
-//        var externalStop = false
-//        var internalStop = false
-//        pm.addOnAfterProcessStopListener {
-//            internalStop = true
-//        }
-//        pm.addOnBeforeProcessStopListener{
-//            internalStop = true
-//        }
-//        pm.addOnUnexpectedProcessStopListener{
-//            externalStop = true
-//        }
-//        val process = pm.getIPythonProcess().unwrap()
-//        process.destroy()
-//        runBlocking {
-//            while(process.isAlive){
-//                delay(50)
-//            }
-//        }
-//        assertTrue(externalStop)
-//        assertFalse(internalStop)
-//        externalStop = false
-//        internalStop = false
-//        pm.startIPython()
-//        pm.stopIPython()
-//        assertTrue(internalStop)
-//        assertFalse(externalStop)
-    }
-
-
-    @Test
-    fun testListeners2(){
+    fun testStartAndStopListeners(){
+        var start = false
+        pm.setOnStartProcessListener {
+            start = true
+        }
         pm.startIPython()
-        var externalStop = false
-        var internalStop = false
+        assertTrue(start)
+        var afterStop = false
+        var beforeStop = false
         pm.setOnAfterProcessStopListener {
-            internalStop = true
+            afterStop = true
         }
         pm.setOnBeforeProcessStopListener{
-            internalStop = true
+            beforeStop = true
         }
-//        pm.addOnUnexpectedProcessStopListener{
-//            externalStop = true
-//        }
-        val ipythonProcess = pm.getIPythonProcess().unwrap()
-        println(ipythonProcess.pid())
-        // kill using OS command line
-        ProcessBuilder().command("kill",ipythonProcess.pid().toString()).start()
-        assertTrue(externalStop)
-        assertFalse(internalStop)
+        pm.stopIPython()
+        assertTrue(afterStop)
+        assertTrue(beforeStop)
     }
 
     @Test

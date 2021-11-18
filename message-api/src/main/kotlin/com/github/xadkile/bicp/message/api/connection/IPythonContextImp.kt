@@ -2,7 +2,6 @@ package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.process_watcher.OnStopWatcher
-import com.github.xadkile.bicp.message.api.connection.process_watcher.ProcessWatcher
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.protocol.other.MsgCounterImp
 import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
@@ -37,8 +36,9 @@ class IPythonContextImp @Inject internal constructor(
     private var msgCounter: MsgCounter? = null
     private var senderProvider:SenderProvider?=null
 
-    private var onBeforeStopListener:OnIPythonProcessStoppedListener = OnIPythonProcessStoppedListener.Nothing
-    private var onAfterStopListener:OnIPythonProcessStoppedListener = OnIPythonProcessStoppedListener.Nothing
+    private var onBeforeStopListener:OnIPythonContextEvent = OnIPythonContextEvent.Nothing
+    private var onAfterStopListener:OnIPythonContextEvent = OnIPythonContextEvent.Nothing
+    private var onProcessStartListener:OnIPythonContextEvent = OnIPythonContextEvent.Nothing
 
     companion object {
         private val faultyConnection = FaultyIPythonConnectionException("IPython process is not running")
@@ -52,8 +52,10 @@ class IPythonContextImp @Inject internal constructor(
             try {
                 this.process = processBuilder.inheritIO().start()
                 Thread.sleep(this.ipythonConfig.milliSecStartTime)
+                this.onProcessStartListener.run(this)
                 this.process?.onExit()?.thenApply {
                     destroyResource()
+                    this.onAfterStopListener.run(this)
                 }
                 val cf: Result<KernelConnectionFileContent, IOException> =
                     KernelConnectionFileContent.fromJsonFile(ipythonConfig.connectionFilePath)
@@ -84,9 +86,9 @@ class IPythonContextImp @Inject internal constructor(
                 this.onBeforeStopListener.run(this)
                 this.process?.destroy()
                 runBlocking {
-                    // wait until the process is dead completely
+                    // polling until the process is dead completely
                     while (this@IPythonContextImp.process?.isAlive == true) {
-                        delay(50)
+                        delay(10)
                     }
                 }
                 this.onAfterStopListener.run(this)
@@ -202,19 +204,27 @@ class IPythonContextImp @Inject internal constructor(
         return !this.isRunning()
     }
 
-    override fun setOnBeforeProcessStopListener(listener: OnIPythonProcessStoppedListener) {
+    override fun setOnBeforeProcessStopListener(listener: OnIPythonContextEvent) {
         this.onBeforeStopListener  = listener
     }
 
     override fun removeBeforeOnProcessStopListener() {
-        this.onBeforeStopListener = OnIPythonProcessStoppedListener.Nothing
+        this.onBeforeStopListener = OnIPythonContextEvent.Nothing
     }
 
-    override fun setOnAfterProcessStopListener(listener: OnIPythonProcessStoppedListener) {
+    override fun setOnAfterProcessStopListener(listener: OnIPythonContextEvent) {
         this.onAfterStopListener = listener
     }
 
     override fun removeAfterOnProcessStopListener() {
-        this.onAfterStopListener = OnIPythonProcessStoppedListener.Nothing
+        this.onAfterStopListener = OnIPythonContextEvent.Nothing
+    }
+
+    override fun setOnStartProcessListener(listener: OnIPythonContextEvent) {
+        this.onProcessStartListener = listener
+    }
+
+    override fun removeOnProcessStartListener() {
+        this.onProcessStartListener = OnIPythonContextEvent.Nothing
     }
 }
