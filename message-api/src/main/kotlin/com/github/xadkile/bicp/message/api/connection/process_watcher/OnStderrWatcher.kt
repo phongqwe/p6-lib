@@ -46,4 +46,8 @@ class OnStderrWatcher(
     override fun isWatching(): Boolean {
         return this.threadWatcher.isWatching()
     }
+
+//    override fun isMeaningful(): Boolean {
+//        return this.onStdErrListener != OnStdErrEventProcessListener.nothing
+//    }
 }

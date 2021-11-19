@@ -37,4 +37,8 @@ class OnStopWatcher(
     override fun isWatching(): Boolean {
         return this.threadWatcher.isWatching()
     }
+
+//    override fun isMeaningful(): Boolean {
+//        return this.onStopListener!= OnStopEventProcessListener.nothing
+//    }
 }

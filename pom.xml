@@ -22,6 +22,7 @@
         <karaf.version>4.3.2</karaf.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.version>1.5.31</kotlin.version>
+        <kotlin.coroutine.version>1.5.2</kotlin.coroutine.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <firebase.version>8.0.1</firebase.version>
         <redis.version>3.6.0</redis.version>
@@ -111,6 +112,13 @@
                 <artifactId>jeromq</artifactId>
                 <version>0.5.2</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.michael-bull.kotlin-result</groupId>
+                <artifactId>kotlin-result-jvm</artifactId>
+                <version>1.1.12</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -119,14 +127,14 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-core</artifactId>
-            <version>1.5.2</version>
+            <version>${kotlin.coroutine.version}</version>
             <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>com.michael-bull.kotlin-result</groupId>
             <artifactId>kotlin-result-jvm</artifactId>
-            <version>1.1.12</version>
+<!--            <version>1.1.12</version>-->
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>

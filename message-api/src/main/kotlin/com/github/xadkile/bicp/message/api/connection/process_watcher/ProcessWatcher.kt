@@ -9,6 +9,11 @@ interface ProcessWatcher {
     fun startWatching(process:Process):Result<Unit,Exception>
     fun stopWatching():Result<Unit,Exception>
     fun isWatching():Boolean
+
+    /**
+     * return true if this ProcessWatcher actually do anything meaningful
+     */
+//    fun isMeaningful():Boolean
 }
 
 

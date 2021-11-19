@@ -7,7 +7,7 @@ import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.common.HmacMaker
 import com.github.xadkile.bicp.message.api.protocol.InvalidPayloadSizeException
 import com.github.xadkile.bicp.message.api.protocol.MessageHeader
-import com.github.xadkile.bicp.message.api.protocol.other.ProtocolUtils
+import com.github.xadkile.bicp.message.api.protocol.ProtocolUtils
 import com.google.gson.annotations.SerializedName
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -36,7 +36,7 @@ internal class JPRawMessageTest {
         ).map { it.toByteArray(Charsets.UTF_8) }
         val facade =
             JPRawMessage
-                .fromRecvPayload(payload)
+                .fromPayload(payload)
                 .unwrap()
         val model: JPMessage<Meta, Content> = facade.toModel<Meta, Content>(
         )
@@ -68,7 +68,7 @@ internal class JPRawMessageTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromRecvPayload(payload).get()
+        val facade = JPRawMessage.fromPayload(payload).get()
         assertTrue(facade?.verifyHmac(key) ?: false)
     }
 
@@ -81,7 +81,7 @@ internal class JPRawMessageTest {
             "header_123",
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromRecvPayload(payload)
+        val facade = JPRawMessage.fromPayload(payload)
         assertTrue(facade is Err)
         facade.onFailure {
             assertTrue(it is InvalidPayloadSizeException)
@@ -101,7 +101,7 @@ internal class JPRawMessageTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromRecvPayload(payload)
+        val facade = JPRawMessage.fromPayload(payload)
         assertTrue(facade is Err)
         facade.onFailure {
             assertTrue(it is NoSuchElementException)
@@ -121,7 +121,7 @@ internal class JPRawMessageTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromRecvPayload(payload).unwrap()
+        val facade = JPRawMessage.fromPayload(payload).unwrap()
         assertEquals(input[0], facade.identities)
         assertEquals(input[1], facade.delimiter)
         assertEquals(input[2], facade.hmacSig)
@@ -144,7 +144,7 @@ internal class JPRawMessageTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromRecvPayload(payload).unwrap()
+        val facade = JPRawMessage.fromPayload(payload).unwrap()
         assertEquals("", facade.identities)
         assertEquals(input[0], facade.delimiter)
         assertEquals(input[1], facade.hmacSig)
@@ -166,7 +166,7 @@ internal class JPRawMessageTest {
             "content_123",
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromRecvPayload(payload).unwrap()
+        val facade = JPRawMessage.fromPayload(payload).unwrap()
         assertEquals("", facade.identities)
         assertEquals("", facade.identities)
         assertEquals(input[0], facade.delimiter)

@@ -33,7 +33,6 @@
             <artifactId>guava</artifactId>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/net.sf.py4j/py4j -->
         <dependency>
             <groupId>net.sf.py4j</groupId>
             <artifactId>py4j</artifactId>

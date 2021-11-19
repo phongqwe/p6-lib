@@ -1,6 +1,8 @@
 package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.*
+import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonConfig
+import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContextImp
 import com.github.xadkile.bicp.test.utils.TestResource
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -13,12 +15,14 @@ import java.nio.file.Paths
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IPythonContextImpTest {
-    lateinit var pm :IPythonContextImp
-    lateinit var ipythonConfig:IPythonConfig
+    lateinit var pm : IPythonContextImp
+    lateinit var ipythonConfig: IPythonConfig
+    lateinit var zContext: ZContext
     @BeforeEach
     fun beforeEach(){
+        this.zContext = ZContext()
         ipythonConfig = TestResource.ipythonConfigForTest()
-        pm = IPythonContextImp(ipythonConfig, ZContext())
+        pm = IPythonContextImp(ipythonConfig,this.zContext)
     }
 
     @AfterEach
@@ -61,6 +65,8 @@ internal class IPythonContextImpTest {
         assertTrue(pm.getSession() is Ok)
         assertTrue(pm.getMsgEncoder() is Ok)
         assertTrue(pm.getMsgIdGenerator() is Ok)
+        assertTrue(pm.getHeartBeatService() is Ok)
+        assertTrue(pm.getHeartBeatService().unwrap().isServiceRunning())
         assertTrue(Files.exists(Paths.get(ipythonConfig.connectionFilePath)))
     }
 
@@ -84,6 +90,7 @@ internal class IPythonContextImpTest {
         assertTrue(pm.getChannelProvider() is Err)
         assertTrue(pm.getMsgEncoder() is Err)
         assertTrue(pm.getMsgIdGenerator() is Err)
+        assertTrue(pm.getHeartBeatService() is Err)
         assertFalse(Files.exists(Paths.get(ipythonConfig.connectionFilePath)))
     }
     @Test

@@ -7,7 +7,7 @@ import com.github.xadkile.bicp.common.HmacMaker
 import com.github.xadkile.bicp.message.api.protocol.InvalidPayloadSizeException
 import com.github.xadkile.bicp.message.api.protocol.MessageHeader
 import com.github.xadkile.bicp.message.api.protocol.ProtocolConstant
-import com.github.xadkile.bicp.message.api.protocol.other.ProtocolUtils
+import com.github.xadkile.bicp.message.api.protocol.ProtocolUtils
 import com.google.gson.GsonBuilder
 
 /**
@@ -29,7 +29,7 @@ class JPRawMessage(
          *
          * Detect the delimiter and use it as a pivot point to locate other elements
          */
-        fun fromRecvPayload(payload: List<ByteArray>): Result<JPRawMessage, Exception> {
+        fun fromPayload(payload: List<ByteArray>): Result<JPRawMessage, Exception> {
             if (payload.size < 6) {
                 return Err(InvalidPayloadSizeException(payload.size))
             } else {

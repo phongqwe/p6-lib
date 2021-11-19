@@ -1,14 +1,11 @@
 package com.github.xadkile.bicp.message.api.protocol.message
 
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.map
 import com.github.xadkile.bicp.message.api.protocol.MessageHeader
 import com.github.xadkile.bicp.message.api.protocol.ProtocolConstant
-import com.github.xadkile.bicp.message.api.protocol.other.ProtocolUtils
+import com.github.xadkile.bicp.message.api.protocol.ProtocolUtils
 
-/**
- * Should message message contain key?
- * key is tied to session info.
- * message is created when it is needed, and consumed immediately and not lingering around.
- */
 class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
     val identities:String,
     val delimiter:String,
@@ -51,28 +48,11 @@ class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
             )
         }
 
-        fun <META : MsgMetaData, CONTENT : MsgContent> fromPayload(payload:List<String>):JPMessage<META,CONTENT>{
-            TODO("write this")
+        inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent> fromPayload(payload:List<ByteArray>):Result<JPMessage<META,CONTENT>,Exception>{
+            val rawMsg:Result<JPRawMessage,Exception> =JPRawMessage.fromPayload(payload.map { it })
+            return rawMsg.map { it.toModel() }
         }
     }
-
-    /**
-     */
-//    fun makePayload(key:String):List<ByteArray>{
-//        val ingredients = getHMACIngredientAsStr()
-//        val ingredientsAsByteArray = ingredients.map { it.toByteArray(Charsets.UTF_8) }
-//        val keyAsByteArray = key.toByteArray(Charsets.UTF_8)
-//        return listOf(
-//            this.identities.toByteArray(Charsets.UTF_8),
-//            this.delimiter.toByteArray(Charsets.UTF_8),
-//            HmacMaker.makeHmacSha256SigInByteArray(keyAsByteArray,ingredientsAsByteArray),
-//            ingredients[0].toByteArray(Charsets.UTF_8),
-//            ingredients[1].toByteArray(Charsets.UTF_8),
-//            ingredients[2].toByteArray(Charsets.UTF_8),
-//            ingredients[3].toByteArray(Charsets.UTF_8),
-//            this.buffer
-//        )
-//    }
 
     /**
      * Return ingredients for use in the creation a Hmac sha256 signature
@@ -86,6 +66,10 @@ class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
             gson.toJson(this.content),
         )
         return rt
+    }
+
+    override fun toString(): String {
+        return ProtocolUtils.msgGson.toJson(this)
     }
 }
 

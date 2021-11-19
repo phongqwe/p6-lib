@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.connection
+package com.github.xadkile.bicp.message.api.connection.ipython_context
 
 import com.github.xadkile.bicp.common.HmacMaker
 import com.github.xadkile.bicp.message.api.protocol.message.JPMessage

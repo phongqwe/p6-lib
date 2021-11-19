@@ -9,13 +9,6 @@ import java.util.*
 import javax.inject.Qualifier
 
 object Shell{
-    @Qualifier
-    @Retention(AnnotationRetention.RUNTIME)
-    annotation class Address
-
-    @Qualifier
-    @Retention(AnnotationRetention.RUNTIME)
-    annotation class Channel
 
     object ExecuteRequest {
         val msgType = MsgType.Shell_execute_request

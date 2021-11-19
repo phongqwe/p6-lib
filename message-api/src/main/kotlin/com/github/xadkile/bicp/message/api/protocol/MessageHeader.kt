@@ -2,18 +2,18 @@ package com.github.xadkile.bicp.message.api.protocol
 
 import com.github.xadkile.bicp.message.api.protocol.message.MsgType
 import com.google.gson.annotations.SerializedName
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 
 data class MessageHeader(
     @SerializedName("msg_id")
     val msgId: String,
     @SerializedName("msg_type")
-     val msgType: MsgType,
+    val msgType: MsgType,
     val username: String,
     @SerializedName("session")
-     val sessionId: String,
-    val date: LocalDateTime,
+    val sessionId: String,
+    val date: ZonedDateTime,
     val version: String,
 ) {
     companion object {
@@ -36,7 +36,7 @@ data class MessageHeader(
                 msgType = msgType,
                 username = username,
                 sessionId = sessionId,
-                date = LocalDateTime.now(),
+                date = ZonedDateTime.now(),
                 version = MSG_VERSION
             )
         }

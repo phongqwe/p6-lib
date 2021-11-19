@@ -1,16 +1,16 @@
-package com.github.xadkile.bicp.message.api.connection
+package com.github.xadkile.bicp.message.api.connection.ipython_context
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.bicp.message.api.connection.process_watcher.OnStopWatcher
+import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
+import com.github.xadkile.bicp.message.api.connection.heart_beat.LiveCountHeartBeatService
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.protocol.other.MsgCounterImp
 import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
 import com.github.xadkile.bicp.message.api.protocol.other.SequentialMsgIdGenerator
-import com.github.xadkile.bicp.message.api.exception.FaultyIPythonConnectionException
-import com.github.xadkile.bicp.message.api.exception.IPythonContextIllegalStateException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
+import org.zeromq.SocketType
 import org.zeromq.ZContext
 import java.io.IOException
 import java.io.InputStream
@@ -21,9 +21,12 @@ import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ *  [ipythonConfig] is fixed, read from an external file and only change after application start.
+ */
 @Singleton
 class IPythonContextImp @Inject internal constructor(
-     var ipythonConfig: IPythonConfig, var zcontext:ZContext) : IPythonContext {
+    val ipythonConfig: IPythonConfig, val zcontext:ZContext) : IPythonContext {
 
     private val launchCmd: List<String> = this.ipythonConfig.makeLaunchCmmd()
     private var process: Process? = null
@@ -31,17 +34,20 @@ class IPythonContextImp @Inject internal constructor(
     private var connectionFilePath: Path? = null
     private var session: Session? = null
     private var channelProvider: ChannelProvider? = null
-    private var msgEncoder:MsgEncoder? = null
+    private var msgEncoder: MsgEncoder? = null
     private var msgIdGenerator:MsgIdGenerator? = null
     private var msgCounter: MsgCounter? = null
-    private var senderProvider:SenderProvider?=null
+    private var senderProvider: SenderProvider?=null
+    private var hbService:HeartBeatService?=null
 
-    private var onBeforeStopListener:OnIPythonContextEvent = OnIPythonContextEvent.Nothing
-    private var onAfterStopListener:OnIPythonContextEvent = OnIPythonContextEvent.Nothing
-    private var onProcessStartListener:OnIPythonContextEvent = OnIPythonContextEvent.Nothing
+    private var onBeforeStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
+    private var onAfterStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
+    private var onProcessStartListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
+
+    private val convenientInterface = IPythonContextConvImp(this)
 
     companion object {
-        private val faultyConnection = FaultyIPythonConnectionException("IPython process is not running")
+        private val ipythonIsDownErr = IPythonIsDownException("IPython process is not running")
     }
 
     override fun startIPython(): Result<Unit, Exception> {
@@ -62,6 +68,8 @@ class IPythonContextImp @Inject internal constructor(
                 val rt: Result<Unit, Exception> = cf.map {
                     this.connectionFileContent = it
                 }
+
+                // create resources
                 this.connectionFilePath = Paths.get(ipythonConfig.connectionFilePath)
                 this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
                 this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
@@ -69,6 +77,14 @@ class IPythonContextImp @Inject internal constructor(
                 this.msgCounter = MsgCounterImp()
                 this.msgIdGenerator = SequentialMsgIdGenerator(this.session!!.getSessionId(), this.msgCounter!!)
                 this.senderProvider = SenderProviderImp(this.channelProvider!!,this.zcontext,this.msgEncoder!!)
+
+                // start heart beat service
+                this.hbService = LiveCountHeartBeatService(
+                    hbSocket =this.zcontext.createSocket(SocketType.REQ).also {
+                        it.connect(this.getChannelProvider().unwrap().getHeartbeatChannel().makeAddress())
+                    },
+                    zContext = this.zcontext
+                ).also { it.start() }
                 return rt
             } catch (e: Exception) {
                 return Err(e)
@@ -82,8 +98,9 @@ class IPythonContextImp @Inject internal constructor(
         }
         try {
             if (this.process != null) {
-                // destroying ipython process will destroy other resource too
                 this.onBeforeStopListener.run(this)
+                // reminder: destroying ipython process will invoke destroyResource()
+                // that destroys other resource too.
                 this.process?.destroy()
                 runBlocking {
                     // polling until the process is dead completely
@@ -113,6 +130,7 @@ class IPythonContextImp @Inject internal constructor(
             }
             this.connectionFilePath = null
         }
+        // destroy other resources
         this.process = null
         this.connectionFileContent = null
         this.session = null
@@ -121,13 +139,16 @@ class IPythonContextImp @Inject internal constructor(
         this.msgIdGenerator = null
         this.msgCounter = null
         this.senderProvider = null
+        // stop hb service
+        this.hbService?.stop()
+        this.hbService = null
     }
 
     override fun getIPythonProcess(): Result<Process,Exception> {
         if(this.isRunning()){
             return Ok(this.process!!)
         }else{
-            return Err(faultyConnection)
+            return Err(ipythonIsDownErr)
         }
     }
 
@@ -155,7 +176,7 @@ class IPythonContextImp @Inject internal constructor(
         if(this.isRunning()){
             return Ok(this.connectionFileContent!!)
         }else{
-            return Err(faultyConnection)
+            return Err(ipythonIsDownErr)
         }
     }
 
@@ -163,7 +184,7 @@ class IPythonContextImp @Inject internal constructor(
         if (this.isRunning()) {
             return Ok(this.session!!)
         } else {
-            return Err(faultyConnection)
+            return Err(ipythonIsDownErr)
         }
     }
 
@@ -171,19 +192,19 @@ class IPythonContextImp @Inject internal constructor(
         if (this.isRunning()) {
             return Ok(this.channelProvider!!)
         } else {
-            return Err(faultyConnection)
+            return Err(ipythonIsDownErr)
         }
     }
 
     override fun getSenderProvider(): Result<SenderProvider, Exception> {
-        return Err(IllegalStateException("zz"))
+        return Err(IllegalStateException("not impl"))
     }
 
     override fun getMsgEncoder(): Result<MsgEncoder, Exception> {
         if(this.isRunning()){
             return Ok(this.msgEncoder!!)
         }else{
-            return Err(faultyConnection)
+            return Err(ipythonIsDownErr)
         }
     }
 
@@ -191,7 +212,7 @@ class IPythonContextImp @Inject internal constructor(
         if(this.isRunning()){
             return Ok(this.msgIdGenerator!!)
         }else{
-           return Err(faultyConnection)
+           return Err(ipythonIsDownErr)
         }
     }
 
@@ -226,5 +247,21 @@ class IPythonContextImp @Inject internal constructor(
 
     override fun removeOnProcessStartListener() {
         this.onProcessStartListener = OnIPythonContextEvent.Nothing
+    }
+
+    override fun getHeartBeatService(): Result<HeartBeatService, Exception> {
+        if(this.isRunning()){
+            return Ok(this.hbService!!)
+        }else{
+            return Err(ipythonIsDownErr)
+        }
+    }
+
+    override fun conv(): IPythonContextConv {
+        return this.convenientInterface
+    }
+
+    override fun zContext(): ZContext {
+        return this.zcontext
     }
 }

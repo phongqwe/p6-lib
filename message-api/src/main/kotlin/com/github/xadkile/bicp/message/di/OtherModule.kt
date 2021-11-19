@@ -10,7 +10,7 @@ interface OtherModule {
     companion object {
         @Provides
         @Singleton
-        fun zcontext():ZContext{
+        fun zContext():ZContext{
             return ZContext()
         }
     }
