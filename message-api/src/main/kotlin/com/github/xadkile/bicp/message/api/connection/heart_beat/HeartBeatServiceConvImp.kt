@@ -15,9 +15,9 @@ class HeartBeatServiceConvImp(private val service: HeartBeatService): HeartBeatS
         return this.service.isServiceRunning()
     }
 
-    override fun checkHB(): Result<Unit, Exception> {
-        return this.service.checkHB()
-    }
+//    override fun checkHB(): Result<Unit, Exception> {
+//        return this.service.checkHB()
+//    }
 
     override fun stop(): Boolean {
         return this.service.stop()

@@ -18,19 +18,20 @@ import kotlin.reflect.typeOf
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
     lateinit var hbService: LiveCountHeartBeatService
-//    lateinit var socket: ZMQ.Socket
-//    val liveCount = 4
-//    val interval:Long = 500
+    lateinit var hbService2: LiveCountHeartBeatService
+    lateinit var socket: ZMQ.Socket
+    val liveCount = 4
+    val interval:Long = 500
 
     @BeforeEach
     fun beforeEach() {
         this.ipythonContext.startIPython()
-//        socket = this.zcontext.createSocket(SocketType.REQ).also {
-//            it.connect(this.ipythonContext.getChannelProvider().unwrap().getHeartbeatChannel().makeAddress())
-//        }
-//        hbService = LiveCountHeartBeatService(
-//            this.zcontext,socket, liveCount, interval, 1000,
-//        )
+        socket = this.zcontext.createSocket(SocketType.REQ).also {
+            it.connect(this.ipythonContext.getChannelProvider().unwrap().getHeartbeatChannel().makeAddress())
+        }
+        hbService2 = LiveCountHeartBeatService(
+            this.zcontext,socket, liveCount, interval, 1000,
+        )
         hbService = this.ipythonContext.getHeartBeatService().unwrap() as LiveCountHeartBeatService
     }
 
@@ -41,11 +42,17 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
     }
 
     @Test
+    fun dumm(){
+        this.ipythonContext.startIPython()
+        hbService2.start()
+    }
+
+    @Test
     fun start() {
         this.ipythonContext.startIPython()
-        hbService.start()
+//        hbService.start()
         assertTrue(hbService.isServiceRunning())
-//        assertTrue(hbService.getThread()?.isAlive ?: false)
+        assertTrue(hbService.getThread()?.isAlive ?: false)
     }
 
     @Test
@@ -63,33 +70,5 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
         hbService.start()
         hbService.stop()
         assertFalse(hbService.isServiceRunning())
-    }
-
-    /**
-     * TODO calling checkHB while the service thread is running could cause crashing, because they both use the same socket.
-     */
-    @Test
-    fun checkHB_Ok(){
-        this.ipythonContext.startIPython()
-        val checkRs  = hbService.checkHB()
-        assertTrue(checkRs is Ok,checkRs.toString())
-    }
-
-    @Test
-    fun checkFalse(){
-        hbService.start()
-        this.ipythonContext.stopIPython()
-        val cr= hbService.checkHB()
-        assertTrue(cr is Err, cr.toString())
-        assertTrue(cr.unwrapError() is ZMQException,cr.toString())
-    }
-
-    @Test
-    fun checkWithStoppedService(){
-        hbService.stop()
-        this.ipythonContext.stopIPython()
-        val cr = hbService.checkHB()
-        assertTrue(cr is Err)
-        assertTrue(cr.unwrapError() is HeartBeatService.NotRunningException)
     }
 }

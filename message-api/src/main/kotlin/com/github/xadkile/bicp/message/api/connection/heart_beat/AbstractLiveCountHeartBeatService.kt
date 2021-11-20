@@ -62,7 +62,7 @@ internal abstract class AbstractLiveCountHeartBeatService constructor(
      * Failing to recv will leave the socket in error state.
      * Because the service thread is a forever loop, it will do send-recv non stop. If the call checkHB accidently happends right after a "send" in service thread. That will causes an exception.
      */
-    override fun checkHB(): Result<Unit,Exception> {
+    private fun checkHB(): Result<Unit,Exception> {
         if (this.isServiceRunning() && this.zContext.isClosed.not()) {
             try{
                 val poller: ZMQ.Poller = zContext.createPoller(1)

@@ -8,7 +8,8 @@ import org.zeromq.ZMQ
  */
 interface HeartBeatService {
     /**
-     * start the service
+     * start this service.
+     * Calling start() on an already started service should do no harm.
      */
     fun start():Boolean
 
@@ -25,12 +26,8 @@ interface HeartBeatService {
     fun isServiceRunning():Boolean
 
     /**
-     * perform proactive hb liveness check
-     */
-    fun checkHB(): Result<Unit, Exception>
-
-    /**
-     * stop the service
+     * stop this service.
+     * Calling stop() on an already stopped service should do no harm.
      */
     fun stop():Boolean
 
