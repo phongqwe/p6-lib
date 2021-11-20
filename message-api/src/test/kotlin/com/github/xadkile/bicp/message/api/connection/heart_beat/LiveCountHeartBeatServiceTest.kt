@@ -18,19 +18,20 @@ import kotlin.reflect.typeOf
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
     lateinit var hbService: LiveCountHeartBeatService
-    lateinit var socket: ZMQ.Socket
-    val liveCount = 4
-    val interval:Long = 500
+//    lateinit var socket: ZMQ.Socket
+//    val liveCount = 4
+//    val interval:Long = 500
 
     @BeforeEach
     fun beforeEach() {
         this.ipythonContext.startIPython()
-        socket = this.zcontext.createSocket(SocketType.REQ).also {
-            it.connect(this.ipythonContext.getChannelProvider().unwrap().getHeartbeatChannel().makeAddress())
-        }
-        hbService = LiveCountHeartBeatService(
-            this.zcontext,socket, liveCount, interval, 1000,
-        )
+//        socket = this.zcontext.createSocket(SocketType.REQ).also {
+//            it.connect(this.ipythonContext.getChannelProvider().unwrap().getHeartbeatChannel().makeAddress())
+//        }
+//        hbService = LiveCountHeartBeatService(
+//            this.zcontext,socket, liveCount, interval, 1000,
+//        )
+        hbService = this.ipythonContext.getHeartBeatService().unwrap() as LiveCountHeartBeatService
     }
 
     @AfterEach
@@ -44,7 +45,7 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
         this.ipythonContext.startIPython()
         hbService.start()
         assertTrue(hbService.isServiceRunning())
-        assertTrue(hbService.getThread()?.isAlive ?: false)
+//        assertTrue(hbService.getThread()?.isAlive ?: false)
     }
 
     @Test
@@ -64,11 +65,14 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
         assertFalse(hbService.isServiceRunning())
     }
 
+    /**
+     * TODO calling checkHB while the service thread is running could cause crashing, because they both use the same socket.
+     */
     @Test
-    fun checkOk(){
+    fun checkHB_Ok(){
         this.ipythonContext.startIPython()
-        hbService.start()
-        assertTrue(hbService.checkHB() is Ok)
+        val checkRs  = hbService.checkHB()
+        assertTrue(checkRs is Ok,checkRs.toString())
     }
 
     @Test

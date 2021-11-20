@@ -54,6 +54,14 @@ internal abstract class AbstractLiveCountHeartBeatService constructor(
         }
     }
 
+    /**
+     * TODO this method should be discarded
+     * Calling it while the service thread is running very likely will return an exception.
+     * The reason is:
+     * Heart beat channel is a REP channel. After sending a message, I must call recv, before making another send.
+     * Failing to recv will leave the socket in error state.
+     * Because the service thread is a forever loop, it will do send-recv non stop. If the call checkHB accidently happends right after a "send" in service thread. That will causes an exception.
+     */
     override fun checkHB(): Result<Unit,Exception> {
         if (this.isServiceRunning() && this.zContext.isClosed.not()) {
             try{
