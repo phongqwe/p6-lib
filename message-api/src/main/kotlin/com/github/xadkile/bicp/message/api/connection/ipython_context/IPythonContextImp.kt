@@ -12,7 +12,6 @@ import kotlinx.coroutines.runBlocking
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
 import org.zeromq.SocketType
 import org.zeromq.ZContext
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
@@ -26,7 +25,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class IPythonContextImp @Inject internal constructor(
-    val ipythonConfig: IPythonConfig, val zcontext:ZContext) : IPythonContext {
+    val ipythonConfig: IPythonConfig, val zcontext: ZContext,
+) : IPythonContext {
 
     private val launchCmd: List<String> = this.ipythonConfig.makeLaunchCmmd()
     private var process: Process? = null
@@ -35,21 +35,33 @@ class IPythonContextImp @Inject internal constructor(
     private var session: Session? = null
     private var channelProvider: ChannelProvider? = null
     private var msgEncoder: MsgEncoder? = null
-    private var msgIdGenerator:MsgIdGenerator? = null
+    private var msgIdGenerator: MsgIdGenerator? = null
     private var msgCounter: MsgCounter? = null
-    private var senderProvider: SenderProvider?=null
-    private var hbService:HeartBeatService?=null
+    private var senderProvider: SenderProvider? = null
+    private var hbService: HeartBeatService? = null
 
     private var onBeforeStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
     private var onAfterStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
     private var onProcessStartListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
 
-    private val convenientInterface = IPythonContextConvImp(this)
+    private val convenientInterface = IPythonContextReadOnlyConvImp(this)
 
     companion object {
         private val ipythonIsDownErr = IPythonIsDownException("IPython process is not running")
     }
 
+    private fun poll(sleepTime: Long, falseCondition: () -> Boolean) {
+        while (falseCondition()) {
+            Thread.sleep(sleepTime)
+        }
+    }
+
+    /**
+     * This method returns when:
+     * - ipython process is up
+     * - connection file is written to disk
+     * - heart beat service is running + zmq is live (heart beat is ok)
+     */
     override fun startIPython(): Result<Unit, Exception> {
         if (this.isRunning()) {
             return Ok(Unit)
@@ -57,35 +69,42 @@ class IPythonContextImp @Inject internal constructor(
             val processBuilder = ProcessBuilder(launchCmd)
             try {
                 this.process = processBuilder.inheritIO().start()
-                Thread.sleep(this.ipythonConfig.milliSecStartTime)
-                this.onProcessStartListener.run(this)
+                // rmd: wait for process to come live
+                this.poll(50) { this.process?.isAlive != true }
+
                 this.process?.onExit()?.thenApply {
                     destroyResource()
                     this.onAfterStopListener.run(this)
                 }
-                val cf: Result<KernelConnectionFileContent, IOException> =
-                    KernelConnectionFileContent.fromJsonFile(ipythonConfig.connectionFilePath)
-                val rt: Result<Unit, Exception> = cf.map {
-                    this.connectionFileContent = it
-                }
 
-                // create resources
+                // rmd: read connection file
                 this.connectionFilePath = Paths.get(ipythonConfig.connectionFilePath)
+                this.poll(50) { !Files.exists(this.connectionFilePath!!) }
+                this.connectionFileContent =
+                    KernelConnectionFileContent.fromJsonFile(ipythonConfig.connectionFilePath).unwrap()
+
+                // rmd: create resources, careful with the order of resource initiation, some must be initialized first
                 this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
                 this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
                 this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
                 this.msgCounter = MsgCounterImp()
                 this.msgIdGenerator = SequentialMsgIdGenerator(this.session!!.getSessionId(), this.msgCounter!!)
-                this.senderProvider = SenderProviderImp(this.channelProvider!!,this.zcontext,this.msgEncoder!!)
 
-                // start heart beat service
+                // rmd: start heart beat service
                 this.hbService = LiveCountHeartBeatService(
-                    hbSocket =this.zcontext.createSocket(SocketType.REQ).also {
-                        it.connect(this.getChannelProvider().unwrap().getHeartbeatChannel().makeAddress())
+                    hbSocket = this.zcontext.createSocket(SocketType.REQ).also {
+                        it.connect(this.channelProvider!!.getHeartbeatChannel().makeAddress())
                     },
                     zContext = this.zcontext
                 ).also { it.start() }
-                return rt
+                // rmd: wait until heart beat service is live
+                this.poll(50) { this.hbService?.isServiceRunning() != true /*|| this.hbService?.isHBAlive() !=true*/ }
+
+                // rmd: senderProvider depend on heart beat service, so it must be initialized after hb service is created
+                this.senderProvider =
+                    SenderProviderImp(this.channelProvider!!, this.zcontext, this.msgEncoder!!, this.hbService!!.conv())
+                this.onProcessStartListener.run(this)
+                return Ok(Unit)
             } catch (e: Exception) {
                 return Err(e)
             }
@@ -116,7 +135,7 @@ class IPythonContextImp @Inject internal constructor(
         }
     }
 
-    private fun destroyResource(){
+    private fun destroyResource() {
         val cpath = this.connectionFilePath
 
         if (cpath != null) {
@@ -135,19 +154,37 @@ class IPythonContextImp @Inject internal constructor(
         this.connectionFileContent = null
         this.session = null
         this.channelProvider = null
-        this.msgEncoder=null
+        this.msgEncoder = null
         this.msgIdGenerator = null
         this.msgCounter = null
         this.senderProvider = null
         // stop hb service
+        // should Context ditatate the hb service status?
+        /**
+         * The purpose of heart beat service is being able to watch ZMQ:
+         * - detect when it is up, when it is down.
+         * - detect if computation is still going on, so that waiting for computation completion is justified
+         * When IPython context goes down, naturally, it will bring down ZMQ.
+         * If I tie heart beat service to context, then it no longer service the first purpose.
+         * However, because heart beat service depend on context info (port, address). An independent heart beat service has the potential to mis-align its info with the currrent context.
+         * When a context start and stop, it will change the port to ZMQ services. Therefore, heart beat service of previous context cannot react to the newly create ZMQ services.
+         * Therefore, my current heart beat service must be tied to iPython context.
+         * sender depends on a heart beat service to wait for its computation to complete.
+         *
+         * So, if I use a single hb service. Then the context need to hold an instance of hb service to pass it to senders.
+         *
+         *
+         *
+         * If I want an independent service, I must make it a reactor that reacts to context change event.
+         */
         this.hbService?.stop()
         this.hbService = null
     }
 
-    override fun getIPythonProcess(): Result<Process,Exception> {
-        if(this.isRunning()){
+    override fun getIPythonProcess(): Result<Process, Exception> {
+        if (this.isRunning()) {
             return Ok(this.process!!)
-        }else{
+        } else {
             return Err(ipythonIsDownErr)
         }
     }
@@ -172,15 +209,15 @@ class IPythonContextImp @Inject internal constructor(
         }
     }
 
-    override fun getConnectionFileContent(): Result<KernelConnectionFileContent,Exception> {
-        if(this.isRunning()){
+    override fun getConnectionFileContent(): Result<KernelConnectionFileContent, Exception> {
+        if (this.isRunning()) {
             return Ok(this.connectionFileContent!!)
-        }else{
+        } else {
             return Err(ipythonIsDownErr)
         }
     }
 
-    override fun getSession(): Result<Session,Exception> {
+    override fun getSession(): Result<Session, Exception> {
         if (this.isRunning()) {
             return Ok(this.session!!)
         } else {
@@ -188,7 +225,7 @@ class IPythonContextImp @Inject internal constructor(
         }
     }
 
-    override fun getChannelProvider(): Result<ChannelProvider,Exception> {
+    override fun getChannelProvider(): Result<ChannelProvider, Exception> {
         if (this.isRunning()) {
             return Ok(this.channelProvider!!)
         } else {
@@ -201,32 +238,52 @@ class IPythonContextImp @Inject internal constructor(
     }
 
     override fun getMsgEncoder(): Result<MsgEncoder, Exception> {
-        if(this.isRunning()){
+        if (this.isRunning()) {
             return Ok(this.msgEncoder!!)
-        }else{
+        } else {
             return Err(ipythonIsDownErr)
         }
     }
 
     override fun getMsgIdGenerator(): Result<MsgIdGenerator, Exception> {
-        if(this.isRunning()){
+        if (this.isRunning()) {
             return Ok(this.msgIdGenerator!!)
-        }else{
-           return Err(ipythonIsDownErr)
+        } else {
+            return Err(ipythonIsDownErr)
         }
     }
 
-    fun isRunning(): Boolean {
-        return (this.process?.isAlive
-            ?: false) && this.connectionFilePath != null && this.connectionFileContent != null
+    override fun isRunning(): Boolean {
+        val rt = this.getStatuses().all { it }
+        return rt
     }
 
-    fun isNotRunning(): Boolean {
-        return !this.isRunning()
+    override fun isNotRunning(): Boolean {
+        val rt = this.getStatuses().all { !it }
+        return rt
+    }
+
+    private fun getStatuses():List<Boolean>{
+        val isProcessLive = this.process?.isAlive ?: false
+        val isFileWritten =
+            this.connectionFilePath != null && this.connectionFilePath?.let { Files.exists(it) } ?: false
+        val connectionFileIsRead = this.connectionFileContent != null
+        val isSessonOk = this.session!=null
+        val isChannelProviderOk = this.channelProvider!=null
+        val isMsgEncodeOk = this.msgEncoder!=null
+        val isMsgCounterOk = this.msgCounter !=null
+        val isSenderProviderOk = this.senderProvider != null
+        val isHBServiceRunning = this.hbService?.isServiceRunning() ?: false
+
+        val rt = listOf(
+            isProcessLive, isFileWritten, isHBServiceRunning, connectionFileIsRead,
+            isSessonOk, isChannelProviderOk, isMsgEncodeOk, isMsgCounterOk, isSenderProviderOk
+        )
+        return rt
     }
 
     override fun setOnBeforeProcessStopListener(listener: OnIPythonContextEvent) {
-        this.onBeforeStopListener  = listener
+        this.onBeforeStopListener = listener
     }
 
     override fun removeBeforeOnProcessStopListener() {
@@ -250,14 +307,14 @@ class IPythonContextImp @Inject internal constructor(
     }
 
     override fun getHeartBeatService(): Result<HeartBeatService, Exception> {
-        if(this.isRunning()){
+        if (this.isRunning()) {
             return Ok(this.hbService!!)
-        }else{
+        } else {
             return Err(ipythonIsDownErr)
         }
     }
 
-    override fun conv(): IPythonContextConv {
+    override fun conv(): IPythonContextReadOnlyConv {
         return this.convenientInterface
     }
 

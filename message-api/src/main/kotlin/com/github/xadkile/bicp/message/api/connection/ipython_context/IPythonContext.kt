@@ -1,9 +1,6 @@
 package com.github.xadkile.bicp.message.api.connection.ipython_context
 
 import com.github.michaelbull.result.Result
-import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
-import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
-import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
 import java.io.InputStream
 import java.io.OutputStream
@@ -16,25 +13,23 @@ import java.io.OutputStream
  * For example:
  * heartbeat service can be used by sender to check zmq liveness.
  * During a long computation session, the hb service is polled to make sure that it is safe to continue waiting for the computation to complete.
- * If IpythonContext stops midway, it will stop the hb service + null the reference to the service. The consequence is:
+ * If IpythonContext stops midway or ipython process is killed, it will stop the hb service + null the reference to the service. The consequence is:
  *  - The hb is stopped => the poll will fail => sender return fail result
- *      + if the sender is reused, it will re-used the discard hb instances => return fail result
+ *      + if the sender is reused, it will re-used the discarded hb instances => always return fail result even when the zmq is restored.
  *      + if the sender is kept around, the discarded hb instance is kept around => mem leak
  *  - if IPython context is start again, there will be a new hb service instance that is completely different from the discarded instance
  *
  *  Solution:
  *  1. never cached leakable instances as properties, always use method call from context to retrieve their instances. The only cached object is the context instance
  *  2. create an elaborated structure to host leakable instances, this structure must react on state change event of context to retrieve the correct instances. This is just solution 1 with an abstract wall insert between the context and the users. => no added value, just more complexity.
- *
- *
  */
-interface IPythonContext {
+interface IPythonContext : IPythonContextReadOnly {
     /**
      * Start IPython process and read connection file.
      *
      * It is guarantee that once IPython start, components objects are available for use. They include: IPython Process, connection file object, session object, channel provider, sender factory.
      *
-     * call [startIPython] on an already running manager does not change the state of this manager, return Ok result
+     * Call [startIPython] on an already running manager does not change the state of this manager, return Ok result.
      *
      * Return true if successfully launch IPython kerne, false otherwise.
      *
@@ -43,14 +38,13 @@ interface IPythonContext {
     fun startIPython(): Result<Unit, Exception>
 
     /**
-     * Kill the current IPython process and delete the current connection file
+     * Kill the current IPython process and delete the current connection file.
      *
-     * Stop an already stopped manager does nothing, return Ok result
+     * Stop an already stopped manager does nothing, return Ok result.
      *
      * It must be guaranteed that connection file is deleted, process is completely killed after calling stop.
      */
     fun stopIPython(): Result<Unit, Exception>
-
 
     /**
      * Terminate the current process and launch a new IPython Process.
@@ -61,28 +55,17 @@ interface IPythonContext {
      */
     fun restartIPython(): Result<Unit, Exception>
 
-
     fun getIPythonProcess(): Result<Process, Exception>
 
+    /**
+     * Return input stream of the current IPython process
+     */
     fun getIPythonInputStream():Result<InputStream,Exception>
-    fun getIPythonOutputStream():Result<OutputStream,Exception>
 
     /**
-     * Return connection info file content.
-     *
-     * Connection file info is available for use only when IPython process is launch successfully
+     * Return output stream of the current IPython process
      */
-    fun getConnectionFileContent(): Result<KernelConnectionFileContent, Exception>
-
-    fun getSession(): Result<Session, Exception>
-
-    fun getChannelProvider(): Result<ChannelProvider, Exception>
-
-    fun getSenderProvider():Result<SenderProvider,Exception>
-
-    fun getMsgEncoder():Result<MsgEncoder,Exception>
-
-    fun getMsgIdGenerator():Result<MsgIdGenerator,Exception>
+    fun getIPythonOutputStream():Result<OutputStream,Exception>
 
     /**
      * add a listener that is invoked before a legal/normal stopping of a process
@@ -105,15 +88,7 @@ interface IPythonContext {
     fun removeAfterOnProcessStopListener()
 
     fun setOnStartProcessListener(listener: OnIPythonContextEvent)
+
     fun removeOnProcessStartListener()
-
-    fun getHeartBeatService():Result<HeartBeatService,Exception>
-
-    /**
-     * convert this to a more convenient but more dangerous to use interface
-     */
-    fun conv():IPythonContextConv
-
-    fun zContext():ZContext
 }
 

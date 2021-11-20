@@ -3,14 +3,16 @@ package com.github.xadkile.bicp.message.api.sender.shell
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.unwrap
+import com.github.michaelbull.result.unwrapError
+import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonIsDownException
 import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.protocol.message.MsgStatus
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
-import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import org.zeromq.ZThread
 import kotlin.test.assertEquals
@@ -33,6 +35,17 @@ internal class ExecuteRequestSenderTest : TestOnJupyter() {
                 msgL.clear()
             }
         }
+        //            val ioPubSocket: ZMQ.Socket = context.createSocket(SocketType.SUB)
+//            ioPubSocket.connect(connectionFile.createIOPubChannel().makeAddress())
+//            ioPubSocket.subscribe("")
+//            val runnable = ZListener(ioPubSocket)
+//            ZThread.start(runnable)
+    }
+
+    @BeforeEach
+    fun beforeEach(){
+        this.ipythonContext.startIPython()
+        Thread.sleep(2000)
     }
 
     val message: ExecuteRequestInput = ExecuteRequestInput.autoCreate(
@@ -66,74 +79,69 @@ internal class ExecuteRequestSenderTest : TestOnJupyter() {
 
     @Test
     fun send_ok() {
-        val context = ZContext()
-        context.use {
-            val connectionFile = this.ipythonContext.getConnectionFileContent().unwrap()
-//            val ioPubSocket: ZMQ.Socket = context.createSocket(SocketType.SUB)
-//            ioPubSocket.connect(connectionFile.createIOPubChannel().makeAddress())
-//            ioPubSocket.subscribe("")
-//            val runnable = ZListener(ioPubSocket)
-//            ZThread.start(runnable)
+        val connectionFile = this.ipythonContext.getConnectionFileContent().unwrap()
 
-            val shellSocket = context.createSocket(SocketType.REQ).also {
-                it.connect(connectionFile.createShellChannel().makeAddress())
-            }
-
-            val sender2 = ExecuteRequestSender(
-                shellSocket,
-                this.ipythonContext.getMsgEncoder().unwrap(),
-            )
-
-            val out = sender2.send(message)
-
-            assertTrue { out is Ok }
-            assertEquals(MsgStatus.ok, out.unwrap().content.status)
-            println("==OUT==\n${out.unwrap()}\n====")
-        }
+//        val zcontext = this.ipythonContext.zContext()
+//        val shellSocket = zcontext.createSocket(SocketType.REQ).also {
+//            it.connect(connectionFile.createShellChannel().makeAddress())
+//        }
+//
+//        val sender2 = ExecuteRequestSender(
+//            shellSocket,
+//            this.ipythonContext.getMsgEncoder().unwrap(),
+//            this.ipythonContext.getHeartBeatService().unwrap().conv(),
+//            this.ipythonContext.zContext()
+//        )
+//
+//        val out = sender2.send(message)
+//
+//        assertTrue { out is Ok }
+//        assertEquals(MsgStatus.ok, out.unwrap().content.status)
+//        println("==OUT==\n${out.unwrap()}\n====")
     }
 
     @Test
     fun send_malformedCode() {
-        val context = ZContext()
-        context.use {
-            val connectionFile = this.ipythonContext.getConnectionFileContent().unwrap()
-
-            val shellSocket = context.createSocket(SocketType.REQ).also {
-                it.connect(connectionFile.createShellChannel().makeAddress())
-            }
-
-            val sender2 = ExecuteRequestSender(
-                shellSocket,
-                this.ipythonContext.getMsgEncoder().unwrap(),
-            )
-
-            val out = sender2.send(malformedCodeMsg)
-
-            assertTrue { out is Ok }
-            assertEquals(MsgStatus.error, out.unwrap().content.status)
-            println("==OUT==\n${out.unwrap()}\n====")
+        val connectionFile = this.ipythonContext.getConnectionFileContent().unwrap()
+        val zcontext = this.ipythonContext.zContext()
+        val shellSocket = zcontext.createSocket(SocketType.REQ).also {
+            it.connect(connectionFile.createShellChannel().makeAddress())
         }
+
+        val sender2 = ExecuteRequestSender(
+            shellSocket,
+            this.ipythonContext.getMsgEncoder().unwrap(),
+            this.ipythonContext.getHeartBeatService().unwrap().conv(),
+            this.ipythonContext.zContext()
+        )
+
+        val out = sender2.send(malformedCodeMsg)
+
+        assertTrue { out is Ok }
+        assertEquals(MsgStatus.error, out.unwrap().content.status)
+        println("==OUT==\n${out.unwrap()}\n====")
     }
 
     @Test
     fun send_fail() {
-        val context = ZContext()
-        context.use {
-            val channelProvider =  this.ipythonContext.getChannelProvider().unwrap()
-            val shellSocket = context.createSocket(SocketType.REQ).also {
-                it.connect(channelProvider.getShellChannel().makeAddress())
-            }
-            val sender2 = ExecuteRequestSender(
-                shellSocket,
-                this.ipythonContext.getMsgEncoder().unwrap(),
-            )
-            this.ipythonContext.stopIPython()
-            val out = sender2.send(
-                message
-            )
-            assertTrue { out is Err }
+        val zcontext = this.ipythonContext.zContext()
+        val channelProvider = this.ipythonContext.getChannelProvider().unwrap()
+        val shellSocket = zcontext.createSocket(SocketType.REQ).also {
+            it.connect(channelProvider.getShellChannel().makeAddress())
+        }
+        val sender2 = ExecuteRequestSender(
+            shellSocket,
+            this.ipythonContext.getMsgEncoder().unwrap(),
+            this.ipythonContext.getHeartBeatService().unwrap().conv(),
+            this.ipythonContext.zContext()
+        )
+        this.ipythonContext.stopIPython()
+        val out = sender2.send(
+            message
+        )
+        assertTrue { out is Err }
+//        assertTrue { out.unwrapError() is IPythonIsDownException }
 //            assertEquals(MsgStatus.ok, out.unwrap().content.status)
 //            println("==OUT==\n${out.unwrap()}\n====")
-        }
     }
 }

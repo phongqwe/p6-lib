@@ -13,6 +13,7 @@ import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
 import org.zeromq.ZMQ
 import org.zeromq.ZMQException
+import kotlin.reflect.typeOf
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
@@ -42,7 +43,7 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
     fun start() {
         this.ipythonContext.startIPython()
         hbService.start()
-        assertNotNull(hbService.getThread())
+        assertTrue(hbService.isServiceRunning())
         assertTrue(hbService.getThread()?.isAlive ?: false)
     }
 
@@ -75,9 +76,8 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
         hbService.start()
         this.ipythonContext.stopIPython()
         val cr= hbService.checkHB()
-        assertTrue(cr is Err)
-        assertTrue(cr.unwrapError() is ZMQException)
-
+        assertTrue(cr is Err, cr.toString())
+        assertTrue(cr.unwrapError() is ZMQException,cr.toString())
     }
 
     @Test

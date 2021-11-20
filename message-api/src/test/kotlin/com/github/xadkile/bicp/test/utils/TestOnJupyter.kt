@@ -11,13 +11,15 @@ import org.zeromq.ZContext
  */
 abstract class TestOnJupyter {
     lateinit var ipythonConfig: IPythonConfig
-    lateinit var ipythonContext: IPythonContextConv
+    lateinit var ipythonContext: IPythonContext
+    lateinit var iPythonContextReadOnly: IPythonContextReadOnlyConv
     lateinit var zcontext:ZContext
     @BeforeAll
     fun before(){
         this.zcontext = ZContext()
         this.ipythonConfig = TestResource.ipythonConfigForTest()
-        this.ipythonContext= IPythonContextConvImp(IPythonContextImp(this.ipythonConfig,zcontext))
+        this.ipythonContext= IPythonContextImp(this.ipythonConfig,zcontext)
+        this.iPythonContextReadOnly = this.ipythonContext.conv()
         this.ipythonContext.startIPython()
         Thread.sleep(2000)
     }

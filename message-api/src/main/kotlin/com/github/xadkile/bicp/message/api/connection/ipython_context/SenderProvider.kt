@@ -9,7 +9,6 @@ import com.github.xadkile.bicp.message.api.sender.shell.ExecuteRequestOutput
  * provide instances of sender
  */
 interface SenderProvider {
-    fun getSingletonExecuteRequestSender(): MsgSender<ExecuteRequestInput, Result<ExecuteRequestOutput,Exception>>
-    fun getNewExecuteRequestSender(): MsgSender<ExecuteRequestInput, Result<ExecuteRequestOutput,Exception>>
+    fun getExecuteRequestSender(): MsgSender<ExecuteRequestInput, Result<ExecuteRequestOutput,Exception>>
 }
 

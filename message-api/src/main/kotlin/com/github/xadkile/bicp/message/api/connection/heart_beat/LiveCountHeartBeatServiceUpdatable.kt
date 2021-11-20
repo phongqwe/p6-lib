@@ -4,32 +4,48 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.exception.UnknownException
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
+import java.util.*
 import kotlin.concurrent.thread
 
+
+enum class UpdateSignal {
+    UPDATE_SOCKET, UPDATE_LIVE_COUNT
+}
+
+fun interface UpdateEvent {
+    fun consum(): UpdateSignal
+}
+
 /**
- * Must not invoke the constructor directly unless in testing. An instance of this is provided by [IPythonContext]
- * TODO this service is non-recoverable. If it detect a dead signal, it will remain dead, even when the service is back
- * [interval] is waiting period between each heart beat check
+ * Must not invoke the constructor directly unless in testing. An instance of this is provided by [IPythonContext].
+ * [interval] is waiting period between each heart beat check.
  */
-internal class LiveCountHeartBeatService constructor(
+internal class LiveCountHeartBeatServiceUpdatable constructor(
     private val zContext: ZContext,
-    private val hbSocket: ZMQ.Socket,
+    private var hbSocket: ZMQ.Socket,
     private val liveCount: Int = 3,
     private val interval: Long = 1000,
     private val socketTimeOut: Long = 1000,
-) : HeartBeatService {
+) : HeartBeatServiceUpdatable {
 
     private var serviceThread: Thread? = null
-    private var currentLives:Int = 0
-    private var letThreadRunning:Boolean = false
+    private var currentLives: Int = 0
+    private var letThreadRunning: Boolean = false
     private val convService = HeartBeatServiceConvImp(this)
+    private val updateEventList: Queue<UpdateEvent> = ArrayDeque()
 
     companion object {
-        private val hbServiceNotRunningException = HeartBeatService.NotRunningException("[${this.hashCode()}] is not running")
+        private val hbServiceNotRunningException =
+            HeartBeatService.NotRunningException("[${this.hashCode()}] is not running")
+    }
+
+    override fun updateSocket(newSocket: ZMQ.Socket) {
+        updateEventList.offer {
+            this.hbSocket = newSocket
+            UpdateSignal.UPDATE_SOCKET
+        }
     }
 
     /**
@@ -38,17 +54,32 @@ internal class LiveCountHeartBeatService constructor(
     override fun start(): Boolean {
         this.letThreadRunning = true
         this.serviceThread = thread(true) {
-            val thisObj = this@LiveCountHeartBeatService
-             val poller = zContext.createPoller(1)
+            val thisObj = this@LiveCountHeartBeatServiceUpdatable
+            var poller = zContext.createPoller(1)
             poller.use {
                 poller.register(this.hbSocket)
                 while (letThreadRunning) {
+                    // consume update event before
+                    while (this.updateEventList.isNotEmpty()) {
+                        val event:UpdateEvent = this.updateEventList.poll()
+                        val updateSignal:UpdateSignal = event.consum()
+                        when (updateSignal) {
+                            UpdateSignal.UPDATE_SOCKET -> {
+                                poller.close()
+                                poller = zContext.createPoller(1)
+                                poller.register(this.hbSocket)
+                            }
+                            else -> {
+                            }
+                        }
+                    }
+
                     val isAlive: Boolean = thisObj.check(poller, hbSocket) is Ok
                     if (isAlive) {
                         this.currentLives = this.liveCount
                     } else {
                         // rmd: only reduce life if there are lives left to prevent underflow of int
-                        if(this.currentLives > 0){
+                        if (this.currentLives > 0) {
                             this.currentLives -= 1
                         }
                     }
@@ -67,7 +98,7 @@ internal class LiveCountHeartBeatService constructor(
 
     override fun isHBAlive(): Boolean {
         if (this.isServiceRunning()) {
-            return this.currentLives > 0
+            return this.currentLives > 0 //1 2 3
         } else {
             throw hbServiceNotRunningException
         }
@@ -97,20 +128,15 @@ internal class LiveCountHeartBeatService constructor(
 
     }
 
-    override fun checkHB(): Result<Unit,Exception> {
+    override fun checkHB(): Result<Unit, Exception> {
         if (this.isServiceRunning() && this.zContext.isClosed.not()) {
-            try{
+            try {
                 val poller: ZMQ.Poller = zContext.createPoller(1)
                 poller.register(this.hbSocket, ZMQ.Poller.POLLIN)
                 val rt = this.check(poller, this.hbSocket)
                 poller.close()
                 return rt
-//                if(rt is Ok){
-//                    return Ok(Unit)
-//                }else{
-//                    return Err(UnknownException("sig1"))
-//                }
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 return Err(e)
             }
         } else {
@@ -123,7 +149,7 @@ internal class LiveCountHeartBeatService constructor(
      * This is non-blocking operation.
      */
     override fun stop(): Boolean {
-        if(this.isServiceRunning()){
+        if (this.isServiceRunning()) {
             if (this.serviceThread != null && this.serviceThread?.isAlive == true) {
                 // rmd: this signal the thread to stop. The thread will stop in its next iteration
                 this.letThreadRunning = false
@@ -140,7 +166,7 @@ internal class LiveCountHeartBeatService constructor(
     /**
      * for testing only
      */
-    internal fun getInterval():Long{
+    internal fun getInterval(): Long {
         return this.interval
     }
 }

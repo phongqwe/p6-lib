@@ -4,6 +4,12 @@ import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContext
+import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContextReadOnly
+import com.github.xadkile.bicp.message.api.connection.ipython_context.MsgEncoder
+import com.github.xadkile.bicp.message.api.exception.UnknownException
+import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
+import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
+import org.zeromq.ZContext
 import org.zeromq.ZFrame
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
@@ -13,25 +19,46 @@ import org.zeromq.ZMsg
  *  Receiving responses to zmq
  */
 class ZMQMsgSender {
+
     class UnableToQueueException : Exception()
+
     companion object {
+        fun sendJPMsg(
+            message: JPMessage<*, *>,
+            socket: ZMQ.Socket,
+            encoder: MsgEncoder,
+            hbs: HeartBeatServiceConv,
+            zContext: ZContext,
+        ): Result<JPRawMessage, Exception> {
+            val out: Result<ZMsg, Exception> = send(encoder.encodeMessage(message), socket, hbs, zContext)
+            val rt: Result<JPRawMessage, Exception> = out.andThen { msg ->
+                val rt: List<ByteArray> = msg.map { frame -> frame.data }
+                JPRawMessage.fromPayload(rt)
+            }
+            return rt
+        }
+
+        /**
+         * Send a message with this flow:
+         * - send the message
+         * - wait for a response using Poller with a timeout
+         * - check heart beat after each poll
+         * - continue until either receiving a response or the zmq is dead
+         */
         fun send(
             message: List<ByteArray>,
             socket: ZMQ.Socket,
-            ipContext: IPythonContext,
+            hbs:HeartBeatServiceConv,
+            zContext:ZContext,
             interval: Long = SenderConstant.defaultPollingDuration
         ): Result<ZMsg,Exception> {
-            val hb = ipContext.getHeartBeatService()
-                .map { it.conv() }
-            if(hb is Ok){
-                val hbs = hb.unwrap()
-                // reminder: if hb service is not running, then
+                // reminder: if heart beat service is not running, then
                 // there is no way to ensure that zmq is running
                 // => don't send any message if hb service is dead
                 if (hbs.convCheck()) {
-                    val poller: ZMQ.Poller = ipContext.zContext().createPoller(1)
+                    val poller: ZMQ.Poller = zContext.createPoller(1)
                     val payload: List<ZFrame> = message.map { ZFrame(it) }
-                    val zmsg = ZMsg().also { it.addAll(payload) }
+                    val zmsg:ZMsg = ZMsg().also { it.addAll(payload) }
                     poller.register(socket)
                     val queueOk: Boolean = zmsg.send(socket)
                     if (queueOk) {
@@ -46,7 +73,7 @@ class ZMQMsgSender {
                         if(recvMsg!=null){
                             return Ok(recvMsg)
                         }else{
-                            return Err(Exception())
+                            return Err(HeartBeatService.ZMQIsDeadException())
                         }
                     } else {
                         return Err(UnableToQueueException())
@@ -54,27 +81,6 @@ class ZMQMsgSender {
                 } else {
                     return Err(HeartBeatService.NotRunningException())
                 }
-            }else{
-                return Err(hb.unwrapError())
-            }
         }
-
-//        fun send(
-//            socket: ZMQ.Socket,
-//            ipContext: IPythonContext,
-//            interval: Long = SenderConstant.defaultPollingDuration,
-//            vararg message: ByteArray,
-//        ): Result<ZMsg,Exception> {
-//            return send(message.asList(), socket, ipContext, interval)
-//        }
-
-//        fun send(
-//            socket: ZMQ.Socket,
-//            ipContext: IPythonContext,
-//            interval: Long = SenderConstant.defaultPollingDuration,
-//            vararg message: String,
-//        ): Result<ZMsg,Exception> {
-//            return this.send(message.map { it.toByteArray(Charsets.UTF_8) }, socket, ipContext, interval)
-//        }
     }
 }

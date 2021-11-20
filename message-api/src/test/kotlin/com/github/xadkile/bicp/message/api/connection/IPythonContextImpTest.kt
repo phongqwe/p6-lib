@@ -27,9 +27,7 @@ internal class IPythonContextImpTest {
 
     @AfterEach
     fun afterAll(){
-        if(pm.getIPythonProcess().get()!=null){
-            pm.stopIPython()
-        }
+        pm.stopIPython()
     }
 
     @Test
@@ -58,14 +56,15 @@ internal class IPythonContextImpTest {
         assertTrue(pm.getIPythonProcess() is Err)
         val rs = pm.startIPython()
         assertTrue(rs is Ok)
-        assertTrue(pm.getIPythonProcess() is Ok)
+        assertTrue(pm.isRunning())
+        assertTrue(pm.getIPythonProcess() is Ok,pm.getIPythonProcess().toString())
         assertTrue(pm.getIPythonProcess().get()?.isAlive ?: false)
-        assertTrue(pm.getConnectionFileContent() is Ok)
-        assertTrue(pm.getChannelProvider() is Ok)
-        assertTrue(pm.getSession() is Ok)
-        assertTrue(pm.getMsgEncoder() is Ok)
-        assertTrue(pm.getMsgIdGenerator() is Ok)
-        assertTrue(pm.getHeartBeatService() is Ok)
+        assertTrue(pm.getConnectionFileContent() is Ok,pm.getConnectionFileContent().toString())
+        assertTrue(pm.getChannelProvider() is Ok,pm.getChannelProvider().toString())
+        assertTrue(pm.getSession() is Ok,pm.getSession().toString())
+        assertTrue(pm.getMsgEncoder() is Ok,pm.getMsgEncoder().toString())
+        assertTrue(pm.getMsgIdGenerator() is Ok,pm.getMsgIdGenerator().toString())
+        assertTrue(pm.getHeartBeatService() is Ok,pm.getHeartBeatService().toString())
         assertTrue(pm.getHeartBeatService().unwrap().isServiceRunning())
         assertTrue(Files.exists(Paths.get(ipythonConfig.connectionFilePath)))
     }
@@ -83,6 +82,7 @@ internal class IPythonContextImpTest {
         pm.startIPython()
         val rs = pm.stopIPython()
         assertTrue(rs is Ok)
+        assertTrue(pm.isNotRunning())
         assertTrue(pm.getIPythonProcess() is Err)
         assertFalse(pm.getIPythonProcess().get()?.isAlive ?: false)
         assertTrue(pm.getConnectionFileContent() is Err)
@@ -97,9 +97,9 @@ internal class IPythonContextImpTest {
     fun stopIPython_onAlreadyStopped() {
         pm.startIPython()
         val rs = pm.stopIPython()
-        assertTrue(rs is Ok)
+        assertTrue(rs is Ok, rs.toString())
         val rs2 = pm.stopIPython()
-        assertTrue(rs2 is Ok)
+        assertTrue(rs2 is Ok, rs.toString())
     }
 
     @Test
