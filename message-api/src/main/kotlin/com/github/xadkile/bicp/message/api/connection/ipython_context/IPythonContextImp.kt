@@ -71,12 +71,10 @@ class IPythonContextImp @Inject internal constructor(
                 this.process = processBuilder.inheritIO().start()
                 // rmd: wait for process to come live
                 this.poll(50) { this.process?.isAlive != true }
-
-                this.process?.onExit()?.thenApply {
-                    destroyResource()
-                    this.onAfterStopListener.run(this)
-                }
-
+//                this.process?.onExit()?.thenApply {
+//                    destroyResource()
+//                    this.onAfterStopListener.run(this)
+//                }
                 // rmd: read connection file
                 this.connectionFilePath = Paths.get(ipythonConfig.connectionFilePath)
                 this.poll(50) { !Files.exists(this.connectionFilePath!!) }
@@ -98,7 +96,7 @@ class IPythonContextImp @Inject internal constructor(
                     zContext = this.zcontext
                 ).also { it.start() }
                 // rmd: wait until heart beat service is live
-                this.poll(50) { this.hbService?.isServiceRunning() != true /*|| this.hbService?.isHBAlive() !=true*/ }
+                this.poll(50) { this.hbService?.isServiceRunning() != true }
 
                 // rmd: senderProvider depend on heart beat service, so it must be initialized after hb service is created
                 this.senderProvider =
@@ -118,17 +116,14 @@ class IPythonContextImp @Inject internal constructor(
         try {
             if (this.process != null) {
                 this.onBeforeStopListener.run(this)
-                // reminder: destroying ipython process will invoke destroyResource()
-                // that destroys other resource too.
                 this.process?.destroy()
-                runBlocking {
-                    // polling until the process is dead completely
-                    while (this@IPythonContextImp.process?.isAlive == true) {
-                        delay(10)
-                    }
-                }
+                // rmd: polling until the process is completely dead
+                this.poll(50){this.process?.isAlive == true}
+                this.process = null
                 this.onAfterStopListener.run(this)
             }
+            destroyResource()
+            this.onAfterStopListener.run(this)
             return Ok(Unit)
         } catch (e: Exception) {
             return Err(e)
@@ -141,16 +136,11 @@ class IPythonContextImp @Inject internal constructor(
         if (cpath != null) {
             // delete connection file
             Files.delete(cpath)
-            runBlocking {
-                // wait until file is deleted completely
-                while (Files.exists(cpath)) {
-                    delay(50)
-                }
-            }
+            // rmd: wait until file is deleted completely
+            this.poll(50){Files.exists(cpath)}
             this.connectionFilePath = null
         }
         // destroy other resources
-        this.process = null
         this.connectionFileContent = null
         this.session = null
         this.channelProvider = null
@@ -159,24 +149,6 @@ class IPythonContextImp @Inject internal constructor(
         this.msgCounter = null
         this.senderProvider = null
         // stop hb service
-        // should Context ditatate the hb service status?
-        /**
-         * The purpose of heart beat service is being able to watch ZMQ:
-         * - detect when it is up, when it is down.
-         * - detect if computation is still going on, so that waiting for computation completion is justified
-         * When IPython context goes down, naturally, it will bring down ZMQ.
-         * If I tie heart beat service to context, then it no longer service the first purpose.
-         * However, because heart beat service depend on context info (port, address). An independent heart beat service has the potential to mis-align its info with the currrent context.
-         * When a context start and stop, it will change the port to ZMQ services. Therefore, heart beat service of previous context cannot react to the newly create ZMQ services.
-         * Therefore, my current heart beat service must be tied to iPython context.
-         * sender depends on a heart beat service to wait for its computation to complete.
-         *
-         * So, if I use a single hb service. Then the context need to hold an instance of hb service to pass it to senders.
-         *
-         *
-         *
-         * If I want an independent service, I must make it a reactor that reacts to context change event.
-         */
         this.hbService?.stop()
         this.hbService = null
     }
@@ -263,15 +235,14 @@ class IPythonContextImp @Inject internal constructor(
         return rt
     }
 
-    private fun getStatuses():List<Boolean>{
+    private fun getStatuses(): List<Boolean> {
         val isProcessLive = this.process?.isAlive ?: false
-        val isFileWritten =
-            this.connectionFilePath != null && this.connectionFilePath?.let { Files.exists(it) } ?: false
+        val isFileWritten = this.connectionFilePath?.let { Files.exists(it) } ?: false
         val connectionFileIsRead = this.connectionFileContent != null
-        val isSessonOk = this.session!=null
-        val isChannelProviderOk = this.channelProvider!=null
-        val isMsgEncodeOk = this.msgEncoder!=null
-        val isMsgCounterOk = this.msgCounter !=null
+        val isSessonOk = this.session != null
+        val isChannelProviderOk = this.channelProvider != null
+        val isMsgEncodeOk = this.msgEncoder != null
+        val isMsgCounterOk = this.msgCounter != null
         val isSenderProviderOk = this.senderProvider != null
         val isHBServiceRunning = this.hbService?.isServiceRunning() ?: false
 

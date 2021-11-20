@@ -5,13 +5,16 @@ import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonCon
 import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContextImp
 import com.github.xadkile.bicp.test.utils.TestResource
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.ZContext
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IPythonContextImpTest {
