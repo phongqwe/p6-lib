@@ -5,19 +5,49 @@ import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 
 class ChannelProviderImp internal constructor(private val connectFile: KernelConnectionFileContent) :
     ChannelProvider {
-    override fun getIOPubChannel(): ChannelInfo {
-        return this.connectFile.createIOPubChannel()
+
+    private val ioPub:ChannelInfo by lazy {
+        this.connectFile.createIOPubChannel()
     }
 
-    override fun getShellChannel(): ChannelInfo {
-        return this.connectFile.createShellChannel()
+    override fun ioPubChannel(): ChannelInfo {
+        return this.ioPub
     }
 
-    override fun getControlChannel(): ChannelInfo {
-        return this.connectFile.createControlChannel()
+    private val shell:ChannelInfo by lazy{
+        this.connectFile.createShellChannel()
+    }
+    override fun shellChannel(): ChannelInfo {
+        return this.shell
     }
 
-    override fun getHeartbeatChannel(): ChannelInfo {
-        return this.connectFile.createHeartBeatChannel()
+    private val control:ChannelInfo by lazy{
+        this.connectFile.createControlChannel()
+    }
+    override fun controlChannel(): ChannelInfo {
+        return control
+    }
+
+    private val hb : ChannelInfo by lazy{
+        this.connectFile.createHeartBeatChannel()
+    }
+    override fun heartbeatChannel(): ChannelInfo {
+        return this.hb
+    }
+
+    override fun ioPUBAddress(): String {
+        return this.ioPub.makeAddress()
+    }
+
+    override fun heartBeatAddress(): String {
+        return this.hb.makeAddress()
+    }
+
+    override fun controlAddress(): String {
+        return this.control.makeAddress()
+    }
+
+    override fun shellAddress(): String {
+        return this.shell.makeAddress()
     }
 }

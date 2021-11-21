@@ -1,11 +1,6 @@
 package com.github.xadkile.bicp.message.api.connection.heart_beat
 
-import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
-import com.github.michaelbull.result.Result
-import com.github.xadkile.bicp.message.api.exception.UnknownException
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import kotlin.concurrent.thread
@@ -13,16 +8,15 @@ import kotlin.concurrent.thread
 /**
  * Must not invoke the constructor directly unless in testing. An instance of this is provided by [IPythonContext].
  * This service is non-recoverable. If it detects a dead signal, it will remain dead, even when the service is back.
- * [interval] is waiting period between each heart beat check.
+ * Due to its non-recoverable nature, it should only be bound and used along an IPython context that control its (the hb service)'s life cycle from creation, to stop.
  */
 internal class LiveCountHeartBeatService constructor(
     zContext: ZContext,
     hbSocket: ZMQ.Socket,
     liveCount: Int = 3,
-    interval: Long = 1000,
-    socketTimeOut: Long = 1000,
+    pollTimeout: Long = 1000,
 ) : HeartBeatService
-    ,AbstractLiveCountHeartBeatService(zContext, hbSocket, liveCount, interval,socketTimeOut) {
+    ,AbstractLiveCountHeartBeatService(zContext, hbSocket, liveCount,pollTimeout) {
 
     private val convService = HeartBeatServiceConvImp(this)
 
@@ -60,12 +54,5 @@ internal class LiveCountHeartBeatService constructor(
 
     override fun conv(): HeartBeatServiceConv {
         return this.convService
-    }
-
-    /**
-     * for testing only
-     */
-    internal fun getInterval():Long{
-        return this.interval
     }
 }

@@ -31,6 +31,8 @@ interface IPythonContextReadOnly {
 
     fun getHeartBeatService():Result<HeartBeatService,Exception>
 
+    fun getSocketProvider():Result<SocketProvider,Exception>
+
     fun zContext(): ZContext
     /**
      * convert this to a more convenient but more dangerous to use interface

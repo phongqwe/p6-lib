@@ -6,7 +6,8 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * manage IPython process, also provide connection info
+ * manage IPython process, also provide connection info.
+ * This class is stateful.
  * TODO long: need to add something to watch for unexpected kill of IPython
  * There is a risk of memory leak here. Objects produced by context can be hold by other objects, therefore if this context die, the legality of such objects become questionable, but their references in external objects are still valid, therefore, they are not cleaned up => leak faulty object, and their usage is dangerous. I must take measure to prevent that from happening.
  *

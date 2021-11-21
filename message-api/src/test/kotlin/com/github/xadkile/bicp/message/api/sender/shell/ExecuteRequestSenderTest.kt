@@ -3,8 +3,6 @@ package com.github.xadkile.bicp.message.api.sender.shell
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.unwrap
-import com.github.michaelbull.result.unwrapError
-import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonIsDownException
 import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.protocol.message.MsgStatus
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
@@ -127,7 +125,7 @@ internal class ExecuteRequestSenderTest : TestOnJupyter() {
         val zcontext = this.ipythonContext.zContext()
         val channelProvider = this.ipythonContext.getChannelProvider().unwrap()
         val shellSocket = zcontext.createSocket(SocketType.REQ).also {
-            it.connect(channelProvider.getShellChannel().makeAddress())
+            it.connect(channelProvider.shellChannel().makeAddress())
         }
         val sender2 = ExecuteRequestSender(
             shellSocket,

@@ -7,11 +7,13 @@ import com.github.xadkile.bicp.message.api.exception.UnknownException
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 
+/**
+ * Not for external use
+ */
 internal abstract class AbstractLiveCountHeartBeatService constructor(
     protected val zContext: ZContext,
     protected var hbSocket: ZMQ.Socket,
     protected val liveCount: Int = 3,
-    protected val interval: Long = 1000,
     protected val pollTimeOut: Long = 1000,
 ) : HeartBeatService {
 

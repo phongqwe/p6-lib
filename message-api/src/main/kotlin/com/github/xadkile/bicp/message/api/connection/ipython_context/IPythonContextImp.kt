@@ -2,13 +2,13 @@ package com.github.xadkile.bicp.message.api.connection.ipython_context
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
+import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceUpdatable
+import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceUpdater
 import com.github.xadkile.bicp.message.api.connection.heart_beat.LiveCountHeartBeatService
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.protocol.other.MsgCounterImp
 import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
 import com.github.xadkile.bicp.message.api.protocol.other.SequentialMsgIdGenerator
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
 import org.zeromq.SocketType
 import org.zeromq.ZContext
@@ -26,7 +26,7 @@ import javax.inject.Singleton
 @Singleton
 class IPythonContextImp @Inject internal constructor(
     val ipythonConfig: IPythonConfig, val zcontext: ZContext,
-) : IPythonContext {
+) : IPythonContext, HeartBeatServiceUpdater {
 
     private val launchCmd: List<String> = this.ipythonConfig.makeLaunchCmmd()
     private var process: Process? = null
@@ -38,6 +38,7 @@ class IPythonContextImp @Inject internal constructor(
     private var msgIdGenerator: MsgIdGenerator? = null
     private var msgCounter: MsgCounter? = null
     private var senderProvider: SenderProvider? = null
+    private var socketProvider:SocketProvider? = null
     private var hbService: HeartBeatService? = null
 
     private var onBeforeStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
@@ -71,18 +72,17 @@ class IPythonContextImp @Inject internal constructor(
                 this.process = processBuilder.inheritIO().start()
                 // rmd: wait for process to come live
                 this.poll(50) { this.process?.isAlive != true }
-//                this.process?.onExit()?.thenApply {
-//                    destroyResource()
-//                    this.onAfterStopListener.run(this)
-//                }
+
                 // rmd: read connection file
                 this.connectionFilePath = Paths.get(ipythonConfig.connectionFilePath)
                 this.poll(50) { !Files.exists(this.connectionFilePath!!) }
                 this.connectionFileContent =
                     KernelConnectionFileContent.fromJsonFile(ipythonConfig.connectionFilePath).unwrap()
 
-                // rmd: create resources, careful with the order of resource initiation, some must be initialized first
+                // rmd: create resources, careful with the order of resource initiation,
+                // some must be initialized first
                 this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
+                this.socketProvider = SocketProviderImp(this.channelProvider!!,this.zcontext)
                 this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
                 this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
                 this.msgCounter = MsgCounterImp()
@@ -91,14 +91,15 @@ class IPythonContextImp @Inject internal constructor(
                 // rmd: start heart beat service
                 this.hbService = LiveCountHeartBeatService(
                     hbSocket = this.zcontext.createSocket(SocketType.REQ).also {
-                        it.connect(this.channelProvider!!.getHeartbeatChannel().makeAddress())
+                        it.connect(this.channelProvider!!.heartbeatChannel().makeAddress())
                     },
                     zContext = this.zcontext
                 ).also { it.start() }
                 // rmd: wait until heart beat service is live
                 this.poll(50) { this.hbService?.isServiceRunning() != true }
 
-                // rmd: senderProvider depend on heart beat service, so it must be initialized after hb service is created
+                // rmd: senderProvider depend on heart beat service,
+                // so it must be initialized after hb service is created
                 this.senderProvider =
                     SenderProviderImp(this.channelProvider!!, this.zcontext, this.msgEncoder!!, this.hbService!!.conv())
                 this.onProcessStartListener.run(this)
@@ -108,7 +109,6 @@ class IPythonContextImp @Inject internal constructor(
             }
         }
     }
-
     override fun stopIPython(): Result<Unit, Exception> {
         if (this.isNotRunning()) {
             return Ok(Unit)
@@ -127,6 +127,14 @@ class IPythonContextImp @Inject internal constructor(
             return Ok(Unit)
         } catch (e: Exception) {
             return Err(e)
+        }
+    }
+
+    override fun getSocketProvider(): Result<SocketProvider, Exception> {
+        if(this.isRunning()){
+            return Ok(this.socketProvider!!)
+        }else{
+            return Err(ipythonIsDownErr)
         }
     }
 
@@ -151,6 +159,15 @@ class IPythonContextImp @Inject internal constructor(
         // stop hb service
         this.hbService?.stop()
         this.hbService = null
+
+        this.socketProvider?.also {
+//            it.controlSocket().close()
+            it.heartBeatSocket().close()
+            it.shellSocket().close()
+//            it.ioPubSocket().close()
+        }
+        this.socketProvider = null
+
     }
 
     override fun getIPythonProcess(): Result<Process, Exception> {
@@ -291,5 +308,10 @@ class IPythonContextImp @Inject internal constructor(
 
     override fun zContext(): ZContext {
         return this.zcontext
+    }
+
+    override fun update(hbservice: HeartBeatServiceUpdatable) {
+//        hbservice.updateSocket(this.)
+        TODO()
     }
 }

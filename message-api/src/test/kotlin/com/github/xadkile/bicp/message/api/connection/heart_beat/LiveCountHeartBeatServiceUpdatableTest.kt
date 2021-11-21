@@ -21,7 +21,7 @@ internal class LiveCountHeartBeatServiceUpdatableTest : TestOnJupyter() {
     fun beforeEach() {
         this.ipythonContext.startIPython()
         hbService = LiveCountHeartBeatServiceUpdatable(
-            this.zcontext,newSocket(), liveCount, interval, 1000,
+            this.zcontext,newSocket(), liveCount, interval,
         )
         this.ipythonContext.setOnStartProcessListener{context->
             hbService.updateSocket(newSocket())
@@ -55,7 +55,7 @@ internal class LiveCountHeartBeatServiceUpdatableTest : TestOnJupyter() {
 
     private fun newSocket():ZMQ.Socket{
         return this.zcontext.createSocket(SocketType.REQ).also {
-            it.connect(this.ipythonContext.getChannelProvider().unwrap().getHeartbeatChannel().makeAddress())
+            it.connect(this.ipythonContext.getChannelProvider().unwrap().heartbeatChannel().makeAddress())
         }
     }
 }

@@ -3,6 +3,7 @@ package com.github.xadkile.bicp.message.api.protocol
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
+import com.github.xadkile.bicp.message.api.channel.ChannelInfo
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import java.io.IOException
@@ -69,8 +70,8 @@ data class KernelConnectionFileContent(
         )
     }
 
-    fun createIOPubChannel(): com.github.xadkile.bicp.message.api.channel.ChannelInfo {
-        return com.github.xadkile.bicp.message.api.channel.ChannelInfo.tcp.copy(
+    fun createIOPubChannel(): ChannelInfo {
+        return ChannelInfo.tcp.copy(
             protocol=this.protocol,
             name = "IOPub",
             ipAddress = this.ip,

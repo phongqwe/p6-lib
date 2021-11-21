@@ -1,8 +1,5 @@
 package com.github.xadkile.bicp.message.api.connection.heart_beat
 
-import com.github.michaelbull.result.Result
-import org.zeromq.ZMQ
-
 /**
  * A perpetual background service that check the heart beat channel periodically.
  */
@@ -40,9 +37,3 @@ interface HeartBeatService {
     class ZMQIsDeadException(override val message:String=""):Exception(message)
 }
 
-/**
- * A mutable heart beat service that can be updated midway
- */
-interface HeartBeatServiceUpdatable : HeartBeatService{
-    fun updateSocket(newSocket:ZMQ.Socket)
-}

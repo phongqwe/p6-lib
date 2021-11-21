@@ -1,9 +1,6 @@
 package com.github.xadkile.bicp.message.api.connection.heart_beat
 
-import com.github.michaelbull.result.Err
-import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.unwrap
-import com.github.michaelbull.result.unwrapError
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -12,8 +9,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
 import org.zeromq.ZMQ
-import org.zeromq.ZMQException
-import kotlin.reflect.typeOf
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
@@ -27,10 +22,10 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
     fun beforeEach() {
         this.ipythonContext.startIPython()
         socket = this.zcontext.createSocket(SocketType.REQ).also {
-            it.connect(this.ipythonContext.getChannelProvider().unwrap().getHeartbeatChannel().makeAddress())
+            it.connect(this.ipythonContext.getChannelProvider().unwrap().heartbeatChannel().makeAddress())
         }
         hbService2 = LiveCountHeartBeatService(
-            this.zcontext,socket, liveCount, interval, 1000,
+            this.zcontext,socket, liveCount, interval,
         )
         hbService = this.ipythonContext.getHeartBeatService().unwrap() as LiveCountHeartBeatService
     }

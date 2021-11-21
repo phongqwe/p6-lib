@@ -10,8 +10,11 @@ import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
 
 interface IPythonContextReadOnlyConv : IPythonContextReadOnly {
+    override fun getSocketProvider(): Result<SocketProvider, Exception> {
+        return this.original().getSocketProvider()
+    }
     fun getHeartBeatChannel(): Result<ChannelInfo, Exception> {
-        return this.getChannelProvider().map { it.getHeartbeatChannel() }
+        return this.getChannelProvider().map { it.heartbeatChannel() }
     }
 
     fun getHeartBeatAddress(): Result<String, Exception> {
@@ -23,30 +26,6 @@ interface IPythonContextReadOnlyConv : IPythonContextReadOnly {
     }
 
     fun original(): IPythonContextReadOnly
-
-//    override fun startIPython(): Result<Unit, Exception> {
-//        return this.original().startIPython()
-//    }
-//
-//    override fun stopIPython(): Result<Unit, Exception> {
-//        return this.original().stopIPython()
-//    }
-//
-//    override fun restartIPython(): Result<Unit, Exception> {
-//        return this.original().restartIPython()
-//    }
-//
-//    override fun getIPythonProcess(): Result<Process, Exception> {
-//        return this.original().getIPythonProcess()
-//    }
-//
-//    override fun getIPythonInputStream(): Result<InputStream, Exception> {
-//        return this.original().getIPythonInputStream()
-//    }
-//
-//    override fun getIPythonOutputStream(): Result<OutputStream, Exception> {
-//        return this.original().getIPythonOutputStream()
-//    }
 
     override fun getConnectionFileContent(): Result<KernelConnectionFileContent, Exception> {
         return this.original().getConnectionFileContent()
@@ -72,37 +51,10 @@ interface IPythonContextReadOnlyConv : IPythonContextReadOnly {
         return this.original().getMsgIdGenerator()
     }
 
-//    override fun setOnBeforeProcessStopListener(listener: OnIPythonContextEvent) {
-//        this.original().setOnBeforeProcessStopListener(listener)
-//    }
-//
-//    override fun removeBeforeOnProcessStopListener() {
-//        this.original().removeBeforeOnProcessStopListener()
-//    }
-//
-//    override fun setOnAfterProcessStopListener(listener: OnIPythonContextEvent) {
-//        this.original().setOnAfterProcessStopListener(listener)
-//    }
-//
-//    override fun removeAfterOnProcessStopListener() {
-//        this.original().removeAfterOnProcessStopListener()
-//    }
-//
-//    override fun setOnStartProcessListener(listener: OnIPythonContextEvent) {
-//        this.original().setOnStartProcessListener(listener)
-//    }
-//
-//    override fun removeOnProcessStartListener() {
-//        this.original().removeOnProcessStartListener()
-//    }
-
     override fun getHeartBeatService(): Result<HeartBeatService, Exception> {
         return this.original().getHeartBeatService()
     }
 
-    //    override fun conv(): IPythonContextConvReadOnly {
-//        return this.original().conv()
-//    }
     override fun zContext(): ZContext {
         return this.original().zContext()
     }
