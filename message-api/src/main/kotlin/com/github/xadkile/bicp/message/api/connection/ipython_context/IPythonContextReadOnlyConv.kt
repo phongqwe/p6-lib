@@ -10,9 +10,7 @@ import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
 
 interface IPythonContextReadOnlyConv : IPythonContextReadOnly {
-    override fun getSocketProvider(): Result<SocketProvider, Exception> {
-        return this.original().getSocketProvider()
-    }
+
     fun getHeartBeatChannel(): Result<ChannelInfo, Exception> {
         return this.getChannelProvider().map { it.heartbeatChannel() }
     }
@@ -21,11 +19,23 @@ interface IPythonContextReadOnlyConv : IPythonContextReadOnly {
         return this.getHeartBeatChannel().map { it.makeAddress() }
     }
 
+    fun getShellChannel():Result<ChannelInfo,Exception>{
+        return this.getChannelProvider().map { it.shellChannel() }
+    }
+
+    fun getShellAddress():Result<String,Exception>{
+        return this.getChannelProvider().map { it.shellAddress() }
+    }
+
     fun getConvHeartBeatService(): Result<HeartBeatServiceConv, Exception> {
         return this.getHeartBeatService().map { it.conv() }
     }
 
     fun original(): IPythonContextReadOnly
+
+    override fun getSocketProvider(): Result<SocketProvider, Exception> {
+        return this.original().getSocketProvider()
+    }
 
     override fun getConnectionFileContent(): Result<KernelConnectionFileContent, Exception> {
         return this.original().getConnectionFileContent()

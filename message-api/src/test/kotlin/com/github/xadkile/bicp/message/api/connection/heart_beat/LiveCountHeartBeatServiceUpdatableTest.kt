@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection.heart_beat
 
 import com.github.michaelbull.result.unwrap
+import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -21,10 +22,10 @@ internal class LiveCountHeartBeatServiceUpdatableTest : TestOnJupyter() {
     fun beforeEach() {
         this.ipythonContext.startIPython()
         hbService = LiveCountHeartBeatServiceUpdatable(
-            this.zcontext,newSocket(), liveCount, interval,
+            this.zcontext,newSocketProvider(), liveCount, interval,
         )
         this.ipythonContext.setOnStartProcessListener{context->
-            hbService.updateSocket(newSocket())
+            hbService.updateSocket(newSocketProvider())
         }
     }
 
@@ -57,5 +58,8 @@ internal class LiveCountHeartBeatServiceUpdatableTest : TestOnJupyter() {
         return this.zcontext.createSocket(SocketType.REQ).also {
             it.connect(this.ipythonContext.getChannelProvider().unwrap().heartbeatChannel().makeAddress())
         }
+    }
+    private fun newSocketProvider():SocketProvider{
+        return this.ipythonContext.getSocketProvider().unwrap()
     }
 }

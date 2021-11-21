@@ -6,61 +6,77 @@ import org.junit.jupiter.api.Test
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
+import java.util.*
 import kotlin.concurrent.thread
 
 
 class Bench {
     @Test
     fun z2(){
-        runBlocking {
-            var x = 0
-            while (x<5){
-                delay(1000)
-                println(x)
-                x+=1
-            }
-        }
-        println("end")
+
     }
     @Test
     fun  z(){
-        val t1 = thread(false) {
+        val server = thread(false) {
             ZContext().use { context ->
-                // Socket to talk to clients
-                val socket: ZMQ.Socket = context.createSocket(SocketType.REP)
-                socket.bind("tcp://*:5555")
+                val publisher = context.createSocket(SocketType.PUB)
+                publisher.bind("tcp://*:5556")
+                publisher.bind("ipc://weather")
+
+                //  Initialize random number generator
+                val srandom = Random(System.currentTimeMillis())
                 while (!Thread.currentThread().isInterrupted) {
-                    val reply: ByteArray = socket.recv(0)
-                    println(
-                        "Received " + ": [" + String(reply, ZMQ.CHARSET) + "]"
+                    //  Get values that will fool the boss
+                    var zipcode: Int
+                    var temperature: Int
+                    var relhumidity: Int
+                    zipcode = 10000 + srandom.nextInt(10000)
+                    temperature = srandom.nextInt(215) - 80 + 1
+                    relhumidity = srandom.nextInt(50) + 10 + 1
+
+                    //  Send message to all subscribers
+                    val update = String.format(
+                        "%05d %d %d", zipcode, temperature, relhumidity
                     )
-                    Thread.sleep(1000) //  Do some 'work'
-                    val response = "world"
-                    socket.send(response.toByteArray(), 0)
+                    publisher.send(update, 0)
                 }
             }
         }
 
-        t1.start()
+        server.start()
 
+        // client
         ZContext().use { context ->
             //  Socket to talk to server
-            println("Connecting to hello world server")
-            val socket = context.createSocket(SocketType.REQ)
-            socket.connect("tcp://localhost:5555")
-//            t1.interrupt()
-            for (requestNbr in 0..2) {
-                val request = "Hello"
-                println("Sending Hello $requestNbr")
-                val ss = socket.send(request.toByteArray(ZMQ.CHARSET), 0)
-                println("SS ${ss}")
-                val reply = socket.recv(0)
-                println(
-                    "Received " + String(reply, ZMQ.CHARSET) + " " +
-                            requestNbr
-                )
+            println("Collecting updates from weather server")
+            val subscriber = context.createSocket(SocketType.SUB)
+            subscriber.connect("tcp://localhost:5556")
+
+            //  Subscribe to zipcode, default is NYC, 10001
+            val filter = "10001 "
+            subscriber.subscribe(filter.toByteArray(ZMQ.CHARSET))
+
+            //  Process 100 updates
+            var update_nbr: Int
+            var total_temp: Long = 0
+            update_nbr = 0
+            while (update_nbr < 100) {
+                //  Use trim to remove the tailing '0' character
+                val string = subscriber.recvStr(0).trim { it <= ' ' }
+                val sscanf = StringTokenizer(string, " ")
+                val zipcode = Integer.valueOf(sscanf.nextToken())
+                val temperature = Integer.valueOf(sscanf.nextToken())
+                val relhumidity = Integer.valueOf(sscanf.nextToken())
+//                println("Recv: ${temperature}")
+                total_temp += temperature.toLong()
+                update_nbr++
             }
+            println(String.format(
+                "Average temperature for zipcode '%s' was %d.",
+                filter, (total_temp / update_nbr).toInt()))
+
         }
-//        t1.interrupt()
+        server.interrupt()
+//
     }
 }

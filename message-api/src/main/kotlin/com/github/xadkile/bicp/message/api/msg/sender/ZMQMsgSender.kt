@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.sender
+package com.github.xadkile.bicp.message.api.msg.sender
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
@@ -23,6 +23,9 @@ class ZMQMsgSender {
     class UnableToQueueException : Exception()
 
     companion object {
+        /**
+         * [zContext] is for creating poller
+         */
         fun sendJPMsg(
             message: JPMessage<*, *>,
             socket: ZMQ.Socket,
@@ -44,6 +47,7 @@ class ZMQMsgSender {
          * - wait for a response using Poller with a timeout
          * - check heart beat after each poll
          * - continue until either receiving a response or the zmq is dead
+         * [zContext] is for creating poller
          */
         fun send(
             message: List<ByteArray>,

@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.sender.shell
+package com.github.xadkile.bicp.message.api.msg.sender.shell
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
@@ -7,7 +7,7 @@ import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonCon
 import com.github.xadkile.bicp.message.api.connection.ipython_context.MsgEncoder
 import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.sender.ZMQMsgSender
+import com.github.xadkile.bicp.message.api.msg.sender.ZMQMsgSender
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg

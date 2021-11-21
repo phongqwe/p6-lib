@@ -25,7 +25,7 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
             it.connect(this.ipythonContext.getChannelProvider().unwrap().heartbeatChannel().makeAddress())
         }
         hbService2 = LiveCountHeartBeatService(
-            this.zcontext,socket, liveCount, interval,
+            this.zcontext,this.ipythonContext.getSocketProvider().unwrap(), liveCount, interval,
         )
         hbService = this.ipythonContext.getHeartBeatService().unwrap() as LiveCountHeartBeatService
     }

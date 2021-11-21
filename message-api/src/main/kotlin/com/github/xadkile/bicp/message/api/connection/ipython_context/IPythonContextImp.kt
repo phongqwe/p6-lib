@@ -90,9 +90,7 @@ class IPythonContextImp @Inject internal constructor(
 
                 // rmd: start heart beat service
                 this.hbService = LiveCountHeartBeatService(
-                    hbSocket = this.zcontext.createSocket(SocketType.REQ).also {
-                        it.connect(this.channelProvider!!.heartbeatChannel().makeAddress())
-                    },
+                    socketProvider = this.socketProvider!!,
                     zContext = this.zcontext
                 ).also { it.start() }
                 // rmd: wait until heart beat service is live

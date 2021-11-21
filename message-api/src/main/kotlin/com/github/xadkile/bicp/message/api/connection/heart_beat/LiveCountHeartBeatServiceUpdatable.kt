@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection.heart_beat
 
 import com.github.michaelbull.result.Ok
+import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 import java.util.*
@@ -12,18 +13,18 @@ import kotlin.concurrent.thread
  */
 internal class LiveCountHeartBeatServiceUpdatable constructor(
     zContext: ZContext,
-    hbSocket: ZMQ.Socket,
+    private var socketProvider: SocketProvider,
     liveCount: Int = 3,
     pollTimeout: Long = 1000,
 ) : HeartBeatServiceUpdatable,
-    AbstractLiveCountHeartBeatService(zContext, hbSocket, liveCount,pollTimeout) {
+    AbstractLiveCountHeartBeatService(zContext, liveCount,pollTimeout) {
 
     private val convService = HeartBeatServiceConvImp(this)
     private val updateEventList: Queue<UpdateEvent> = ArrayDeque()
 
-    override fun updateSocket(newSocket: ZMQ.Socket) {
+    override fun updateSocket(socketProvider: SocketProvider) {
         updateEventList.offer {
-            this.hbSocket = newSocket
+            this.socketProvider = socketProvider
             UpdateSignal.UPDATE_SOCKET
         }
     }
@@ -40,8 +41,9 @@ internal class LiveCountHeartBeatServiceUpdatable constructor(
         this.serviceThread = thread(true) {
             val thisObj = this@LiveCountHeartBeatServiceUpdatable
             var poller = zContext.createPoller(1)
+            var socket = this.socketProvider.newHeartBeatSocket()
             poller.use {
-                poller.register(this.hbSocket)
+
                 while (letThreadRunning) {
                     // rmd: consume update events before doing anything
                     while (this.updateEventList.isNotEmpty()) {
@@ -51,14 +53,16 @@ internal class LiveCountHeartBeatServiceUpdatable constructor(
                             UpdateSignal.UPDATE_SOCKET -> {
                                 poller.close()
                                 poller = zContext.createPoller(1)
-                                poller.register(this.hbSocket)
+                                socket = this.socketProvider.newHeartBeatSocket()
+                                poller.register(socket)
                             }
                             else -> {
                             }
                         }
                     }
+                    poller.register(socket)
 
-                    val isAlive: Boolean = thisObj.check(poller, hbSocket) is Ok
+                    val isAlive: Boolean = thisObj.check(poller, socket) is Ok
                     if (isAlive) {
                         this.currentLives = this.liveCount
                     } else {

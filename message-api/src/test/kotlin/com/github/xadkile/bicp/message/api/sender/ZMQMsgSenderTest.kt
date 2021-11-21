@@ -2,6 +2,7 @@ package com.github.xadkile.bicp.message.api.sender
 
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.unwrap
+import com.github.xadkile.bicp.message.api.msg.sender.ZMQMsgSender
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance

@@ -3,6 +3,7 @@ package com.github.xadkile.bicp.message.api.connection.heart_beat
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
+import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
 import com.github.xadkile.bicp.message.api.exception.UnknownException
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -12,7 +13,6 @@ import org.zeromq.ZMQ
  */
 internal abstract class AbstractLiveCountHeartBeatService constructor(
     protected val zContext: ZContext,
-    protected var hbSocket: ZMQ.Socket,
     protected val liveCount: Int = 3,
     protected val pollTimeOut: Long = 1000,
 ) : HeartBeatService {
@@ -53,30 +53,6 @@ internal abstract class AbstractLiveCountHeartBeatService constructor(
             }
         }catch (e:Exception){
             return Err(e)
-        }
-    }
-
-    /**
-     * TODO this method should be discarded
-     * Calling it while the service thread is running very likely will return an exception.
-     * The reason is:
-     * Heart beat channel is a REP channel. After sending a message, I must call recv, before making another send.
-     * Failing to recv will leave the socket in error state.
-     * Because the service thread is a forever loop, it will do send-recv non stop. If the call checkHB accidently happends right after a "send" in service thread. That will causes an exception.
-     */
-    private fun checkHB(): Result<Unit,Exception> {
-        if (this.isServiceRunning() && this.zContext.isClosed.not()) {
-            try{
-                val poller: ZMQ.Poller = zContext.createPoller(1)
-                poller.register(this.hbSocket, ZMQ.Poller.POLLIN)
-                val rt = this.check(poller, this.hbSocket)
-                poller.close()
-                return rt
-            }catch (e:Exception){
-                return Err(e)
-            }
-        } else {
-            return Err(hbServiceNotRunningException)
         }
     }
 
