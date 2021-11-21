@@ -101,7 +101,7 @@ class IPythonContextImp @Inject internal constructor(
                 // rmd: senderProvider depend on heart beat service,
                 // so it must be initialized after hb service is created
                 this.senderProvider =
-                    SenderProviderImp(this.channelProvider!!, this.zcontext, this.msgEncoder!!, this.hbService!!.conv())
+                    SenderProviderImp( this.zcontext, this.msgEncoder!!, this.hbService!!.conv(), this.socketProvider!!)
                 this.onProcessStartListener.run(this)
                 return Ok(Unit)
             } catch (e: Exception) {

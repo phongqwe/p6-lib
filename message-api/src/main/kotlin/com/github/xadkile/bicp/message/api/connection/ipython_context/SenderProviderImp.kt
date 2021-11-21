@@ -11,20 +11,20 @@ import org.zeromq.ZContext
 import org.zeromq.ZMQ
 
 class SenderProviderImp internal constructor(
-    val channelProvider: ChannelProvider,
+//    val channelProvider: ChannelProvider,
     val zcontext: ZContext,
     val msgEncoder: MsgEncoder,
     val heartBeatServiceConv: HeartBeatServiceConv,
-
+    val socketProvider: SocketProvider
 ) :
     SenderProvider {
 
     private val _executeRequestSender: MsgSender<ExecuteRequestInput, Result<ExecuteRequestOutput, Exception>> by lazy {
-        val socket: ZMQ.Socket = this.zcontext.createSocket(SocketType.REQ).also {
-            val channelAddress = this.channelProvider.shellChannel().makeAddress()
-            it.connect(channelAddress)
-        }
-        ExecuteRequestSender(socket, this.msgEncoder,heartBeatServiceConv,zcontext)
+//        val socket: ZMQ.Socket = this.zcontext.createSocket(SocketType.REQ).also {
+//            val channelAddress = this.channelProvider.shellChannel().makeAddress()
+//            it.connect(channelAddress)
+//        }
+        ExecuteRequestSender(socketProvider.shellSocket(), this.msgEncoder,heartBeatServiceConv,zcontext)
     }
 
     override fun getExecuteRequestSender(): MsgSender<ExecuteRequestInput, Result<ExecuteRequestOutput, Exception>> {
