@@ -8,11 +8,17 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 import org.zeromq.SocketType
+import org.zeromq.ZContext
+import org.zeromq.ZMQ
+import org.zeromq.ZMsg
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ZMQMsgSenderTest : TestOnJupyter() {
 
+    @Test
+    fun z(){
+    }
     @Test
     fun send_Ok() {
         this.ipythonContext.startIPython()
@@ -24,7 +30,6 @@ internal class ZMQMsgSenderTest : TestOnJupyter() {
                 it.connect(this.iPythonContextReadOnly.getHeartBeatAddress().unwrap())
             },
             hbs= this.ipythonContext.getHeartBeatService().unwrap().conv(),
-//            ipContext = this.ipythonContext,
             interval = 1000,
             zContext = this.ipythonContext.zContext()
         )

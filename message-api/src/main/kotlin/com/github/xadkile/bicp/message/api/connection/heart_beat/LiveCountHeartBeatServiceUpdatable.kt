@@ -42,8 +42,8 @@ internal class LiveCountHeartBeatServiceUpdatable constructor(
             val thisObj = this@LiveCountHeartBeatServiceUpdatable
             var poller = zContext.createPoller(1)
             var socket = this.socketProvider.newHeartBeatSocket()
+            poller.register(socket,ZMQ.Poller.POLLIN)
             poller.use {
-
                 while (letThreadRunning) {
                     // rmd: consume update events before doing anything
                     while (this.updateEventList.isNotEmpty()) {
@@ -52,15 +52,15 @@ internal class LiveCountHeartBeatServiceUpdatable constructor(
                         when (updateSignal) {
                             UpdateSignal.UPDATE_SOCKET -> {
                                 poller.close()
+                                socket.close()
                                 poller = zContext.createPoller(1)
                                 socket = this.socketProvider.newHeartBeatSocket()
-                                poller.register(socket)
+                                poller.register(socket,ZMQ.Poller.POLLIN)
                             }
                             else -> {
                             }
                         }
                     }
-                    poller.register(socket)
 
                     val isAlive: Boolean = thisObj.check(poller, socket) is Ok
                     if (isAlive) {

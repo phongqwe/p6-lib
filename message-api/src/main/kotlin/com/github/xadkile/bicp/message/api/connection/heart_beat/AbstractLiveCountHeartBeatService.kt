@@ -40,8 +40,9 @@ internal abstract class AbstractLiveCountHeartBeatService constructor(
     protected fun check(poller: ZMQ.Poller, socket: ZMQ.Socket): Result<Unit,Exception> {
         try{
             socket.send("a".toByteArray())
-            val i: Int = poller.poll(this.pollTimeOut)
-            if (i == 1) {
+            poller.poll(this.pollTimeOut)
+            val o = poller.pollin(0)
+            if (o) {
                 val output = socket.recv()
                 if(output != null){
                     return Ok(Unit)

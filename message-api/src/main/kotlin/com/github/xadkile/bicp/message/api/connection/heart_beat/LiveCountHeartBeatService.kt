@@ -32,8 +32,8 @@ internal class LiveCountHeartBeatService constructor(
                 val thisObj = this@LiveCountHeartBeatService
                 val poller = zContext.createPoller(1)
                 val socket = this.socketProvider.newHeartBeatSocket()
+                poller.register(socket,ZMQ.Poller.POLLIN)
                 poller.use {
-                    poller.register(socket)
                     while (letThreadRunning) {
                         val isAlive: Boolean = thisObj.check(poller, socket) is Ok
                         if (isAlive) {
