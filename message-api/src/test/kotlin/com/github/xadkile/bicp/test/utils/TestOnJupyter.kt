@@ -10,14 +10,14 @@ import org.zeromq.ZContext
  * Extend this, then add my test as normal. Use [connectionFileContent] to get a connection file content
  */
 abstract class TestOnJupyter {
-    lateinit var ipythonConfig: IPythonConfig
+    lateinit var ipythonConfig: KernelConfig
     lateinit var ipythonContext: IPythonContext
     lateinit var iPythonContextReadOnly: IPythonContextReadOnlyConv
     lateinit var zcontext:ZContext
     @BeforeAll
     fun before(){
         this.zcontext = ZContext()
-        this.ipythonConfig = TestResource.ipythonConfigForTest()
+        this.ipythonConfig = TestResources.ipythonConfigForTest()
         this.ipythonContext= IPythonContextImp(this.ipythonConfig,zcontext)
         this.iPythonContextReadOnly = this.ipythonContext.conv()
         this.ipythonContext.startIPython()

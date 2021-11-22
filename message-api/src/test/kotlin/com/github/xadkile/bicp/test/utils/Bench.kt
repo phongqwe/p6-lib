@@ -12,9 +12,9 @@ class Bench {
     @Test
     fun z2(){
         ZContext().use {
-            for(x in 0 until 1025){
+            for(x in 0 until 1024){
                 val socket:ZMQ.Socket = it.createSocket(SocketType.REQ)
-                socket.close()
+//                socket.close()
             }
         }
     }

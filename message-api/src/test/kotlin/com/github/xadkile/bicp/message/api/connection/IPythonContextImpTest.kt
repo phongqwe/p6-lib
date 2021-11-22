@@ -1,9 +1,9 @@
 package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonConfig
+import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelConfig
 import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContextImp
-import com.github.xadkile.bicp.test.utils.TestResource
+import com.github.xadkile.bicp.test.utils.TestResources
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -19,12 +19,12 @@ import kotlin.test.assertTrue
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IPythonContextImpTest {
     lateinit var pm : IPythonContextImp
-    lateinit var ipythonConfig: IPythonConfig
+    lateinit var ipythonConfig: KernelConfig
     lateinit var zContext: ZContext
     @BeforeEach
     fun beforeEach(){
         this.zContext = ZContext()
-        ipythonConfig = TestResource.ipythonConfigForTest()
+        ipythonConfig = TestResources.ipythonConfigForTest()
         pm = IPythonContextImp(ipythonConfig,this.zContext)
     }
 
@@ -69,7 +69,7 @@ internal class IPythonContextImpTest {
         assertTrue(pm.getMsgIdGenerator() is Ok,pm.getMsgIdGenerator().toString())
         assertTrue(pm.getHeartBeatService() is Ok,pm.getHeartBeatService().toString())
         assertTrue(pm.getHeartBeatService().unwrap().isServiceRunning())
-        assertTrue(Files.exists(Paths.get(ipythonConfig.connectionFilePath)))
+        assertTrue(Files.exists(Paths.get(ipythonConfig.getConnectionFilePath())))
     }
 
     @Test
@@ -94,7 +94,7 @@ internal class IPythonContextImpTest {
         assertTrue(pm.getMsgEncoder() is Err)
         assertTrue(pm.getMsgIdGenerator() is Err)
         assertTrue(pm.getHeartBeatService() is Err)
-        assertFalse(Files.exists(Paths.get(ipythonConfig.connectionFilePath)))
+        assertFalse(Files.exists(Paths.get(ipythonConfig.getConnectionFilePath())))
     }
     @Test
     fun stopIPython_onAlreadyStopped() {

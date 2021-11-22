@@ -7,7 +7,6 @@ import kotlin.concurrent.thread
 
 /**
  * Watch a process from a separated thread and react on StdErr stream
- * TODO write test
  */
 class OnStderrWatcher(
     private var onStdErrListener: OnStdErrEventProcessListener = OnStdErrEventProcessListener.nothing,

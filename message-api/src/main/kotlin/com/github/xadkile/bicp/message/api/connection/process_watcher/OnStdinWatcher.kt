@@ -7,7 +7,6 @@ import kotlin.concurrent.thread
 
 /**
  * Watch a process from a separated thread and react on stdout event.
- * TODO write test
  */
 class OnStdinWatcher(
     private var onStdinListener: OnStdinEventProcessListener = OnStdinEventProcessListener.nothing,

@@ -2,15 +2,13 @@ package com.github.xadkile.bicp.message.api.connection.ipython_context
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
-import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceUpdatable
-import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceUpdater
+//import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceUpdater
 import com.github.xadkile.bicp.message.api.connection.heart_beat.LiveCountHeartBeatService
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.protocol.other.MsgCounterImp
 import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
 import com.github.xadkile.bicp.message.api.protocol.other.SequentialMsgIdGenerator
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
-import org.zeromq.SocketType
 import org.zeromq.ZContext
 import java.io.InputStream
 import java.io.OutputStream
@@ -25,10 +23,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class IPythonContextImp @Inject internal constructor(
-    val ipythonConfig: IPythonConfig, val zcontext: ZContext,
-) : IPythonContext, HeartBeatServiceUpdater {
+    val ipythonConfig: KernelConfig, val zcontext: ZContext,
+) : IPythonContext {
 
-    private val launchCmd: List<String> = this.ipythonConfig.makeLaunchCmmd()
+    private val launchCmd: List<String> = this.ipythonConfig.makeCompleteLaunchCmmd()
     private var process: Process? = null
     private var connectionFileContent: KernelConnectionFileContent? = null
     private var connectionFilePath: Path? = null
@@ -74,10 +72,10 @@ class IPythonContextImp @Inject internal constructor(
                 this.poll(50) { this.process?.isAlive != true }
 
                 // rmd: read connection file
-                this.connectionFilePath = Paths.get(ipythonConfig.connectionFilePath)
+                this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
                 this.poll(50) { !Files.exists(this.connectionFilePath!!) }
                 this.connectionFileContent =
-                    KernelConnectionFileContent.fromJsonFile(ipythonConfig.connectionFilePath).unwrap()
+                    KernelConnectionFileContent.fromJsonFile(ipythonConfig.getConnectionFilePath()).unwrap()
 
                 // rmd: create resources, careful with the order of resource initiation,
                 // some must be initialized first
@@ -96,8 +94,8 @@ class IPythonContextImp @Inject internal constructor(
                 // rmd: wait until heart beat service is live
                 this.poll(50) { this.hbService?.isServiceRunning() != true }
 
-                // rmd: senderProvider depend on heart beat service,
-                // so it must be initialized after hb service is created
+                // x: senderProvider depend on heart beat service,
+                // x: so it must be initialized after hb service is created
                 this.senderProvider =
                     SenderProviderImp( this.zcontext, this.msgEncoder!!, this.hbService!!.conv(), this.socketProvider!!)
                 this.onProcessStartListener.run(this)
@@ -140,13 +138,13 @@ class IPythonContextImp @Inject internal constructor(
         val cpath = this.connectionFilePath
 
         if (cpath != null) {
-            // delete connection file
+            // x: delete connection file
             Files.delete(cpath)
             // rmd: wait until file is deleted completely
             this.poll(50){Files.exists(cpath)}
             this.connectionFilePath = null
         }
-        // destroy other resources
+        // x: destroy other resources
         this.connectionFileContent = null
         this.session = null
         this.channelProvider = null
@@ -154,18 +152,10 @@ class IPythonContextImp @Inject internal constructor(
         this.msgIdGenerator = null
         this.msgCounter = null
         this.senderProvider = null
-        // stop hb service
+        // x: stop hb service
         this.hbService?.stop()
         this.hbService = null
-
-        this.socketProvider?.also {
-//            it.controlSocket().close()
-            it.heartBeatSocket().close()
-            it.shellSocket().close()
-//            it.ioPubSocket().close()
-        }
         this.socketProvider = null
-
     }
 
     override fun getIPythonProcess(): Result<Process, Exception> {
@@ -306,10 +296,5 @@ class IPythonContextImp @Inject internal constructor(
 
     override fun zContext(): ZContext {
         return this.zcontext
-    }
-
-    override fun update(hbservice: HeartBeatServiceUpdatable) {
-//        hbservice.updateSocket(this.)
-        TODO()
     }
 }

@@ -10,6 +10,7 @@ import kotlin.concurrent.thread
 
 /**
  * This service can exist independently from [IPythonContext]
+ * TODO what is the point of this class, if the kernel is dead, there's no point in running this services.
  */
 internal class LiveCountHeartBeatServiceUpdatable constructor(
     zContext: ZContext,
@@ -29,10 +30,6 @@ internal class LiveCountHeartBeatServiceUpdatable constructor(
         }
     }
 
-    override fun subscribe(updater: HeartBeatServiceUpdater) {
-        TODO("Not yet implemented")
-    }
-
     /**
      * init resources and start service thread
      */
@@ -41,7 +38,7 @@ internal class LiveCountHeartBeatServiceUpdatable constructor(
         this.serviceThread = thread(true) {
             val thisObj = this@LiveCountHeartBeatServiceUpdatable
             var poller = zContext.createPoller(1)
-            var socket = this.socketProvider.newHeartBeatSocket()
+            var socket = this.socketProvider.heartBeatSocket()
             poller.register(socket,ZMQ.Poller.POLLIN)
             poller.use {
                 while (letThreadRunning) {
@@ -54,7 +51,7 @@ internal class LiveCountHeartBeatServiceUpdatable constructor(
                                 poller.close()
                                 socket.close()
                                 poller = zContext.createPoller(1)
-                                socket = this.socketProvider.newHeartBeatSocket()
+                                socket = this.socketProvider.heartBeatSocket()
                                 poller.register(socket,ZMQ.Poller.POLLIN)
                             }
                             else -> {

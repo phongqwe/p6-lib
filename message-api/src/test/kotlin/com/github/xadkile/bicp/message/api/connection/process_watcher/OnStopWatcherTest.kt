@@ -1,11 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection.process_watcher
 
 import com.github.michaelbull.result.Ok
-import com.github.xadkile.bicp.test.utils.TestResource
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import com.github.xadkile.bicp.test.utils.TestResources
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -21,7 +17,7 @@ internal class OnStopWatcherTest {
                 println("STOP:${p.exitValue()}")
             }
         )
-        val p = ProcessBuilder(TestResource.dummyProcess(5)).inheritIO().start()
+        val p = ProcessBuilder(TestResources.dummyProcessCmd(5)).inheritIO().start()
         assertFalse(watcher.isWatching())
         val r = watcher.startWatching(p)
         assertTrue(r is Ok)

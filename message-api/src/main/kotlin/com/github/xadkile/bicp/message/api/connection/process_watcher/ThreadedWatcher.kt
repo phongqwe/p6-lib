@@ -8,7 +8,7 @@ import com.github.xadkile.bicp.message.api.exception.UnknownException
 /**
  * A process watcher that run on a separated thread
  */
-class ThreadedWatcher: ProcessWatcher {
+internal class ThreadedWatcher: ProcessWatcher {
     var thread: Thread?= null
     private var process: Process? = null
     private var isWatching: Boolean = false
@@ -20,8 +20,8 @@ class ThreadedWatcher: ProcessWatcher {
             this.isWatching = true
             return Ok(Unit)
         } else {
-            if (this.isWatching) return Err(ProcessWatcherIllegalState("Process watcher is already running"))
-            if (!process.isAlive) return Err(ProcessWatcherIllegalState("Cannot watch dead process"))
+            if (this.isWatching) return Err(ProcessWatcherIllegalStateException("Process watcher is already running"))
+            if (!process.isAlive) return Err(ProcessWatcherIllegalStateException("Cannot watch dead process"))
         }
         return Err(UnknownException("OnStopWatcher: impossible"))
     }

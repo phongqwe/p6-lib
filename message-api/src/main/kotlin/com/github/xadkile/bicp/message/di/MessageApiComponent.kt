@@ -1,6 +1,6 @@
 package com.github.xadkile.bicp.message.di
 
-import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonConfig
+import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelConfig
 import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContext
 import dagger.BindsInstance
 import dagger.Component
@@ -19,6 +19,6 @@ interface MessageApiComponent {
         fun build():MessageApiComponent
 
         @BindsInstance
-        fun ipythonConfig(config: IPythonConfig):Builder
+        fun ipythonConfig(config: KernelConfig):Builder
     }
 }

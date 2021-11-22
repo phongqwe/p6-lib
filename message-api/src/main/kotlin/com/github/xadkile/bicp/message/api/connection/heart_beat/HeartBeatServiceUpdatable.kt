@@ -8,9 +8,5 @@ import org.zeromq.ZMQ
  */
 interface HeartBeatServiceUpdatable : HeartBeatService {
     fun updateSocket(socketProvider: SocketProvider)
-    fun subscribe(updater:HeartBeatServiceUpdater)
 }
 
-interface HeartBeatServiceUpdater {
-    fun update(hbservice:HeartBeatServiceUpdatable)
-}

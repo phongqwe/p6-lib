@@ -17,8 +17,7 @@ internal class LiveCountHeartBeatService constructor(
     private val socketProvider:SocketProvider,
     liveCount: Int = 3,
     pollTimeout: Long = 1000,
-) : HeartBeatService
-    ,AbstractLiveCountHeartBeatService(zContext, liveCount,pollTimeout) {
+) : AbstractLiveCountHeartBeatService(zContext, liveCount,pollTimeout) {
 
     private val convService = HeartBeatServiceConvImp(this)
 
@@ -31,7 +30,7 @@ internal class LiveCountHeartBeatService constructor(
             this.serviceThread = thread(true) {
                 val thisObj = this@LiveCountHeartBeatService
                 val poller = zContext.createPoller(1)
-                val socket = this.socketProvider.newHeartBeatSocket()
+                val socket = this.socketProvider.heartBeatSocket()
                 poller.register(socket,ZMQ.Poller.POLLIN)
                 poller.use {
                     while (letThreadRunning) {
