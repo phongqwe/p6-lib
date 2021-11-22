@@ -133,7 +133,7 @@ internal class JPRawMessageTest {
     }
 
     @Test
-    fun fromRecvPayload_noId() {
+    fun fromRecvPayload_WithoutId() {
         val input = listOf(
             JPMessage.delimiter,
             "hmacSig_123",
@@ -156,7 +156,7 @@ internal class JPRawMessageTest {
     }
 
     @Test
-    fun fromRecvPayload_noId_noBuffer() {
+    fun fromRecvPayload_WithoutId_noBuffer() {
         val input = listOf(
             JPMessage.delimiter,
             "hmacSig_123",

@@ -12,30 +12,30 @@ import kotlin.concurrent.thread
 
 
 class Bench {
-    class ZListener(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
-        override fun run(args: Array<out Any>?) {
-            val msgL = mutableListOf<String>()
-            while (true) {
-                val o = subSocket.recvStr()
-                msgL.add(o)
-                while (subSocket.hasReceiveMore()) {
-                    val m = subSocket.recvStr()
-                    msgL.add(m)
-                }
-                val z = JPRawMessage.fromPayload(msgL.map { it.toByteArray(Charsets.UTF_8) }).unwrap()
-                println(z)
-                msgL.clear()
-            }
-        }
-        //            val ioPubSocket: ZMQ.Socket = context.createSocket(SocketType.SUB)
+//    class ZListener(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
+//        override fun run(args: Array<out Any>?) {
+//            val msgL = mutableListOf<String>()
+//            while (true) {
+//                val o = subSocket.recvStr()
+//                msgL.add(o)
+//                while (subSocket.hasReceiveMore()) {
+//                    val m = subSocket.recvStr()
+//                    msgL.add(m)
+//                }
+//                val z = JPRawMessage.fromPayload(msgL.map { it.toByteArray(Charsets.UTF_8) }).unwrap()
+//                println(z)
+//                msgL.clear()
+//            }
+//        }
+//
+//    }
+    @Test
+    fun z2(){
+//                    val ioPubSocket: ZMQ.Socket = context.createSocket(SocketType.SUB)
 //            ioPubSocket.connect(connectionFile.createIOPubChannel().makeAddress())
 //            ioPubSocket.subscribe("")
 //            val runnable = ZListener(ioPubSocket)
 //            ZThread.start(runnable)
-    }
-    @Test
-    fun z2(){
-
     }
     @Test
     fun  z(){

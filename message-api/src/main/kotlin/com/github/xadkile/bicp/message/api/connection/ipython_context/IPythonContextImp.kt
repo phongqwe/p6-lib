@@ -4,6 +4,7 @@ import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
 //import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceUpdater
 import com.github.xadkile.bicp.message.api.connection.heart_beat.LiveCountHeartBeatService
+import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.protocol.other.MsgCounterImp
 import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
@@ -69,11 +70,13 @@ class IPythonContextImp @Inject internal constructor(
             try {
                 this.process = processBuilder.inheritIO().start()
                 // rmd: wait for process to come live
-                this.poll(50) { this.process?.isAlive != true }
+                Sleeper.sleepUntil(50) { this.process?.isAlive == true }
 
                 // rmd: read connection file
                 this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
-                this.poll(50) { !Files.exists(this.connectionFilePath!!) }
+                Sleeper.sleepUntil(50){Files.exists(this.connectionFilePath!!)}
+
+
                 this.connectionFileContent =
                     KernelConnectionFileContent.fromJsonFile(ipythonConfig.getConnectionFilePath()).unwrap()
 
@@ -92,7 +95,8 @@ class IPythonContextImp @Inject internal constructor(
                     zContext = this.zcontext
                 ).also { it.start() }
                 // rmd: wait until heart beat service is live
-                this.poll(50) { this.hbService?.isServiceRunning() != true }
+                Sleeper.sleepUntil(50){this.hbService?.isServiceRunning() == true}
+                Sleeper.sleepUntil(50){this.hbService?.isHBAlive() == true}
 
                 // x: senderProvider depend on heart beat service,
                 // x: so it must be initialized after hb service is created
@@ -114,7 +118,7 @@ class IPythonContextImp @Inject internal constructor(
                 this.onBeforeStopListener.run(this)
                 this.process?.destroy()
                 // rmd: polling until the process is completely dead
-                this.poll(50){this.process?.isAlive == true}
+                Sleeper.sleepUntil(50){this.process?.isAlive == false}
                 this.process = null
                 this.onAfterStopListener.run(this)
             }
@@ -141,7 +145,7 @@ class IPythonContextImp @Inject internal constructor(
             // x: delete connection file
             Files.delete(cpath)
             // rmd: wait until file is deleted completely
-            this.poll(50){Files.exists(cpath)}
+            Sleeper.sleepUntil(50){ !Files.exists(cpath) }
             this.connectionFilePath = null
         }
         // x: destroy other resources

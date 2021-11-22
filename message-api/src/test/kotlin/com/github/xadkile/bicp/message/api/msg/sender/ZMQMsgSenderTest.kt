@@ -2,26 +2,21 @@ package com.github.xadkile.bicp.message.api.msg.sender
 
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.bicp.message.api.msg.sender.ZMQMsgSender
+import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 import org.zeromq.SocketType
-import org.zeromq.ZContext
-import org.zeromq.ZMQ
-import org.zeromq.ZMsg
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ZMQMsgSenderTest : TestOnJupyter() {
 
     @Test
-    fun z(){
-    }
-    @Test
     fun send_Ok() {
         this.ipythonContext.startIPython()
+//        Sleeper.sleepUntil(50){this.ipythonContext.getHeartBeatService().unwrap().isHBAlive()}
         // send ok
         val t = System.currentTimeMillis()
         val o = ZMQMsgSender.send(
@@ -34,6 +29,6 @@ internal class ZMQMsgSenderTest : TestOnJupyter() {
             zContext = this.ipythonContext.zContext()
         )
         println(System.currentTimeMillis()-t)
-        assertTrue (o is Ok)
+        assertTrue (o is Ok,o.toString())
     }
 }

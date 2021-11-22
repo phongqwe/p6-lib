@@ -20,8 +20,6 @@ abstract class TestOnJupyter {
         this.ipythonConfig = TestResources.ipythonConfigForTest()
         this.ipythonContext= IPythonContextImp(this.ipythonConfig,zcontext)
         this.iPythonContextReadOnly = this.ipythonContext.conv()
-        this.ipythonContext.startIPython()
-        Thread.sleep(2000)
     }
 
     @AfterAll
