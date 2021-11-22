@@ -1,22 +1,41 @@
 package com.github.xadkile.bicp.test.utils
 
+import com.github.michaelbull.result.unwrap
+import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
 import org.junit.jupiter.api.Test
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
+import org.zeromq.ZThread
 import java.util.*
 import kotlin.concurrent.thread
 
 
 class Bench {
-    @Test
-    fun z2(){
-        ZContext().use {
-            for(x in 0 until 1024){
-                val socket:ZMQ.Socket = it.createSocket(SocketType.REQ)
-//                socket.close()
+    class ZListener(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
+        override fun run(args: Array<out Any>?) {
+            val msgL = mutableListOf<String>()
+            while (true) {
+                val o = subSocket.recvStr()
+                msgL.add(o)
+                while (subSocket.hasReceiveMore()) {
+                    val m = subSocket.recvStr()
+                    msgL.add(m)
+                }
+                val z = JPRawMessage.fromPayload(msgL.map { it.toByteArray(Charsets.UTF_8) }).unwrap()
+                println(z)
+                msgL.clear()
             }
         }
+        //            val ioPubSocket: ZMQ.Socket = context.createSocket(SocketType.SUB)
+//            ioPubSocket.connect(connectionFile.createIOPubChannel().makeAddress())
+//            ioPubSocket.subscribe("")
+//            val runnable = ZListener(ioPubSocket)
+//            ZThread.start(runnable)
+    }
+    @Test
+    fun z2(){
+
     }
     @Test
     fun  z(){

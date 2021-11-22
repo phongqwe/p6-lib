@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.sender
+package com.github.xadkile.bicp.message.api.msg.sender
 
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.unwrap

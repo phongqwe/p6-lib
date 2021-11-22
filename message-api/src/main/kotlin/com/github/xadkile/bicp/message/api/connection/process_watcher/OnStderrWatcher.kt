@@ -16,7 +16,9 @@ class OnStderrWatcher(
     private var threadWatcher: ThreadedWatcher = ThreadedWatcher()
 
     override fun startWatching(process: Process): Result<Unit, Exception> {
-        this.threadWatcher.thread = thread(false) {
+        this.threadWatcher.thread = thread(
+            start = false,
+            isDaemon = true) {
             val reader = BufferedReader(InputStreamReader(process.errorStream))
             try {
                 while (process.isAlive) {

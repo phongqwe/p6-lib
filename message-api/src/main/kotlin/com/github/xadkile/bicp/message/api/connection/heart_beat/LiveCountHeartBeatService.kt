@@ -14,10 +14,10 @@ import kotlin.concurrent.thread
  */
 internal class LiveCountHeartBeatService constructor(
     zContext: ZContext,
-    private val socketProvider:SocketProvider,
+    private val socketProvider: SocketProvider,
     liveCount: Int = 3,
     pollTimeout: Long = 1000,
-) : AbstractLiveCountHeartBeatService(zContext, liveCount,pollTimeout) {
+) : AbstractLiveCountHeartBeatService(zContext, liveCount, pollTimeout) {
 
     private val convService = HeartBeatServiceConvImp(this)
 
@@ -25,13 +25,15 @@ internal class LiveCountHeartBeatService constructor(
      * init resources and start service thread
      */
     override fun start(): Boolean {
-        if(!this.isServiceRunning()){
+        if (!this.isServiceRunning()) {
             this.letThreadRunning = true
-            this.serviceThread = thread(true) {
+            this.serviceThread = thread(
+                start = true,
+                isDaemon = true) {
                 val thisObj = this@LiveCountHeartBeatService
                 val poller = zContext.createPoller(1)
                 val socket = this.socketProvider.heartBeatSocket()
-                poller.register(socket,ZMQ.Poller.POLLIN)
+                poller.register(socket, ZMQ.Poller.POLLIN)
                 poller.use {
                     while (letThreadRunning) {
                         val isAlive: Boolean = thisObj.check(poller, socket) is Ok
@@ -39,7 +41,7 @@ internal class LiveCountHeartBeatService constructor(
                             this.currentLives = this.liveCount
                         } else {
                             // rmd: only reduce life if there are lives left to prevent underflow of int
-                            if(this.currentLives > 0){
+                            if (this.currentLives > 0) {
                                 this.currentLives -= 1
                             }
                         }

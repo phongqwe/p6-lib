@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.msg.`msg-listener`
+package com.github.xadkile.bicp.message.api.msg.listener
 
 /**
  * Listen to in-coming message.

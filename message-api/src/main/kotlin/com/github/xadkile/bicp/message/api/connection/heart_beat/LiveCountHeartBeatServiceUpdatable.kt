@@ -35,7 +35,9 @@ internal class LiveCountHeartBeatServiceUpdatable constructor(
      */
     override fun start(): Boolean {
         this.letThreadRunning = true
-        this.serviceThread = thread(true) {
+        this.serviceThread = thread(
+            start = true,
+            isDaemon = true) {
             val thisObj = this@LiveCountHeartBeatServiceUpdatable
             var poller = zContext.createPoller(1)
             var socket = this.socketProvider.heartBeatSocket()
