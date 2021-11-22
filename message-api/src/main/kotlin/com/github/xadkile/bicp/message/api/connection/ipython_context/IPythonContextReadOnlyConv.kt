@@ -31,6 +31,23 @@ interface IPythonContextReadOnlyConv : IPythonContextReadOnly {
         return this.getHeartBeatService().map { it.conv() }
     }
 
+    fun getIOPubChannel():Result<ChannelInfo,Exception>{
+        return this.getChannelProvider().map { it.ioPubChannel() }
+    }
+
+    fun getIOPubAddress():Result<String,Exception>{
+        return this.getChannelProvider().map { it.ioPUBAddress() }
+    }
+
+    fun getControlChannel():Result<ChannelInfo,Exception>{
+        return this.getChannelProvider().map { it.controlChannel() }
+    }
+
+    fun getControlAddress():Result<String,Exception>{
+        return this.getChannelProvider().map { it.controlAddress() }
+    }
+
+
     fun original(): IPythonContextReadOnly
 
     override fun getSocketProvider(): Result<SocketProvider, Exception> {

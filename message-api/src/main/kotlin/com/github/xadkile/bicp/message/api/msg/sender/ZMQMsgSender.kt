@@ -16,7 +16,7 @@ import org.zeromq.ZMsg
 
 /**
  *  Sending requests to zmq.
- *  Receiving responses to zmq
+ *  Receiving responses from zmq.
  */
 class ZMQMsgSender {
 
@@ -67,6 +67,8 @@ class ZMQMsgSender {
                     val queueOk: Boolean = zmsg.send(socket)
                     if (queueOk) {
                         var recvMsg: ZMsg? = null
+                        // rmd: wait as long as heart beat channel is alive
+                        // TODO this is faulty. In case of users interrupt the computation, this still wait
                         while (hbs.convCheck() && recvMsg == null) {
                             val i: Int = poller.poll(interval)
                             if (i == 1) {

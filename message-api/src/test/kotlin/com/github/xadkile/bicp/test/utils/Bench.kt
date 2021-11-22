@@ -1,8 +1,13 @@
 package com.github.xadkile.bicp.test.utils
 
 import com.github.michaelbull.result.unwrap
+import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequestInput
+import com.github.xadkile.bicp.message.api.msg.sender.shell.KernelInfoInput
+import com.github.xadkile.bicp.message.api.protocol.ProtocolUtils
 import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
+import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -10,35 +15,126 @@ import org.zeromq.ZThread
 import java.util.*
 import kotlin.concurrent.thread
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class Bench : TestOnJupyter() {
+    /**
+     * DetatchedRunnable = autonomous thread. Have no context, does not return any PAIR socket
+     * AttachedRunnable = have context, return a PAIR socket (for what?)
+     * The PAIR socket AttachedRunnable returns is a "bind" socket.
+     * PAIR sockets are bidirectional.
+     * This way, I can write to the bind socket, so that anything listening to this will know if something happend.
+     * For example:
+     *      Within an AttachedRunnable, I do some work, and write the result out to the connect socket
+     *      The externals code use listen using the bind socket and get the output out. Or something.
+     * The socket address is: "inproc://zctx-pipe-{socket-hashCode}"
+     * So AttachedRunnable is for broadcasting receiving information to the outside of its thread usig socket as the transportation channel
+     *
+     * For DettachedRunnable, I can accomplished the same thing by passing object reference to DettachedRunnable.
+     * But I need to make sure that this is safe. Sharing state is dangerous.
+     * ======
+     * for io pub/sub
+     * I will need to run a long running background service that constantly listen to the iopub channel.
+     * When I receive a message, I will need to filter and route it to where it should be.
+     * I need to define a strict set of criteria so that the message is sent to the appropriate handler
+     * 1. Message type:
+     *  - IOPub publish several type of events. Each type should have 1 lv0 handler
+     *  - For each event type, there maybe multiple sub target or lv1 handler. The lv0 handler should handle routing message to the correct lv1 handler.
+     *
+     *  I need to study JP message document and write down the event type + sub type.
+     *
+     */
+    class ZListener(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
 
-class Bench {
-//    class ZListener(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
-//        override fun run(args: Array<out Any>?) {
-//            val msgL = mutableListOf<String>()
-//            while (true) {
-//                val o = subSocket.recvStr()
-//                msgL.add(o)
-//                while (subSocket.hasReceiveMore()) {
-//                    val m = subSocket.recvStr()
-//                    msgL.add(m)
-//                }
-//                val z = JPRawMessage.fromPayload(msgL.map { it.toByteArray(Charsets.UTF_8) }).unwrap()
-//                println(z)
-//                msgL.clear()
-//            }
-//        }
-//
-//    }
-    @Test
-    fun z2(){
-//                    val ioPubSocket: ZMQ.Socket = context.createSocket(SocketType.SUB)
-//            ioPubSocket.connect(connectionFile.createIOPubChannel().makeAddress())
-//            ioPubSocket.subscribe("")
-//            val runnable = ZListener(ioPubSocket)
-//            ZThread.start(runnable)
+        override fun run(args: Array<out Any>?) {
+            val msgL = mutableListOf<String>()
+            while (true) {
+                val o = subSocket.recvStr()
+                msgL.add(o)
+                while (subSocket.hasReceiveMore()) {
+                    val m = subSocket.recvStr()
+                    msgL.add(m)
+                }
+                val z = JPRawMessage.fromPayload(msgL.map { it.toByteArray(Charsets.UTF_8) }).unwrap()
+                println(z)
+                msgL.clear()
+            }
+        }
     }
+
+    class ZListenerAttached : ZThread.IAttachedRunnable {
+        override fun run(args: Array<out Any>, ctx: ZContext, connectPipe: ZMQ.Socket) {
+            var c = 0
+            val poller = ctx.createPoller(1)
+            poller.register(connectPipe,ZMQ.Poller.POLLIN)
+//            while (c<100) {
+//                connectPipe.send("" + c)
+//                c++
+//            }
+            while(true){
+                poller.poll(1000)
+                if(poller.pollin(0)){
+                    println("Z+:"+connectPipe.recvStr())
+                }
+            }
+        }
+    }
+
     @Test
-    fun  z(){
+    fun z3() {
+        val context = ZContext()
+        val bindSocket = ZThread.fork(context, ZListenerAttached())
+        val poller = context.createPoller(1)
+        poller.register(bindSocket, ZMQ.Poller.POLLIN)
+        var signal = true
+        var c=0
+        while(signal){
+            bindSocket.send(""+c)
+            c++
+            if(c>1000) break
+        }
+    }
+
+
+    @Test
+    fun z2() {
+        val message: ExecuteRequestInput = ExecuteRequestInput.autoCreate(
+            sessionId = "session_id",
+            username = "user_name",
+            msgType = Shell.ExecuteRequest.msgType,
+            msgContent = Shell.ExecuteRequest.Input.Content(
+                code = "x=1+1*2;y=x*2;y",
+                silent = false,
+                storeHistory = true,
+                userExpressions = mapOf(),
+                allowStdin = false,
+                stopOnError = true
+            ),
+            "msg_id_abc_123"
+        )
+
+        val messageKI:KernelInfoInput = KernelInfoInput.autoCreate(
+            sessionId = "session_id",
+            username = "user_name",
+            msgType = Shell.KernelInfo.Request.msgType,
+            msgContent = Shell.KernelInfo.Request.Content(),
+            "msg_id_abc_123"
+        )
+        this.ipythonContext.startIPython()
+
+//        val ioPubSocket: ZMQ.Socket = this.ipythonContext.zContext().createSocket(SocketType.SUB)
+//        ioPubSocket.connect(this.iPythonContextConv.getIOPubAddress().unwrap())
+//        ioPubSocket.subscribe("")
+//        val runnable = ZListener(ioPubSocket)
+//        ZThread.start(runnable)
+        val sender = this.ipythonContext.getSenderProvider().unwrap().getKernelInfoSender()
+        val o =sender.send(messageKI)
+        println(o.unwrap())
+        Thread.sleep(1000)
+
+    }
+
+    @Test
+    fun z() {
         val weatherServer = thread(true) {
             ZContext().use { context ->
                 val publisher = context.createSocket(SocketType.PUB)
@@ -87,14 +183,14 @@ class Bench {
             var total_temp2: Long = 0
 
             val items = context.createPoller(2)
-            items.register(subscriber,ZMQ.Poller.POLLIN)
-            items.register(subscriber2,ZMQ.Poller.POLLIN)
+            items.register(subscriber, ZMQ.Poller.POLLIN)
+            items.register(subscriber2, ZMQ.Poller.POLLIN)
 
             update_nbr = 0
             while (update_nbr < 100) {
                 //  Use trim to remove the tailing '0' character
                 items.poll()
-                if(items.pollin(0)){
+                if (items.pollin(0)) {
                     val string = subscriber.recvStr(0).trim { it <= ' ' }
                     val sscanf = StringTokenizer(string, " ")
                     val zipcode = Integer.valueOf(sscanf.nextToken())
@@ -104,7 +200,7 @@ class Bench {
                     update_nbr++
                 }
 
-                if(items.pollin(2)){
+                if (items.pollin(2)) {
                     val string = subscriber2.recvStr(0).trim { it <= ' ' }
                     val sscanf = StringTokenizer(string, " ")
                     val zipcode = Integer.valueOf(sscanf.nextToken())

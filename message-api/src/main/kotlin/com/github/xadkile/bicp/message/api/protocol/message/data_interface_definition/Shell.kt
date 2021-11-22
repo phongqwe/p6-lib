@@ -65,4 +65,47 @@ object Shell{
         ) : MsgContent
         class MetaData : MsgMetaData
     }
+    object KernelInfo{
+
+        object Request{
+            val msgType = MsgType.Shell_kernel_info_request
+            class Content : MsgContent{}
+            class MetaData: MsgMetaData{}
+        }
+        object Reply{
+            val msgType = MsgType.Shell_kernel_info_reply
+            data class Content(
+                val status:MsgStatus,
+                @SerializedName("protocol_version")
+                val protocolVersion:String,
+                val implementation:String,
+                @SerializedName("implementation_version")
+                val implementationVersion:String,
+                @SerializedName("language_info")
+                val languageInfo:LanguageInfo,
+                val banner:String,
+                val debugger:Boolean,
+                @SerializedName("help_links")
+                val helpLinks:List<HelpLink>
+            ) : MsgContent{}
+            class MetaData: MsgMetaData{}
+            data class HelpLink(
+                val text:String,
+                val url:String,
+            )
+            data class LanguageInfo(
+                val name:String,
+                val version:String,
+                val mimetype:String,
+                @SerializedName("file_extension")
+                val fileExtension:String,
+                @SerializedName("pygments_lexer")
+                val pygmentsLexer:String,
+                @SerializedName("codemirror_mode")
+                val codeMirrorMode:Map<String,Any>,
+                @SerializedName("nbconvert_exporter")
+                val nbConvertExporter:String
+            )
+        }
+    }
 }

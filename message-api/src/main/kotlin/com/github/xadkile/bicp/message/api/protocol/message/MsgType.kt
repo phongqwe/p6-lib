@@ -17,10 +17,16 @@ enum class MsgType {
     @SerializedName("execute_reply")
     Shell_execute_reply,
 
+    @SerializedName("kernel_info_request")
+    Shell_kernel_info_request,
+    @SerializedName("kernel_info_reply")
+    Shell_kernel_info_reply,
+
     @SerializedName("display_data")
     IOPub_display_data,
     @SerializedName("execute_result")
     IOPub_execute_result,
+
 
     ;
 }

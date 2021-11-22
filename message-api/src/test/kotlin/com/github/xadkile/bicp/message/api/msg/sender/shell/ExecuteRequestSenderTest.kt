@@ -3,10 +3,6 @@ package com.github.xadkile.bicp.message.api.msg.sender.shell
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.unwrap
-import com.github.michaelbull.result.unwrapError
-import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonIsDownException
-import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequestInput
-import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequestSender
 import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.protocol.message.MsgStatus
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
@@ -22,32 +18,10 @@ import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ExecuteRequestSenderTest : TestOnJupyter() {
-    class ZListener(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
-        override fun run(args: Array<out Any>?) {
-            val msgL = mutableListOf<String>()
-            while (true) {
-                val o = subSocket.recvStr()
-                msgL.add(o)
-                while (subSocket.hasReceiveMore()) {
-                    val m = subSocket.recvStr()
-                    msgL.add(m)
-                }
-                val z = JPRawMessage.fromPayload(msgL.map { it.toByteArray(Charsets.UTF_8) }).unwrap()
-                println(z)
-                msgL.clear()
-            }
-        }
-        //            val ioPubSocket: ZMQ.Socket = context.createSocket(SocketType.SUB)
-//            ioPubSocket.connect(connectionFile.createIOPubChannel().makeAddress())
-//            ioPubSocket.subscribe("")
-//            val runnable = ZListener(ioPubSocket)
-//            ZThread.start(runnable)
-    }
 
     @BeforeEach
     fun beforeEach(){
         this.ipythonContext.startIPython()
-        Thread.sleep(2000)
     }
 
     val message: ExecuteRequestInput = ExecuteRequestInput.autoCreate(
@@ -84,7 +58,7 @@ internal class ExecuteRequestSenderTest : TestOnJupyter() {
 
         val zcontext = this.ipythonContext.zContext()
         val shellSocket = zcontext.createSocket(SocketType.REQ).also {
-            it.connect(this.iPythonContextReadOnly.getShellAddress().unwrap())
+            it.connect(this.iPythonContextConv.getShellAddress().unwrap())
         }
 
         val sender2 = ExecuteRequestSender(

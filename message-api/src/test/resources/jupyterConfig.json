@@ -1,6 +1,4 @@
 {
   "launchCmd":["/home/abc/Applications/anaconda3/envs/dl_hw_01/bin/python", "-m", "ipykernel_launcher", "-f"],
-  "connectionFilePath": "/tmp/phong-kernel4.json",
-  "milliSecStartTime": 4000,
-  "milliSecStopTime": 2000
+  "connectionFilePath": "/tmp/phong-kernel4.json"
 }

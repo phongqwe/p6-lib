@@ -1,14 +1,12 @@
 package com.github.xadkile.bicp.message.api.msg.sender.shell
 
 import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.map
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.bicp.message.api.connection.ipython_context.MsgEncoder
 import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
-import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
-import com.github.xadkile.bicp.message.api.msg.sender.ZMQMsgSender
+import com.github.xadkile.bicp.message.api.msg.sender.ZSender
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 
@@ -20,19 +18,16 @@ typealias ExecuteRequestInput = JPMessage<Shell.ExecuteRequest.Input.MetaData, S
  * [zContext] is for creating poller
  */
 class ExecuteRequestSender internal constructor(
-    private val socket: ZMQ.Socket,
-    private val msgEncoder: MsgEncoder,
-    private val hbService: HeartBeatServiceConv,
-    private val zContext: ZContext,
+    socket: ZMQ.Socket,
+    msgEncoder: MsgEncoder,
+    hbService: HeartBeatServiceConv,
+    zContext: ZContext,
 ) : MsgSender<ExecuteRequestInput,
         Result<ExecuteRequestOutput, Exception>> {
 
+    private val osender = ZSender<ExecuteRequestInput,ExecuteRequestOutput>(socket, msgEncoder, hbService, zContext)
     override fun send(message: ExecuteRequestInput): Result<ExecuteRequestOutput, Exception> {
-        val out: Result<JPRawMessage, Exception> = ZMQMsgSender.sendJPMsg(message, socket, msgEncoder, hbService, zContext)
-        val rt: Result<ExecuteRequestOutput, Exception> = out.map { msg ->
-            val parsedOutput: ExecuteRequestOutput = msg.toModel()
-            parsedOutput
-        }
+        val rt = osender.send<Shell.ExecuteRequest.Output.MetaData,Shell.ExecuteRequest.Output.Content>(message)
         return rt
     }
 }

@@ -207,29 +207,25 @@ class IPythonContextImp @Inject internal constructor(
     }
 
     override fun getChannelProvider(): Result<ChannelProvider, Exception> {
-        if (this.isRunning()) {
-            return Ok(this.channelProvider!!)
-        } else {
-            return Err(ipythonIsDownErr)
-        }
+        return this.checkRunningAndGet { this.channelProvider!! }
     }
 
     override fun getSenderProvider(): Result<SenderProvider, Exception> {
-        return Err(IllegalStateException("not impl"))
+        return this.checkRunningAndGet { this.senderProvider!! }
     }
 
     override fun getMsgEncoder(): Result<MsgEncoder, Exception> {
-        if (this.isRunning()) {
-            return Ok(this.msgEncoder!!)
-        } else {
-            return Err(ipythonIsDownErr)
-        }
+        return this.checkRunningAndGet { this.msgEncoder!! }
     }
 
     override fun getMsgIdGenerator(): Result<MsgIdGenerator, Exception> {
-        if (this.isRunning()) {
-            return Ok(this.msgIdGenerator!!)
-        } else {
+        return this.checkRunningAndGet { this.msgIdGenerator!! }
+    }
+
+    private fun<T> checkRunningAndGet(that:()->T):Result<T,Exception>{
+        if(this.isRunning()){
+            return Ok(that())
+        }else{
             return Err(ipythonIsDownErr)
         }
     }
