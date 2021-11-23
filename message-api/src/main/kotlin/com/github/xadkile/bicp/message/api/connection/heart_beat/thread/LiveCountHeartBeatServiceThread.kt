@@ -1,6 +1,8 @@
-package com.github.xadkile.bicp.message.api.connection.heart_beat
+package com.github.xadkile.bicp.message.api.connection.heart_beat.thread
 
 import com.github.michaelbull.result.Ok
+import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
+import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConvImp
 import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -10,14 +12,15 @@ import kotlin.concurrent.thread
  * Must not invoke the constructor directly unless in testing. An instance of this is provided by [IPythonContext].
  * This service is non-recoverable. If it detects a dead signal, it will remain dead, even when the service is back.
  * Due to its non-recoverable nature, it should only be bound and used along an IPython context that control its (the hb service)'s life cycle from creation, to stop.
- * TODO socket should be created within service thread, and closed within the service thread too.
+ *
+ * This implementation is exactly like LiveCountHeartBeatServiceCoroutine, but run on thread instead of coroutine
  */
-internal class LiveCountHeartBeatService constructor(
+internal class LiveCountHeartBeatServiceThread constructor(
     zContext: ZContext,
     private val socketProvider: SocketProvider,
     liveCount: Int = 3,
     pollTimeout: Long = 1000,
-) : AbstractLiveCountHeartBeatService(zContext, liveCount, pollTimeout) {
+) : AbstractLiveCountHeartBeatServiceThread(zContext, liveCount, pollTimeout) {
 
     private val convService = HeartBeatServiceConvImp(this)
 
@@ -30,7 +33,7 @@ internal class LiveCountHeartBeatService constructor(
             this.serviceThread = thread(
                 start = true,
                 isDaemon = true) {
-                val thisObj = this@LiveCountHeartBeatService
+                val thisObj = this@LiveCountHeartBeatServiceThread
                 val poller = zContext.createPoller(1)
                 val socket = this.socketProvider.heartBeatSocket()
                 poller.register(socket, ZMQ.Poller.POLLIN)

@@ -69,6 +69,8 @@ class ZMQMsgSender {
                         var recvMsg: ZMsg? = null
                         // rmd: wait as long as heart beat channel is alive
                         // TODO this is faulty. In case of users interrupt the computation, this still wait
+                        // TODO this can be mitigate by using Kernel status on IOPUb ("status")
+                        // TODO take a look at "execute_input" of IOPub too
                         while (hbs.convCheck() && recvMsg == null) {
                             val i: Int = poller.poll(interval)
                             if (i == 1) {

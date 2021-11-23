@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection.heart_beat
 
 import com.github.michaelbull.result.unwrap
+import com.github.xadkile.bicp.message.api.connection.heart_beat.thread.LiveCountHeartBeatServiceUpdatable
 import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import org.junit.jupiter.api.AfterEach

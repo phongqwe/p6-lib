@@ -1,19 +1,20 @@
 package com.github.xadkile.bicp.test.utils
 
 import com.github.michaelbull.result.unwrap
+import com.github.xadkile.bicp.message.api.msg.listener.IOPubListenerService
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequestInput
 import com.github.xadkile.bicp.message.api.msg.sender.shell.KernelInfoInput
-import com.github.xadkile.bicp.message.api.protocol.ProtocolUtils
 import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
+import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
+import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.zeromq.SocketType
-import org.zeromq.ZContext
-import org.zeromq.ZMQ
-import org.zeromq.ZThread
+import org.zeromq.*
 import java.util.*
 import kotlin.concurrent.thread
+import kotlin.coroutines.CoroutineContext
+import kotlin.system.measureTimeMillis
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
@@ -41,22 +42,26 @@ class Bench : TestOnJupyter() {
      *  - For each event type, there maybe multiple sub target or lv1 handler. The lv0 handler should handle routing message to the correct lv1 handler.
      *
      *  I need to study JP message document and write down the event type + sub type.
+     *  So, I can have 1 central hub of IOPUb listener.
+     *  Then use the identity field to route msg to the correct handler:
+     *  eg:
+     *  - identity with "execute_result" should go to executeResult handler, to display the result on the UI view or something.
+     *  - identity with "status" should go to status handler service, so that it can provide kernel status to other components.
+     *
      *
      */
     class ZListener(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
 
         override fun run(args: Array<out Any>?) {
-            val msgL = mutableListOf<String>()
             while (true) {
-                val o = subSocket.recvStr()
-                msgL.add(o)
-                while (subSocket.hasReceiveMore()) {
-                    val m = subSocket.recvStr()
-                    msgL.add(m)
+                val msg = ZMsg.recvMsg(subSocket)
+                val rawMsg = JPRawMessage.fromPayload(msg.map { it.data }).unwrap()
+                if (rawMsg.identities.contains("execute_result")) {
+                    val md = rawMsg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
+                    println(md)
+                } else {
+                    println(rawMsg)
                 }
-                val z = JPRawMessage.fromPayload(msgL.map { it.toByteArray(Charsets.UTF_8) }).unwrap()
-                println(z)
-                msgL.clear()
             }
         }
     }
@@ -65,34 +70,59 @@ class Bench : TestOnJupyter() {
         override fun run(args: Array<out Any>, ctx: ZContext, connectPipe: ZMQ.Socket) {
             var c = 0
             val poller = ctx.createPoller(1)
-            poller.register(connectPipe,ZMQ.Poller.POLLIN)
+            poller.register(connectPipe, ZMQ.Poller.POLLIN)
 //            while (c<100) {
 //                connectPipe.send("" + c)
 //                c++
 //            }
-            while(true){
+            while (true) {
                 poller.poll(1000)
-                if(poller.pollin(0)){
-                    println("Z+:"+connectPipe.recvStr())
+                if (poller.pollin(0)) {
+                    println("Z+:" + connectPipe.recvStr())
                 }
             }
         }
     }
 
     @Test
-    fun z3() {
-        val context = ZContext()
-        val bindSocket = ZThread.fork(context, ZListenerAttached())
-        val poller = context.createPoller(1)
-        poller.register(bindSocket, ZMQ.Poller.POLLIN)
-        var signal = true
-        var c=0
-        while(signal){
-            bindSocket.send(""+c)
-            c++
-            if(c>1000) break
+    fun z5(){
+
+
+    }
+
+    @Test
+    fun z4(){
+
+        runBlocking {
+            println(this.hashCode())
+            coroutineScope {
+                println(this.hashCode())
+            }
+            delay(1000)
+            println("END")
         }
     }
+    @Test
+    fun z3() {
+        runBlocking {
+            // coroutineScope only ends when all the launch(es) are completed
+            coroutineScope {
+                launch {
+                    delay(2000L)
+                    println("World 2")
+                }
+                launch {
+                    delay(1000L)
+                    println("World 1")
+                }
+                println("Hello")
+            }
+            // this only run after the coroutineScope above finish with all of its tasks.
+            println("End")
+        }
+    }
+
+
 
 
     @Test
@@ -112,7 +142,7 @@ class Bench : TestOnJupyter() {
             "msg_id_abc_123"
         )
 
-        val messageKI:KernelInfoInput = KernelInfoInput.autoCreate(
+        val messageKI: KernelInfoInput = KernelInfoInput.autoCreate(
             sessionId = "session_id",
             username = "user_name",
             msgType = Shell.KernelInfo.Request.msgType,
@@ -121,15 +151,9 @@ class Bench : TestOnJupyter() {
         )
         this.ipythonContext.startIPython()
 
-//        val ioPubSocket: ZMQ.Socket = this.ipythonContext.zContext().createSocket(SocketType.SUB)
-//        ioPubSocket.connect(this.iPythonContextConv.getIOPubAddress().unwrap())
-//        ioPubSocket.subscribe("")
-//        val runnable = ZListener(ioPubSocket)
-//        ZThread.start(runnable)
-        val sender = this.ipythonContext.getSenderProvider().unwrap().getKernelInfoSender()
-        val o =sender.send(messageKI)
-        println(o.unwrap())
-        Thread.sleep(1000)
+
+        val sender = this.ipythonContext.getSenderProvider().unwrap().getExecuteRequestSender()
+        val o = sender.send(message)
 
     }
 

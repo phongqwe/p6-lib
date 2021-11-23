@@ -15,7 +15,7 @@ abstract class TestOnJupyter {
     lateinit var iPythonContextConv: IPythonContextReadOnlyConv
     lateinit var zcontext:ZContext
     @BeforeAll
-    fun before(){
+    open fun beforeAll(){
         this.zcontext = ZContext()
         this.ipythonConfig = TestResources.ipythonConfigForTest()
         this.ipythonContext= IPythonContextImp(this.ipythonConfig,zcontext)
@@ -23,7 +23,7 @@ abstract class TestOnJupyter {
     }
 
     @AfterAll
-    fun afterAll(){
+    open fun afterAll(){
         this.ipythonContext.stopIPython()
     }
 }

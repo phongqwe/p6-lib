@@ -2,13 +2,15 @@ package com.github.xadkile.bicp.message.api.connection.ipython_context
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
+import com.github.xadkile.bicp.message.api.connection.heart_beat.coroutine.LiveCountHeartBeatServiceCoroutine
 //import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceUpdater
-import com.github.xadkile.bicp.message.api.connection.heart_beat.LiveCountHeartBeatService
 import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.protocol.other.MsgCounterImp
 import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
-import com.github.xadkile.bicp.message.api.protocol.other.SequentialMsgIdGenerator
+import com.github.xadkile.bicp.message.api.protocol.other.RandomMsgIdGenerator
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
 import org.zeromq.ZContext
 import java.io.InputStream
@@ -62,6 +64,7 @@ class IPythonContextImp @Inject internal constructor(
      * - connection file is written to disk
      * - heart beat service is running + zmq is live (heart beat is ok)
      */
+    @OptIn(DelicateCoroutinesApi::class)
     override fun startIPython(): Result<Unit, Exception> {
         if (this.isRunning()) {
             return Ok(Unit)
@@ -76,7 +79,6 @@ class IPythonContextImp @Inject internal constructor(
                 this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
                 Sleeper.sleepUntil(50){Files.exists(this.connectionFilePath!!)}
 
-
                 this.connectionFileContent =
                     KernelConnectionFileContent.fromJsonFile(ipythonConfig.getConnectionFilePath()).unwrap()
 
@@ -87,13 +89,16 @@ class IPythonContextImp @Inject internal constructor(
                 this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
                 this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
                 this.msgCounter = MsgCounterImp()
-                this.msgIdGenerator = SequentialMsgIdGenerator(this.session!!.getSessionId(), this.msgCounter!!)
+//                this.msgIdGenerator = SequentialMsgIdGenerator(this.session!!.getSessionId(), this.msgCounter!!)
+                this.msgIdGenerator = RandomMsgIdGenerator()
 
                 // rmd: start heart beat service
-                this.hbService = LiveCountHeartBeatService(
+                this.hbService = LiveCountHeartBeatServiceCoroutine(
                     socketProvider = this.socketProvider!!,
-                    zContext = this.zcontext
+                    zContext = this.zcontext,
+                    cScope = GlobalScope,
                 ).also { it.start() }
+
                 // rmd: wait until heart beat service is live
                 Sleeper.sleepUntil(50){this.hbService?.isServiceRunning() == true}
                 Sleeper.sleepUntil(50){this.hbService?.isHBAlive() == true}

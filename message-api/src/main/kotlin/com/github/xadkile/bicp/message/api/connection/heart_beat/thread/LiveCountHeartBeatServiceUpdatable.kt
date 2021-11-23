@@ -1,6 +1,7 @@
-package com.github.xadkile.bicp.message.api.connection.heart_beat
+package com.github.xadkile.bicp.message.api.connection.heart_beat.thread
 
 import com.github.michaelbull.result.Ok
+import com.github.xadkile.bicp.message.api.connection.heart_beat.*
 import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -18,7 +19,7 @@ internal class LiveCountHeartBeatServiceUpdatable constructor(
     liveCount: Int = 3,
     pollTimeout: Long = 1000,
 ) : HeartBeatServiceUpdatable,
-    AbstractLiveCountHeartBeatService(zContext, liveCount,pollTimeout) {
+    AbstractLiveCountHeartBeatServiceThread(zContext, liveCount,pollTimeout) {
 
     private val convService = HeartBeatServiceConvImp(this)
     private val updateEventList: Queue<UpdateEvent> = ArrayDeque()
@@ -46,8 +47,8 @@ internal class LiveCountHeartBeatServiceUpdatable constructor(
                 while (letThreadRunning) {
                     // rmd: consume update events before doing anything
                     while (this.updateEventList.isNotEmpty()) {
-                        val event:UpdateEvent = this.updateEventList.poll()
-                        val updateSignal:UpdateSignal = event.consum()
+                        val event: UpdateEvent = this.updateEventList.poll()
+                        val updateSignal: UpdateSignal = event.consum()
                         when (updateSignal) {
                             UpdateSignal.UPDATE_SOCKET -> {
                                 poller.close()

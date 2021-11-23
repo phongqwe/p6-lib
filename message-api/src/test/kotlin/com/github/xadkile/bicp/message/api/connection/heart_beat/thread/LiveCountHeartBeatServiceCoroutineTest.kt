@@ -1,6 +1,7 @@
-package com.github.xadkile.bicp.message.api.connection.heart_beat
+package com.github.xadkile.bicp.message.api.connection.heart_beat.thread
 
 import com.github.michaelbull.result.unwrap
+import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -11,9 +12,9 @@ import org.zeromq.SocketType
 import org.zeromq.ZMQ
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
-    lateinit var hbService: LiveCountHeartBeatService
-    lateinit var hbService2: LiveCountHeartBeatService
+internal class LiveCountHeartBeatServiceThreadTest : TestOnJupyter() {
+    lateinit var hbService: HeartBeatService
+    lateinit var hbService2: HeartBeatService
     lateinit var socket: ZMQ.Socket
     val liveCount = 4
     val interval:Long = 500
@@ -24,10 +25,10 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
         socket = this.zcontext.createSocket(SocketType.REQ).also {
             it.connect(this.ipythonContext.getChannelProvider().unwrap().heartbeatChannel().makeAddress())
         }
-        hbService2 = LiveCountHeartBeatService(
+        hbService2 = LiveCountHeartBeatServiceThread(
             this.zcontext,this.ipythonContext.getSocketProvider().unwrap(), liveCount, interval,
         )
-        hbService = this.ipythonContext.getHeartBeatService().unwrap() as LiveCountHeartBeatService
+        hbService = this.ipythonContext.getHeartBeatService().unwrap()
     }
 
     @AfterEach
@@ -45,9 +46,7 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
     @Test
     fun start() {
         this.ipythonContext.startIPython()
-//        hbService.start()
         assertTrue(hbService.isServiceRunning())
-        assertTrue(hbService.getThread()?.isAlive ?: false)
     }
 
     @Test
