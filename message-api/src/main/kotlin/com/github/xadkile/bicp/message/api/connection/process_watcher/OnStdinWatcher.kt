@@ -44,8 +44,4 @@ class OnStdinWatcher(
     override fun isWatching(): Boolean {
         return this.threadWatcher.isWatching()
     }
-
-//    override fun isMeaningful(): Boolean {
-//        return this.onStdinListener!= OnStdinEventProcessListener.nothing
-//    }
 }

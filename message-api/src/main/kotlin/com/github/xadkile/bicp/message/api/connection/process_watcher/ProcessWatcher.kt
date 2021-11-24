@@ -6,14 +6,17 @@ import com.github.michaelbull.result.Result
  * watch a process, do something while watching
  */
 interface ProcessWatcher {
+    /**
+     * start watching.
+     * return Err if this function is called on already started watcher
+     */
     fun startWatching(process:Process):Result<Unit,Exception>
-    fun stopWatching():Result<Unit,Exception>
-    fun isWatching():Boolean
 
     /**
-     * return true if this ProcessWatcher actually do anything meaningful
+     * stop watching. Calling stopWatching() on already stopped watcher should not have any affect and return Ok.
      */
-//    fun isMeaningful():Boolean
+    fun stopWatching():Result<Unit,Exception>
+    fun isWatching():Boolean
 }
 
 

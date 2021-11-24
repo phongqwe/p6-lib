@@ -52,12 +52,6 @@ class IPythonContextImp @Inject internal constructor(
         private val ipythonIsDownErr = IPythonIsDownException("IPython process is not running")
     }
 
-    private fun poll(sleepTime: Long, falseCondition: () -> Boolean) {
-        while (falseCondition()) {
-            Thread.sleep(sleepTime)
-        }
-    }
-
     /**
      * This method returns when:
      * - ipython process is up
