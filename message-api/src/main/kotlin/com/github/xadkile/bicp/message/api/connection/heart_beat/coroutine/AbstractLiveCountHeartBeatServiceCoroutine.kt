@@ -12,7 +12,7 @@ import org.zeromq.ZMQ
 /**
  * Not for external use
  */
-internal abstract class AbstractLiveCountHeartBeatServiceCoroutine constructor(
+internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
     protected val zContext: ZContext,
     protected val liveCount: Int = 3,
     protected val pollTimeOut: Long = 1000,

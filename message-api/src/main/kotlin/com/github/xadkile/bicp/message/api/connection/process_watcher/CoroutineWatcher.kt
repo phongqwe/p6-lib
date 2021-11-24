@@ -9,8 +9,7 @@ import kotlinx.coroutines.*
 /**
  * A process watcher that run on a separated thread
  */
-sealed abstract class CoroutineWatcher(
-) : ProcessWatcher {
+sealed class CoroutineWatcher : ProcessWatcher {
     protected var job: Job? = null
 
     protected fun skeleton(process: Process, insert:()->Unit): Result<Unit, Exception>{
