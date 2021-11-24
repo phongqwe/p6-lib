@@ -12,7 +12,7 @@ import kotlin.coroutines.CoroutineContext
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     lateinit var hbService: LiveCountHeartBeatServiceCoroutine
-    lateinit var mainThreadSurrogate:ExecutorCoroutineDispatcher
+//    lateinit var mainThreadSurrogate:ExecutorCoroutineDispatcher
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @BeforeEach
@@ -26,15 +26,15 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     @BeforeAll
     override fun beforeAll(){
         super.beforeAll()
-        mainThreadSurrogate=newSingleThreadContext("Test Thread")
-        Dispatchers.setMain(mainThreadSurrogate)
+//        mainThreadSurrogate=newSingleThreadContext("Test Thread")
+//        Dispatchers.setMain(mainThreadSurrogate)
     }
 
     @AfterAll
     override fun afterAll(){
         super.afterAll()
-        Dispatchers.resetMain()
-        mainThreadSurrogate.close()
+//        Dispatchers.resetMain()
+//        mainThreadSurrogate.close()
     }
     @AfterEach
     fun afterEach() {
