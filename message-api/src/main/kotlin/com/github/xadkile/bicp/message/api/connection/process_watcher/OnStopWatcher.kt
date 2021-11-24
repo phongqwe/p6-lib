@@ -17,43 +17,19 @@ class OnStopWatcher(
     private var onErrListener: OnErrEventProcessListener = OnErrEventProcessListener.nothing,
     private val cScope: CoroutineScope,
     private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
-) : ProcessWatcher {
-
-    private var job: Job? = null
+) : CoroutineWatcher() {
     override fun startWatching(process: Process): Result<Unit, Exception> {
-        if (this.isWatching().not() && process.isAlive) {
+
+        return this.skeleton(process){
             this.job = cScope.launch(cDispatcher) {
-                try {
-                    while (isActive) {
-                        if (!process.isAlive) {
-                            onStopListener.onStop(process)
-                            break
-                        }
+                var triggered = false
+                while (isActive) {
+                    if (!process.isAlive && !triggered) {
+                        onStopListener.onStop(process)
+                        triggered = true
                     }
-                } catch (e: InterruptedException) {
-                    onErrListener.onError(process, e)
                 }
             }
-            return Ok(Unit)
-        } else {
-            if (this.isWatching()) return Err(ProcessWatcherIllegalStateException("Process watcher is already running"))
-            if (!process.isAlive) return Err(ProcessWatcherIllegalStateException("Cannot watch dead process"))
         }
-        return Err(UnknownException("OnStopWatcher: impossible"))
-
-    }
-
-    override fun stopWatching(): Result<Unit, Exception> {
-        if (this.isWatching()) {
-            runBlocking {
-                job?.cancel()
-                job?.join()
-            }
-        }
-        return Ok(Unit)
-    }
-
-    override fun isWatching(): Boolean {
-        return this.job?.isActive == true
     }
 }

@@ -9,21 +9,13 @@ import kotlinx.coroutines.*
 /**
  * A process watcher that run on a separated thread
  */
-internal class CoroutineWatcher(
-    private val work: (job:Job?) -> Unit,
-    private val cScope: CoroutineScope,
-    private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
+sealed abstract class CoroutineWatcher(
 ) : ProcessWatcher {
-    private var job: Job? = null
-    private var process: Process? = null
+    protected var job: Job? = null
 
-
-    override fun startWatching(process: Process): Result<Unit, Exception> {
+    protected fun skeleton(process: Process, insert:()->Unit): Result<Unit, Exception>{
         if (this.isWatching().not() && process.isAlive) {
-            this.process = process
-            this.job = cScope.launch(cDispatcher) {
-                work(cDispatcher[Job])
-            }
+            insert()
             return Ok(Unit)
         } else {
             if (this.isWatching()) return Err(ProcessWatcherIllegalStateException("Process watcher is already running"))

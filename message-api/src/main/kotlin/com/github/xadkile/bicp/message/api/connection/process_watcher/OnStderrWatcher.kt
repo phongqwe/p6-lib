@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection.process_watcher
 
 import com.github.michaelbull.result.Result
+import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import kotlin.concurrent.thread
@@ -11,44 +12,29 @@ import kotlin.concurrent.thread
 class OnStderrWatcher(
     private var onStdErrListener: OnStdErrEventProcessListener = OnStdErrEventProcessListener.nothing,
     private var onErrListener: OnErrEventProcessListener = OnErrEventProcessListener.nothing,
-) : ProcessWatcher {
-
-    private var threadWatcher: ThreadedWatcher = ThreadedWatcher()
+    private val cScope: CoroutineScope,
+    private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
+) : CoroutineWatcher() {
 
     override fun startWatching(process: Process): Result<Unit, Exception> {
-        this.threadWatcher.thread = thread(
-            start = false,
-            isDaemon = true) {
-            val reader = BufferedReader(InputStreamReader(process.errorStream))
-            try {
-                while (process.isAlive) {
-                    try {
-                        val line = reader.readLine()
-                        if (line == null) {
-                            break
-                        } else {
-                            this.onStdErrListener.onStdErr(process, line)
+        return this.skeleton(process){
+            this.job = cScope.launch(cDispatcher) {
+                val reader = BufferedReader(InputStreamReader(process.errorStream))
+                while(isActive){
+                    while (process.isAlive) {
+                        try {
+                            val line = reader.readLine()
+                            if (line == null) {
+                                break
+                            } else {
+                                onStdErrListener.onStdErr(process, line)
+                            }
+                        } catch (e: Exception) {
+                            onErrListener.onError(process, e)
                         }
-                    } catch (e: Exception) {
-                        this.onErrListener.onError(process, e)
                     }
                 }
-            } catch (e: Exception) {
-                this.onErrListener.onError(process, e)
             }
         }
-        return this.threadWatcher.startWatching(process)
     }
-
-    override fun stopWatching(): Result<Unit, Exception> {
-        return this.threadWatcher.stopWatching()
-    }
-
-    override fun isWatching(): Boolean {
-        return this.threadWatcher.isWatching()
-    }
-
-//    override fun isMeaningful(): Boolean {
-//        return this.onStdErrListener != OnStdErrEventProcessListener.nothing
-//    }
 }

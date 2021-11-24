@@ -3,7 +3,9 @@ package com.github.xadkile.bicp.message.api.connection.process_watcher
 import com.github.michaelbull.result.Result
 
 /**
- * watch a process, do something while watching
+ * watch a process, do something while watching.
+ * ProcessWatcher's lifecycle does not tie to the process it is watching.
+ * If a process die during the watching process, the watcher will continue doing its job.
  */
 interface ProcessWatcher {
     /**
