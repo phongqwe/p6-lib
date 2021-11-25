@@ -21,7 +21,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
         this.ipythonContext.startIPython()
     }
 
-    val message: ExecuteReply = ExecuteRequestInput.autoCreate(
+    val message: ExecuteReply = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
         msgType = Shell.Execute.msgType,
@@ -35,7 +35,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
         ),
         "msg_id_abc_123"
     )
-    val malformedCodeMsg: ExecuteReply = ExecuteRequestInput.autoCreate(
+    val malformedCodeMsg: ExecuteReply = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
         msgType = Shell.Execute.msgType,

@@ -5,6 +5,7 @@ import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -32,7 +33,7 @@ internal class IOPubListenerServiceTest : TestOnJupyter() {
             assertTrue(listener.isRunning(), "listener should be running")
             // rmd: send message
             ipythonContext.getSenderProvider().unwrap().getExecuteRequestSender().also {
-                it.send(ExecuteRequestInput.autoCreate(
+                it.send(ExecuteRequest.autoCreate(
                     sessionId = "session_id",
                     username = "user_name",
                     msgType = Shell.Execute.msgType,

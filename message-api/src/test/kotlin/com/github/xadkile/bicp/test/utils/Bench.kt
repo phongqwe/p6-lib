@@ -6,6 +6,7 @@ import com.github.xadkile.bicp.message.api.msg.sender.shell.KernelInfoInput
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -124,7 +125,7 @@ class Bench : TestOnJupyter() {
 
     @Test
     fun z2() {
-        val message: ExecuteReply = ExecuteRequestInput.autoCreate(
+        val message: ExecuteReply = ExecuteRequest.autoCreate(
             sessionId = "session_id",
             username = "user_name",
             msgType = Shell.Execute.msgType,
