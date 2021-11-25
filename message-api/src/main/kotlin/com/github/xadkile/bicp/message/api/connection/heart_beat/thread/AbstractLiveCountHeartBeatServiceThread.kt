@@ -10,6 +10,7 @@ import org.zeromq.ZMQ
 
 /**
  * Not for external use
+ * @deprecated don't use
  */
 internal abstract class AbstractLiveCountHeartBeatServiceThread constructor(
     protected val zContext: ZContext,

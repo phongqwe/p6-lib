@@ -1,7 +1,6 @@
 package com.github.xadkile.bicp.message.api.connection.ipython_context
 
 import com.github.michaelbull.result.Result
-import org.zeromq.ZContext
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -24,7 +23,7 @@ import java.io.OutputStream
  *  1. never cached leakable instances as properties, always use method call from context to retrieve their instances. The only cached object is the context instance
  *  2. create an elaborated structure to host leakable instances, this structure must react on state change event of context to retrieve the correct instances. This is just solution 1 with an abstract wall insert between the context and the users. => no added value, just more complexity.
  */
-interface IPythonContext : IPythonContextReadOnly {
+interface KernelContext : KernelContextReadOnly {
     /**
      * Start IPython process and read connection file.
      *

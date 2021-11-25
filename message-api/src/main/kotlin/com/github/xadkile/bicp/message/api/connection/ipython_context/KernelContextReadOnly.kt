@@ -2,7 +2,6 @@ package com.github.xadkile.bicp.message.api.connection.ipython_context
 
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
-import com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
 
@@ -11,7 +10,7 @@ import org.zeromq.ZContext
  *
  * This is for preventing mistakenly changing IPython context state, such as calling start, stop in a sender.
  */
-interface IPythonContextReadOnly {
+interface KernelContextReadOnly {
     /**
      * Return content of connection file .
      *
@@ -37,7 +36,7 @@ interface IPythonContextReadOnly {
     /**
      * convert this to a more convenient but more dangerous to use interface
      */
-    fun conv():IPythonContextReadOnlyConv
+    fun conv():KernelContextReadOnlyConv
 
     /**
      * A running context guarantees that all context-related objects and services are up, running, not null

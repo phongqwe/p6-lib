@@ -16,15 +16,15 @@ import org.zeromq.ZContext
  */
 abstract class TestOnJupyter {
     lateinit var ipythonConfig: KernelConfig
-    lateinit var ipythonContext: IPythonContext
-    lateinit var iPythonContextConv: IPythonContextReadOnlyConv
+    lateinit var ipythonContext: KernelContext
+    lateinit var iPythonContextConv: KernelContextReadOnlyConv
     lateinit var zcontext:ZContext
     lateinit var mainThreadSurrogate: ExecutorCoroutineDispatcher
     @BeforeAll
     open fun beforeAll(){
         this.zcontext = ZContext()
         this.ipythonConfig = TestResources.ipythonConfigForTest()
-        this.ipythonContext= IPythonContextImp(this.ipythonConfig,zcontext)
+        this.ipythonContext= KernelContextImp(this.ipythonConfig,zcontext)
         this.iPythonContextConv = this.ipythonContext.conv()
         mainThreadSurrogate= newSingleThreadContext("Test Thread")
         Dispatchers.setMain(mainThreadSurrogate)

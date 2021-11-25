@@ -2,7 +2,7 @@ package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelConfig
-import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContextImp
+import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContextImp
 import com.github.xadkile.bicp.test.utils.TestResources
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -17,15 +17,15 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class IPythonContextImpTest {
-    lateinit var pm : IPythonContextImp
+internal class KernelContextImpTest {
+    lateinit var pm : KernelContextImp
     lateinit var ipythonConfig: KernelConfig
     lateinit var zContext: ZContext
     @BeforeEach
     fun beforeEach(){
         this.zContext = ZContext()
         ipythonConfig = TestResources.ipythonConfigForTest()
-        pm = IPythonContextImp(ipythonConfig,this.zContext)
+        pm = KernelContextImp(ipythonConfig,this.zContext)
     }
 
     @AfterEach

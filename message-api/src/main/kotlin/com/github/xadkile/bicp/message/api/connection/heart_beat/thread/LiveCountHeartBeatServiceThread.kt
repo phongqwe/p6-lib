@@ -14,6 +14,7 @@ import kotlin.concurrent.thread
  * Due to its non-recoverable nature, it should only be bound and used along an IPython context that control its (the hb service)'s life cycle from creation, to stop.
  *
  * This implementation is exactly like LiveCountHeartBeatServiceCoroutine, but run on thread instead of coroutine
+ * @deprecated don't use
  */
 internal class LiveCountHeartBeatServiceThread constructor(
     zContext: ZContext,

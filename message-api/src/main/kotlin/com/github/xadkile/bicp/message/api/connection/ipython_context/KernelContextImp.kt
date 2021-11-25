@@ -5,7 +5,6 @@ import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServic
 import com.github.xadkile.bicp.message.api.connection.heart_beat.coroutine.LiveCountHeartBeatServiceCoroutine
 //import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceUpdater
 import com.github.xadkile.bicp.message.api.other.Sleeper
-import com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgCounterImp
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator
 import com.github.xadkile.bicp.message.api.msg.protocol.other.RandomMsgIdGenerator
@@ -25,9 +24,9 @@ import javax.inject.Singleton
  *  [ipythonConfig] is fixed, read from an external file and only change after application start.
  */
 @Singleton
-class IPythonContextImp @Inject internal constructor(
+class KernelContextImp @Inject internal constructor(
     val ipythonConfig: KernelConfig, val zcontext: ZContext,
-) : IPythonContext {
+) : KernelContext {
 
     private val launchCmd: List<String> = this.ipythonConfig.makeCompleteLaunchCmmd()
     private var process: Process? = null
@@ -46,10 +45,10 @@ class IPythonContextImp @Inject internal constructor(
     private var onAfterStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
     private var onProcessStartListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
 
-    private val convenientInterface = IPythonContextReadOnlyConvImp(this)
+    private val convenientInterface = KernelContextReadOnlyConvImp(this)
 
     companion object {
-        private val ipythonIsDownErr = IPythonIsDownException("IPython process is not running")
+        private val ipythonIsDownErr = KernelIsDownException("IPython process is not running")
     }
 
     /**
@@ -185,7 +184,7 @@ class IPythonContextImp @Inject internal constructor(
                 }
             return rt
         } else {
-            return Err(IPythonContextIllegalStateException("IPythonProcessManager is stopped, thus cannot be restarted"))
+            return Err(KernelContextIllegalStateException("IPythonProcessManager is stopped, thus cannot be restarted"))
         }
     }
 
@@ -289,7 +288,7 @@ class IPythonContextImp @Inject internal constructor(
         }
     }
 
-    override fun conv(): IPythonContextReadOnlyConv {
+    override fun conv(): KernelContextReadOnlyConv {
         return this.convenientInterface
     }
 

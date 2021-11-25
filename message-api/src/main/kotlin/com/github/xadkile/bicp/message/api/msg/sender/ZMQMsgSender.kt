@@ -3,10 +3,7 @@ package com.github.xadkile.bicp.message.api.msg.sender
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
-import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContext
-import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContextReadOnly
 import com.github.xadkile.bicp.message.api.connection.ipython_context.MsgEncoder
-import com.github.xadkile.bicp.message.api.exception.UnknownException
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import org.zeromq.ZContext

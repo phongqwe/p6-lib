@@ -14,19 +14,5 @@ interface MsgHandler {
      */
     fun id(): String
     fun msgType():MsgType
-
-    companion object {
-        fun withUUID(msgType: MsgType, handlerFunction: (msg: JPRawMessage) -> Unit = {}): UUIDMsgHandler {
-            return object : UUIDMsgHandler() {
-                private val mt = msgType
-                override fun handle(msg: JPRawMessage) {
-                    handlerFunction(msg)
-                }
-                override fun msgType(): MsgType {
-                    return mt
-                }
-            }
-        }
-    }
 }
 

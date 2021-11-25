@@ -5,11 +5,10 @@ import com.github.michaelbull.result.map
 import com.github.xadkile.bicp.message.api.channel.ChannelInfo
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
-import com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
 
-interface IPythonContextReadOnlyConv : IPythonContextReadOnly {
+interface KernelContextReadOnlyConv : KernelContextReadOnly {
 
     fun getHeartBeatChannel(): Result<ChannelInfo, Exception> {
         return this.getChannelProvider().map { it.heartbeatChannel() }
@@ -48,7 +47,7 @@ interface IPythonContextReadOnlyConv : IPythonContextReadOnly {
     }
 
 
-    fun original(): IPythonContextReadOnly
+    fun original(): KernelContextReadOnly
 
     override fun getSocketProvider(): Result<SocketProvider, Exception> {
         return this.original().getSocketProvider()

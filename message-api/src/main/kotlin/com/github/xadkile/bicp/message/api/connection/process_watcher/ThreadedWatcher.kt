@@ -7,6 +7,7 @@ import com.github.xadkile.bicp.message.api.exception.UnknownException
 
 /**
  * A process watcher that run on a separated thread
+ * @deprecated don't use
  */
 internal class ThreadedWatcher: ProcessWatcher {
     var thread: Thread?= null
