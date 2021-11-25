@@ -10,9 +10,9 @@ import javax.inject.Qualifier
 
 object Shell{
 
-    object ExecuteRequest {
+    object Execute {
         val msgType = MsgType.Shell_execute_request
-        object Input{
+        object Request{
             class Content(
                 val code: String,
                 val silent: Boolean,
@@ -27,7 +27,7 @@ object Shell{
             ): MsgContent
             class MetaData : MsgMetaData {}
         }
-        object Output{
+        object Reply{
             class Content(
                 val status: MsgStatus,
                 @SerializedName("execution_count")
@@ -47,26 +47,8 @@ object Shell{
             ) : MsgMetaData
         }
     }
-    object ExecuteReply{
-        val msgType = MsgType.Shell_execute_reply
-        /**
-        {
-        "metaData": "{}",
-        "content": "{\"data\":{\"text/plain\":\"6\"},\"metadata\":{},\"execution_count\":1}",
-        "buffer": []
-        }
-         */
-        class Content(
-            val data:Map<String,Any>,
-            @SerializedName("metadata")
-            val metaData: Any,
-            @SerializedName("execution_count")
-            val executionCount:Int
-        ) : MsgContent
-        class MetaData : MsgMetaData
-    }
-    object KernelInfo{
 
+    object KernelInfo{
         object Request{
             val msgType = MsgType.Shell_kernel_info_request
             class Content : MsgContent{}

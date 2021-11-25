@@ -10,24 +10,24 @@ import com.github.xadkile.bicp.message.api.msg.sender.ZSender
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 
-typealias ExecuteRequestOutput = JPMessage<Shell.ExecuteRequest.Output.MetaData, Shell.ExecuteRequest.Output.Content>
+typealias ExecuteRequest = JPMessage<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>
 
-typealias ExecuteRequestInput = JPMessage<Shell.ExecuteRequest.Input.MetaData, Shell.ExecuteRequest.Input.Content>
+typealias ExecuteReply = JPMessage<Shell.Execute.Request.MetaData, Shell.Execute.Request.Content>
 
 /**
  * [zContext] is for creating poller
  */
-class ExecuteRequestSender internal constructor(
+class ExecuteSender internal constructor(
     socket: ZMQ.Socket,
     msgEncoder: MsgEncoder,
     hbService: HeartBeatServiceConv,
     zContext: ZContext,
-) : MsgSender<ExecuteRequestInput,
-        Result<ExecuteRequestOutput, Exception>> {
+) : MsgSender<ExecuteReply,
+        Result<ExecuteRequest, Exception>> {
 
-    private val osender = ZSender<ExecuteRequestInput,ExecuteRequestOutput>(socket, msgEncoder, hbService, zContext)
-    override fun send(message: ExecuteRequestInput): Result<ExecuteRequestOutput, Exception> {
-        val rt = osender.send<Shell.ExecuteRequest.Output.MetaData,Shell.ExecuteRequest.Output.Content>(message)
+    private val zsender = ZSender<ExecuteReply,ExecuteRequest>(socket, msgEncoder, hbService, zContext)
+    override fun send(message: ExecuteReply): Result<ExecuteRequest, Exception> {
+        val rt = zsender.send<Shell.Execute.Reply.MetaData,Shell.Execute.Reply.Content>(message)
         return rt
     }
 }

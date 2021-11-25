@@ -22,7 +22,7 @@ class JPRawMessage(
     val metaData: String,
     val content: String,
     val buffer: ByteArray,
-): CanVerifyHmac {
+) {
     companion object {
         /**
          * Parse a list of byte array into a [JPRawMessage].
@@ -105,7 +105,7 @@ class JPRawMessage(
         ).map { it.toByteArray(Charsets.UTF_8) }
     }
 
-    override fun verifyHmac(key: ByteArray): Boolean {
+    fun verifyHmac(key: ByteArray): Boolean {
         return this.hmacSig == HmacMaker.makeHmacSha256SigStr(key, getHMACIngredients())
     }
 

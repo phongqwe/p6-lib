@@ -1,8 +1,7 @@
 package com.github.xadkile.bicp.test.utils
 
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.bicp.message.api.msg.listener.IOPubListenerService
-import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequestInput
+import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.bicp.message.api.msg.sender.shell.KernelInfoInput
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
@@ -13,8 +12,6 @@ import org.junit.jupiter.api.TestInstance
 import org.zeromq.*
 import java.util.*
 import kotlin.concurrent.thread
-import kotlin.coroutines.CoroutineContext
-import kotlin.system.measureTimeMillis
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
@@ -127,11 +124,11 @@ class Bench : TestOnJupyter() {
 
     @Test
     fun z2() {
-        val message: ExecuteRequestInput = ExecuteRequestInput.autoCreate(
+        val message: ExecuteReply = ExecuteRequestInput.autoCreate(
             sessionId = "session_id",
             username = "user_name",
-            msgType = Shell.ExecuteRequest.msgType,
-            msgContent = Shell.ExecuteRequest.Input.Content(
+            msgType = Shell.Execute.msgType,
+            msgContent = Shell.Execute.Request.Content(
                 code = "x=1+1*2;y=x*2;y",
                 silent = false,
                 storeHistory = true,

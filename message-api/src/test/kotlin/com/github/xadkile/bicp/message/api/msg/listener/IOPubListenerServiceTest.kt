@@ -1,7 +1,6 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequestInput
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
@@ -36,8 +35,8 @@ internal class IOPubListenerServiceTest : TestOnJupyter() {
                 it.send(ExecuteRequestInput.autoCreate(
                     sessionId = "session_id",
                     username = "user_name",
-                    msgType = Shell.ExecuteRequest.msgType,
-                    msgContent = Shell.ExecuteRequest.Input.Content(
+                    msgType = Shell.Execute.msgType,
+                    msgContent = Shell.Execute.Request.Content(
                         code = "x=1+1*2;y=x*2;y",
                         silent = false,
                         storeHistory = true,
