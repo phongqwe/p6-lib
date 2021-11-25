@@ -1,0 +1,17 @@
+message-api:
+  Principle design:
+    IPython context:
+      - IPython context handle and manage connections to IPython instances.
+      - It can start, stop IPython instance
+      - It provides objects that relying on the validity of the connection, such as:
+          - connection file info
+          - session info
+          - channel provider
+          - message sender provider
+          - message encoder
+          - message id generator
+    Objects provided by the context must NOT be directly created manually
+    
+  Exceptions propagating, handling:
+    - Exceptions should be returned as Result<> object instead of throwing directly.
+    - Each type of error should be represent by a unique class of Exception. This choice allow any kind of class of Exception containing any type of data in any structured be returned to exception handlers.
