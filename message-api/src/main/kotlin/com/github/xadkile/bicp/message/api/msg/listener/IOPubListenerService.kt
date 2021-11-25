@@ -2,8 +2,8 @@ package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
-import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg

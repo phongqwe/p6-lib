@@ -1,6 +1,6 @@
 package com.github.xadkile.bicp.message.api.connection.ipython_context
 
-import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
 
 /**
  * Encode a message into approriate zmq format.

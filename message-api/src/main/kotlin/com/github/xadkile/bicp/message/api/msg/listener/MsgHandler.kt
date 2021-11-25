@@ -1,7 +1,7 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
-import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 
 interface MsgHandler {
     /**

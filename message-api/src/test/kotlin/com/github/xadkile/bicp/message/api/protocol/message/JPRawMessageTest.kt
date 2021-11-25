@@ -5,9 +5,10 @@ import com.github.michaelbull.result.get
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.common.HmacMaker
-import com.github.xadkile.bicp.message.api.protocol.InvalidPayloadSizeException
-import com.github.xadkile.bicp.message.api.protocol.MessageHeader
-import com.github.xadkile.bicp.message.api.protocol.ProtocolUtils
+import com.github.xadkile.bicp.message.api.msg.protocol.InvalidPayloadSizeException
+import com.github.xadkile.bicp.message.api.msg.protocol.MessageHeader
+import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolUtils
+import com.github.xadkile.bicp.message.api.msg.protocol.message.*
 import com.google.gson.annotations.SerializedName
 import org.junit.jupiter.api.Test
 import java.util.*
@@ -84,7 +85,7 @@ internal class JPRawMessageTest {
         val facade = JPRawMessage.fromPayload(payload)
         assertTrue(facade is Err)
         facade.onFailure {
-            assertTrue(it is InvalidPayloadSizeException)
+            assertTrue(it is com.github.xadkile.bicp.message.api.msg.protocol.InvalidPayloadSizeException)
         }
     }
 

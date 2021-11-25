@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.protocol.other
+package com.github.xadkile.bicp.message.api.msg.protocol.other
 
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
 import java.util.concurrent.atomic.AtomicInteger

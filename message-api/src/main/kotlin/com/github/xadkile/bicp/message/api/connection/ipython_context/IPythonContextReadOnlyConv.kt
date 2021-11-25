@@ -5,8 +5,8 @@ import com.github.michaelbull.result.map
 import com.github.xadkile.bicp.message.api.channel.ChannelInfo
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
-import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
-import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
+import com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent
+import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
 
 interface IPythonContextReadOnlyConv : IPythonContextReadOnly {
@@ -54,7 +54,7 @@ interface IPythonContextReadOnlyConv : IPythonContextReadOnly {
         return this.original().getSocketProvider()
     }
 
-    override fun getConnectionFileContent(): Result<KernelConnectionFileContent, Exception> {
+    override fun getConnectionFileContent(): Result<com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent, Exception> {
         return this.original().getConnectionFileContent()
     }
 

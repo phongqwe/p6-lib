@@ -2,10 +2,10 @@ package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequestInput
-import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.protocol.message.MsgType
-import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.IOPub
-import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
+import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking

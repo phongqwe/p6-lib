@@ -1,7 +1,6 @@
 package com.github.xadkile.bicp.message.api.connection.process_watcher
 
 import com.github.michaelbull.result.Ok
-import com.github.xadkile.bicp.message.di.main
 import com.github.xadkile.bicp.test.utils.TestOnRBCoroutine
 import com.github.xadkile.bicp.test.utils.TestResources
 import kotlinx.coroutines.runBlocking

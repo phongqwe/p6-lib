@@ -1,8 +1,8 @@
 package com.github.xadkile.bicp.message.api.msg.sender
 
-import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
-import com.github.xadkile.bicp.message.api.protocol.message.MsgContent
-import com.github.xadkile.bicp.message.api.protocol.message.MsgMetaData
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgContent
+import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgMetaData
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequestInput
 
 /**

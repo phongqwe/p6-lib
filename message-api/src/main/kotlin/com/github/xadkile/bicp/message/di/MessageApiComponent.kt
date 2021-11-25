@@ -9,7 +9,7 @@ import javax.inject.Singleton
 
 
 @Singleton
-@Component(modules = [ContextModule::class, OtherModule::class])
+@Component(modules = [ContextModule::class])
 interface MessageApiComponent {
     fun zContext(): ZContext
     fun ipythonContext(): IPythonContext

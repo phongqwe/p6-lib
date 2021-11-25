@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.protocol
+package com.github.xadkile.bicp.message.api.msg.protocol
 
 import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter

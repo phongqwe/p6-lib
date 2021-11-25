@@ -3,8 +3,8 @@ package com.github.xadkile.bicp.message.api.msg.sender.shell
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.bicp.message.api.connection.ipython_context.MsgEncoder
-import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
-import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.ZSender
 import org.zeromq.ZContext

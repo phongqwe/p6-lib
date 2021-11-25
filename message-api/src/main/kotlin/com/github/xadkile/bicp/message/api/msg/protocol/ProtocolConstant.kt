@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.protocol
+package com.github.xadkile.bicp.message.api.msg.protocol
 
 
 object ProtocolConstant {

@@ -1,14 +1,14 @@
-package com.github.xadkile.bicp.message.api.protocol.message
+package com.github.xadkile.bicp.message.api.msg.protocol.message
 
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.common.HmacMaker
-import com.github.xadkile.bicp.message.api.protocol.InvalidPayloadSizeException
-import com.github.xadkile.bicp.message.api.protocol.MessageHeader
-import com.github.xadkile.bicp.message.api.protocol.ProtocolConstant
-import com.github.xadkile.bicp.message.api.protocol.ProtocolUtils
+import com.github.xadkile.bicp.message.api.msg.protocol.InvalidPayloadSizeException
 import com.google.gson.GsonBuilder
+import com.github.xadkile.bicp.message.api.msg.protocol.MessageHeader
+import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolConstant
+import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolUtils
 
 /**
  * For reading raw data from zmq sockets
@@ -31,7 +31,7 @@ class JPRawMessage(
          */
         fun fromPayload(payload: List<ByteArray>): Result<JPRawMessage, Exception> {
             if (payload.size < 6) {
-                return Err(InvalidPayloadSizeException(payload.size))
+                return Err(com.github.xadkile.bicp.message.api.msg.protocol.InvalidPayloadSizeException(payload.size))
             } else {
                 // find the delimiter's index
                 val delimiterIndexEither = findDelimiterIndex(payload)

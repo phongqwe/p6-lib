@@ -5,6 +5,9 @@ import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonCon
 import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContextImp
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
+import org.zeromq.ZContext
+import javax.inject.Singleton
 
 /**
  */
@@ -15,4 +18,11 @@ interface ContextModule {
 
     @Binds
     fun backboneObjProvider(provider:IPythonContextImp): IPythonContextReadOnly
+    companion object {
+        @Provides
+        @Singleton
+        fun zContext(): ZContext {
+            return ZContext()
+        }
+    }
 }

@@ -3,7 +3,7 @@ package com.github.xadkile.bicp.message.api.connection.ipython_context
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.bicp.message.api.protocol.ProtocolUtils
+import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolUtils
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path

@@ -1,10 +1,11 @@
-package com.github.xadkile.bicp.message.api.protocol.message
+package com.github.xadkile.bicp.message.api.msg.protocol.message
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
-import com.github.xadkile.bicp.message.api.protocol.MessageHeader
-import com.github.xadkile.bicp.message.api.protocol.ProtocolConstant
-import com.github.xadkile.bicp.message.api.protocol.ProtocolUtils
+import com.github.xadkile.bicp.message.api.msg.protocol.MessageHeader
+import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolConstant
+import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolUtils
+
 
 class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
     val identities:String,

@@ -5,10 +5,10 @@ import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServic
 import com.github.xadkile.bicp.message.api.connection.heart_beat.coroutine.LiveCountHeartBeatServiceCoroutine
 //import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceUpdater
 import com.github.xadkile.bicp.message.api.other.Sleeper
-import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
-import com.github.xadkile.bicp.message.api.protocol.other.MsgCounterImp
-import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
-import com.github.xadkile.bicp.message.api.protocol.other.RandomMsgIdGenerator
+import com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent
+import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgCounterImp
+import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator
+import com.github.xadkile.bicp.message.api.msg.protocol.other.RandomMsgIdGenerator
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
@@ -31,7 +31,7 @@ class IPythonContextImp @Inject internal constructor(
 
     private val launchCmd: List<String> = this.ipythonConfig.makeCompleteLaunchCmmd()
     private var process: Process? = null
-    private var connectionFileContent: KernelConnectionFileContent? = null
+    private var connectionFileContent: com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent? = null
     private var connectionFilePath: Path? = null
     private var session: Session? = null
     private var channelProvider: ChannelProvider? = null
@@ -74,7 +74,7 @@ class IPythonContextImp @Inject internal constructor(
                 Sleeper.sleepUntil(50){Files.exists(this.connectionFilePath!!)}
 
                 this.connectionFileContent =
-                    KernelConnectionFileContent.fromJsonFile(ipythonConfig.getConnectionFilePath()).unwrap()
+                    com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent.fromJsonFile(ipythonConfig.getConnectionFilePath()).unwrap()
 
                 // rmd: create resources, careful with the order of resource initiation,
                 // some must be initialized first
@@ -189,7 +189,7 @@ class IPythonContextImp @Inject internal constructor(
         }
     }
 
-    override fun getConnectionFileContent(): Result<KernelConnectionFileContent, Exception> {
+    override fun getConnectionFileContent(): Result<com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent, Exception> {
         if (this.isRunning()) {
             return Ok(this.connectionFileContent!!)
         } else {

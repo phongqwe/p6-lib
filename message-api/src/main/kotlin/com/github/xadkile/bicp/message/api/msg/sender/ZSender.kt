@@ -4,10 +4,10 @@ import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.bicp.message.api.connection.ipython_context.MsgEncoder
-import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
-import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.protocol.message.MsgContent
-import com.github.xadkile.bicp.message.api.protocol.message.MsgMetaData
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgContent
+import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgMetaData
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 

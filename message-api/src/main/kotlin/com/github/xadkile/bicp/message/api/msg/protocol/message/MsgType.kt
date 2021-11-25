@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.protocol.message
+package com.github.xadkile.bicp.message.api.msg.protocol.message
 
 import com.google.gson.annotations.SerializedName
 

@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.protocol
+package com.github.xadkile.bicp.message.api.msg.protocol
 
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
@@ -36,19 +36,21 @@ data class KernelConnectionFileContent(
     val kernelName:String
 ){
     companion object CO{
-        fun fromJsonFile(jsonFilePath: Path):Result<KernelConnectionFileContent,IOException>{
+        fun fromJsonFile(jsonFilePath: Path):Result<com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent,IOException>{
             try{
                 val fileContent = Files.readString(jsonFilePath)
                 val gson = Gson()
-                val rt = gson.fromJson(fileContent,KernelConnectionFileContent::class.java)
+                val rt = gson.fromJson(fileContent,
+                    com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent::class.java)
                 return Ok(rt)
             }catch(e:IOException){
                 return Err(e)
             }
 
         }
-        fun fromJsonFile(filePath:String):Result<KernelConnectionFileContent,IOException>{
-            return fromJsonFile(Paths.get(filePath))
+        fun fromJsonFile(filePath:String):Result<com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent,IOException>{
+            return com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent.CO.fromJsonFile(Paths.get(
+                filePath))
         }
     }
 

@@ -7,8 +7,8 @@ import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonCon
 import com.github.xadkile.bicp.message.api.connection.ipython_context.IPythonContextReadOnly
 import com.github.xadkile.bicp.message.api.connection.ipython_context.MsgEncoder
 import com.github.xadkile.bicp.message.api.exception.UnknownException
-import com.github.xadkile.bicp.message.api.protocol.message.JPMessage
-import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import org.zeromq.ZContext
 import org.zeromq.ZFrame
 import org.zeromq.ZMQ

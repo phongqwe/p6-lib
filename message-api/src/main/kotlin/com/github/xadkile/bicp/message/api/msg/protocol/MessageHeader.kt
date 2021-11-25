@@ -1,6 +1,6 @@
-package com.github.xadkile.bicp.message.api.protocol
+package com.github.xadkile.bicp.message.api.msg.protocol
 
-import com.github.xadkile.bicp.message.api.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import com.google.gson.annotations.SerializedName
 import java.time.ZonedDateTime
 

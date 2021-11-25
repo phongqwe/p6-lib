@@ -3,9 +3,9 @@ package com.github.xadkile.bicp.message.api.msg.sender.shell
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.bicp.message.api.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.protocol.message.MsgStatus
-import com.github.xadkile.bicp.message.api.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgStatus
+import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

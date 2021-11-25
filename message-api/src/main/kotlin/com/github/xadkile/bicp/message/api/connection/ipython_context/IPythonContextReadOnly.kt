@@ -2,8 +2,8 @@ package com.github.xadkile.bicp.message.api.connection.ipython_context
 
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
-import com.github.xadkile.bicp.message.api.protocol.KernelConnectionFileContent
-import com.github.xadkile.bicp.message.api.protocol.other.MsgIdGenerator
+import com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent
+import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
 
 /**
@@ -17,7 +17,7 @@ interface IPythonContextReadOnly {
      *
      * Connection file is available for use only when IPython process is launch successfully.
      */
-    fun getConnectionFileContent(): Result<KernelConnectionFileContent, Exception>
+    fun getConnectionFileContent(): Result<com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent, Exception>
 
     fun getSession(): Result<Session, Exception>
 
