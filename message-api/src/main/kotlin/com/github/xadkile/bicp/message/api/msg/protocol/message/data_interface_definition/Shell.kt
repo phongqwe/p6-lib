@@ -11,9 +11,11 @@ import javax.inject.Qualifier
 object Shell{
 
     object Execute {
+
         val msgType = MsgType.Shell_execute_request
+
         object Request{
-            class Content(
+            data class Content(
                 val code: String,
                 val silent: Boolean,
                 @SerializedName("store_history")
@@ -27,8 +29,9 @@ object Shell{
             ): MsgContent
             class MetaData : MsgMetaData {}
         }
+
         object Reply{
-            class Content(
+            data class Content(
                 val status: MsgStatus,
                 @SerializedName("execution_count")
                 val executionCount: Int,
@@ -37,7 +40,7 @@ object Shell{
                 val payload: List<Map<String, Any>>,
             ) : MsgContent
 
-            class MetaData(
+            data class MetaData(
                 @SerializedName("started")
                 val startedTime: Date,
                 @SerializedName("dependencies_met")
@@ -51,11 +54,12 @@ object Shell{
     object KernelInfo{
         object Request{
             val msgType = MsgType.Shell_kernel_info_request
-            class Content : MsgContent{}
-            class MetaData: MsgMetaData{}
+            class Content : MsgContent
+            class MetaData: MsgMetaData
         }
         object Reply{
             val msgType = MsgType.Shell_kernel_info_reply
+
             data class Content(
                 val status:MsgStatus,
                 @SerializedName("protocol_version")
@@ -69,12 +73,15 @@ object Shell{
                 val debugger:Boolean,
                 @SerializedName("help_links")
                 val helpLinks:List<HelpLink>
-            ) : MsgContent{}
-            class MetaData: MsgMetaData{}
+            ) : MsgContent
+
+            class MetaData: MsgMetaData
+
             data class HelpLink(
                 val text:String,
                 val url:String,
             )
+
             data class LanguageInfo(
                 val name:String,
                 val version:String,
