@@ -99,7 +99,7 @@ class KernelContextImp @Inject internal constructor(
                 // x: senderProvider depend on heart beat service,
                 // x: so it must be initialized after hb service is created
                 this.senderProvider =
-                    SenderProviderImp( this.zcontext, this.msgEncoder!!, this.hbService!!.conv(), this.socketProvider!!)
+                    SenderProviderImp( this.zcontext, this.msgEncoder!!, this.hbService!!.conv(), this.socketProvider!!, this.conv())
                 this.onProcessStartListener.run(this)
                 return Ok(Unit)
             } catch (e: Exception) {

@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.*
+import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
@@ -16,17 +17,25 @@ import org.zeromq.ZMsg
  * [parseExceptionHandler] to handle exception of unable to parse zmq message
  */
 class IOPubListener constructor(
-    private val socketProvider: SocketProvider,
-    private val cScope: CoroutineScope,
+    private val kernelContext:KernelContextReadOnlyConv,
+    private val cScope: CoroutineScope=GlobalScope,
     private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val defaultHandler: (msg:JPRawMessage) -> Unit = {},
-    private val parseExceptionHandler: (exception:Exception) -> Unit = { /*do nothing*/ },
+    private val defaultHandler: (msg: JPRawMessage) -> Unit = {},
+    private val parseExceptionHandler: (exception: Exception) -> Unit = { /*do nothing*/ },
 ) : MsgListener {
 
     private val handlerContainer: MsgHandlerContainer = HandlerContainerImp()
     private var job: Job? = null
-
-
+    private var internalRunning = true
+    val socketProvider: SocketProvider = kernelContext.getSocketProvider().unwrap()
+    /**
+     * I have 3 way to write this listener
+     * 1. I can write it bare, don't use any coroutine or anything. State is managed internally
+     *  => must make effort to launch it on the correct scope
+     * 2. Write with baked in coroutine
+     *      + with injected scope
+     *      + with auto inherited scope
+     */
     override fun start() {
         this.job = cScope.launch(cDispatcher) {
             val iopubSocket: ZMQ.Socket = socketProvider.ioPubSocket()
@@ -35,26 +44,24 @@ class IOPubListener constructor(
                     val msg = ZMsg.recvMsg(iopubSocket, ZMQ.DONTWAIT)
                     if (msg != null) {
                         val rawMsgResult = JPRawMessage.fromPayload(msg.map { it.data })
-                        when(rawMsgResult){
-                            is Ok ->{
+                        when (rawMsgResult) {
+                            is Ok -> {
                                 val rawMsg = rawMsgResult.unwrap()
                                 val identity = rawMsg.identities
                                 val msgType = if (identity.endsWith("execute_result")) {
                                     IOPub.ExecuteResult.msgType
-                                }
-                                else if(identity.endsWith("status")){
+                                } else if (identity.endsWith("status")) {
                                     IOPub.Status.msgType
-                                }
-                                else {
+                                } else {
                                     MsgType.NOT_RECOGNIZE
                                 }
-                                if(msgType == MsgType.NOT_RECOGNIZE){
+                                if (msgType == MsgType.NOT_RECOGNIZE) {
                                     defaultHandler(rawMsg)
-                                }else{
+                                } else {
                                     dispatch(msgType, rawMsg)
                                 }
                             }
-                            else ->{
+                            else -> {
                                 parseExceptionHandler(rawMsgResult.unwrapError())
                             }
                         }
@@ -64,11 +71,91 @@ class IOPubListener constructor(
         }
     }
 
+    suspend fun startSus() {
+        coroutineScope {
+            job = launch(cDispatcher) {
+                val iopubSocket: ZMQ.Socket = socketProvider.ioPubSocket()
+                iopubSocket.use {
+                    while (isActive) {
+                        val msg = ZMsg.recvMsg(iopubSocket, ZMQ.DONTWAIT)
+                        if (msg != null) {
+                            val rawMsgResult = JPRawMessage.fromPayload(msg.map { it.data })
+                            when (rawMsgResult) {
+                                is Ok -> {
+                                    val rawMsg = rawMsgResult.unwrap()
+                                    val identity = rawMsg.identities
+                                    val msgType = if (identity.endsWith("execute_result")) {
+                                        IOPub.ExecuteResult.msgType
+                                    } else if (identity.endsWith("status")) {
+                                        IOPub.Status.msgType
+                                    } else {
+                                        MsgType.NOT_RECOGNIZE
+                                    }
+                                    if (msgType == MsgType.NOT_RECOGNIZE) {
+                                        defaultHandler(rawMsg)
+                                    } else {
+                                        dispatch(msgType, rawMsg)
+                                    }
+                                }
+                                else -> {
+                                    parseExceptionHandler(rawMsgResult.unwrapError())
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun startBare() {
+
+        val iopubSocket: ZMQ.Socket = socketProvider.ioPubSocket()
+        this.internalRunning = true
+
+        iopubSocket.use {
+            while (this.internalRunning) {
+                val msg = ZMsg.recvMsg(iopubSocket, ZMQ.DONTWAIT)
+                if (msg != null) {
+                    val rawMsgResult = JPRawMessage.fromPayload(msg.map { it.data })
+                    when (rawMsgResult) {
+                        is Ok -> {
+                            val rawMsg = rawMsgResult.unwrap()
+                            val identity = rawMsg.identities
+                            val msgType = if (identity.endsWith("execute_result")) {
+                                IOPub.ExecuteResult.msgType
+                            } else if (identity.endsWith("status")) {
+                                IOPub.Status.msgType
+                            } else {
+                                MsgType.NOT_RECOGNIZE
+                            }
+                            if (msgType == MsgType.NOT_RECOGNIZE) {
+                                defaultHandler(rawMsg)
+                            } else {
+                                dispatch(msgType, rawMsg)
+                            }
+                        }
+                        else -> {
+                            parseExceptionHandler(rawMsgResult.unwrapError())
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
     override fun stop() {
+
         runBlocking {
             job?.cancelAndJoin()
         }
         this.job = null
+
+    }
+
+    fun stopII(){
+        this.internalRunning = false
     }
 
     override fun isRunning(): Boolean {

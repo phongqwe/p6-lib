@@ -53,10 +53,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     @Test
     fun send_ok() {
         val sender2 = ExecuteSender(
-            this.ipythonContext.getSocketProvider().unwrap(),
-            this.ipythonContext.getMsgEncoder().unwrap(),
-            this.ipythonContext.getHeartBeatService().unwrap().conv(),
-            this.ipythonContext.zContext()
+            ipythonContext.conv()
         )
 
         val out = sender2.send(message)
@@ -72,10 +69,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     @Test
     fun send_malformedCode() {
         val sender2 = ExecuteSender(
-            this.ipythonContext.getSocketProvider().unwrap(),
-            this.ipythonContext.getMsgEncoder().unwrap(),
-            this.ipythonContext.getHeartBeatService().unwrap().conv(),
-            this.ipythonContext.zContext()
+            ipythonContext.conv()
         )
 
         val out = sender2.send(malformedCodeMsg)
@@ -91,10 +85,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     @Test
     fun send_fail() {
         val sender2 = ExecuteSender(
-            this.ipythonContext.getSocketProvider().unwrap(),
-            this.ipythonContext.getMsgEncoder().unwrap(),
-            this.ipythonContext.getHeartBeatService().unwrap().conv(),
-            this.ipythonContext.zContext()
+            ipythonContext.conv()
         )
         this.ipythonContext.stopIPython()
         val out = sender2.send(

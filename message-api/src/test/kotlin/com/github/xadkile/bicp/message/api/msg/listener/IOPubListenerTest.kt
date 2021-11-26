@@ -24,7 +24,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
             var handlerWasTriggered = 0
             // rmd: settup listener, handler
             val listener = IOPubListener(
-                socketProvider = ipythonContext.getSocketProvider().unwrap(),
+                kernelContext = ipythonContext.conv(),
                 cScope=this,
                 cDispatcher = mainThreadSurrogate,
                 defaultHandler = {

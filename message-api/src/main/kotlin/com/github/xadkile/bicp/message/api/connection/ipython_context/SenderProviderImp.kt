@@ -10,12 +10,13 @@ class SenderProviderImp internal constructor(
     val zcontext: ZContext,
     val msgEncoder: MsgEncoder,
     val heartBeatServiceConv: HeartBeatServiceConv,
-    val socketProvider: SocketProvider
+    val socketProvider: SocketProvider,
+    val kernelContext:KernelContextReadOnlyConv
 ) :
     SenderProvider {
 
     override fun getExecuteRequestSender(): MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> {
-        return ExecuteSender(socketProvider, this.msgEncoder,heartBeatServiceConv,zcontext)
+        return ExecuteSender(kernelContext)
     }
 
     override fun getKernelInfoSender(): MsgSender<KernelInfoInput, Result<KernelInfoOutput, Exception>> {

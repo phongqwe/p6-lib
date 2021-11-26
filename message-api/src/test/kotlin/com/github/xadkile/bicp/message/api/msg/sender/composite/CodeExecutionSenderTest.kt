@@ -17,9 +17,10 @@ internal class CodeExecutionSenderTest : TestOnJupyter(){
 
     @Test
     fun send() {
+        ipythonContext.startIPython()
+        ipythonContext.getHeartBeatService().unwrap().start()
         runBlocking {
 
-            ipythonContext.startIPython()
             val message: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
@@ -34,22 +35,9 @@ internal class CodeExecutionSenderTest : TestOnJupyter(){
                 ),
                 "msg_id_abc_123"
             )
-            val sender = CodeExecutionSender(
-                ExecuteSender(
-                    socketProvider = ipythonContext.getSocketProvider().unwrap(),
-                    msgEncoder = ipythonContext.getMsgEncoder().unwrap(),
-                    hbService = ipythonContext.getHeartBeatService().unwrap().conv(),
-                    zContext = zcontext
-                ),
-                IOPubListener(
-                    socketProvider = ipythonContext.getSocketProvider().unwrap(),
-                    cScope =this,
-                )
-            )
-
+            val sender = CodeExecutionSender(ipythonContext.conv())
             val o = sender.send(message)
             println(o)
         }
-
     }
 }

@@ -1,7 +1,10 @@
 package com.github.xadkile.bicp.message.api.msg.sender.shell
 
 import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
+import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContext
+import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.ipython_context.MsgEncoder
 import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
@@ -22,16 +25,16 @@ typealias ExecuteRequest = JPMessage<Shell.Execute.Request.MetaData, Shell.Execu
  * If I want to do send execute request, then get execute result, then I must create a third class to fuse IOPub and this sender together.
  */
 class ExecuteSender internal constructor(
-    val socketProvider:SocketProvider,
-    val msgEncoder: MsgEncoder,
-    val hbService: HeartBeatServiceConv,
-    val zContext: ZContext,
+    val kernelContext: KernelContextReadOnlyConv,
 ) : MsgSender<ExecuteRequest,
         Result<ExecuteReply, Exception>> {
     override fun send(message: ExecuteRequest): Result<ExecuteReply, Exception> {
-        val socket = socketProvider.shellSocket()
-        val zsender = ZSender<ExecuteRequest,ExecuteReply>(socket, msgEncoder, hbService, zContext)
-        val rt = zsender.send<Shell.Execute.Reply.MetaData,Shell.Execute.Reply.Content>(message)
+        val zsender = ZSender<ExecuteRequest, ExecuteReply>(
+            kernelContext.getSocketProvider().unwrap().shellSocket(),
+            kernelContext.getMsgEncoder().unwrap(),
+            kernelContext.getConvHeartBeatService().unwrap(),
+            kernelContext.zContext())
+        val rt = zsender.send<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
         return rt
     }
 }

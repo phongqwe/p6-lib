@@ -102,26 +102,54 @@ class Bench : TestOnJupyter() {
     @Test
     fun z3() {
         runBlocking {
-            coroutineScope{
-                // coroutineScope only ends when all the launch(es) are completed
-                sf()
+
+                launch {
+                    coroutineScope {
+                        launch {
+                            var x = 0
+                            while (x < 10) {
+                                println("x:" + x)
+                                ++x
+                                delay(200)
+                            }
+                        }
+                    }
+                }
+
+            launch {
+                var x= 0
+                while(x<10){
+                    println("y:"+x)
+                    ++x
+                    Thread.sleep(200)
+                }
             }
-
         }
+
     }
 
-    suspend fun sf(){
-        f1()
-        f2()
-    }
 
     suspend fun f1(){
-        coroutineScope {  }
-        println("f1")
+        coroutineScope {
+            launch {
+                var x= 0
+                while(x<10){
+                    println("x:"+x)
+                    ++x
+                    delay(200)
+                }
+            }
+        }
+
     }
 
     suspend fun f2(){
-        println("f2")
+        var x= 0
+        while(true){
+            println("y:"+x)
+            ++x
+            delay(200)
+        }
     }
 
     @Test
