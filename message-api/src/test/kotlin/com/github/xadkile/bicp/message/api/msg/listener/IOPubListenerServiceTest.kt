@@ -23,7 +23,11 @@ internal class IOPubListenerServiceTest : TestOnJupyter() {
 
             var handlerWasTriggered = 0
             // rmd: settup listener, handler
-            val listener = IOPubListenerService(ipythonContext.getSocketProvider().unwrap(), this, mainThreadSurrogate)
+            val listener = IOPubListenerService(
+                ipythonContext.getSocketProvider().unwrap(),
+                this,
+                mainThreadSurrogate
+            )
             listener.addHandler(MsgHandlers.withUUID(MsgType.IOPub_execute_result) { msg: JPRawMessage ->
                 val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
                 println(md)

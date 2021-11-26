@@ -28,5 +28,8 @@ enum class MsgType {
     IOPub_execute_result,
 
 
+
+    DONT_EXIST
+
     ;
 }

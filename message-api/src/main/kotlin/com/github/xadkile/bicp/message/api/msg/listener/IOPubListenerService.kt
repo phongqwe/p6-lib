@@ -1,9 +1,10 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
-import com.github.michaelbull.result.unwrap
+import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
@@ -11,15 +12,25 @@ import org.zeromq.ZMsg
 /**
  * Listen to pub msg from IOPub channel
  * Dispatch msg to appropriate handlers.
+ * [defaultHandler] to handle DONT_EXIST msg type
+ * [parseExceptionHandler] to handle exception of unable to parse zmq message
  */
 class IOPubListenerService constructor(
     private val socketProvider: SocketProvider,
     private val cScope: CoroutineScope,
     private val cDispatcher: CoroutineDispatcher,
+    private val defaultHandler: MsgHandler = MsgHandlers.default,
+    private val parseExceptionHandler: (exception:Exception) -> Unit = {
+       println(it)
+    },
 ) : MsgListenerService {
 
     private val handlerContainer: MsgHandlerContainer = HandlerContainerImp()
     private var job: Job? = null
+
+    init {
+        this.addHandler(defaultHandler)
+    }
 
     override fun start() {
         this.job = cScope.launch(cDispatcher) {
@@ -28,11 +39,20 @@ class IOPubListenerService constructor(
                 while (isActive) {
                     val msg = ZMsg.recvMsg(iopubSocket, ZMQ.DONTWAIT)
                     if (msg != null) {
-                        val rawMsg = JPRawMessage.fromPayload(msg.map { it.data }).unwrap()
-                        if (rawMsg.identities.contains("execute_result")) {
-                            dispatch(MsgType.IOPub_execute_result, rawMsg)
-                        } else {
-                            println(rawMsg.identities)
+                        val rawMsgResult = JPRawMessage.fromPayload(msg.map { it.data })
+                        when(rawMsgResult){
+                            is Ok ->{
+                                val rawMsg = rawMsgResult.unwrap()
+                                val msgType = if (rawMsg.identities.contains("execute_result")) {
+                                    IOPub.ExecuteResult.msgType
+                                } else {
+                                    MsgType.DONT_EXIST
+                                }
+                                dispatch(msgType, rawMsg)
+                            }
+                            else ->{
+                                parseExceptionHandler(rawMsgResult.unwrapError())
+                            }
                         }
                     }
                 }
