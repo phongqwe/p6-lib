@@ -19,18 +19,16 @@ internal class IOPubListenerTest : TestOnJupyter() {
     fun start() {
         runBlocking {
 
-            ipythonContext.startIPython()
+            kernelContext.startKernel()
 
             var handlerWasTriggered = 0
             // rmd: settup listener, handler
             val listener = IOPubListener(
-                kernelContext = ipythonContext.conv(),
-                cScope=this,
+                kernelContext = kernelContext.conv(),
                 cDispatcher = mainThreadSurrogate,
                 defaultHandler = {
                     println(it.identities)
                 }
-
             )
             listener.addHandler(MsgHandlers.withUUID(MsgType.IOPub_execute_result) { msg: JPRawMessage ->
                 val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
@@ -56,7 +54,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
                 "msg_id_abc_123"
             )
             println(msg.header)
-            ipythonContext.getSenderProvider().unwrap().getExecuteRequestSender().also {
+            kernelContext.getSenderProvider().unwrap().getExecuteRequestSender().also {
                 it.send(msg)
             }
 

@@ -9,7 +9,6 @@ import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.zeromq.SocketType
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -18,7 +17,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
 
     @BeforeEach
     fun beforeEach() {
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
     }
 
     val message: ExecuteRequest = ExecuteRequest.autoCreate(
@@ -53,7 +52,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     @Test
     fun send_ok() {
         val sender2 = ExecuteSender(
-            ipythonContext.conv()
+            kernelContext.conv()
         )
 
         val out = sender2.send(message)
@@ -69,7 +68,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     @Test
     fun send_malformedCode() {
         val sender2 = ExecuteSender(
-            ipythonContext.conv()
+            kernelContext.conv()
         )
 
         val out = sender2.send(malformedCodeMsg)
@@ -85,9 +84,9 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     @Test
     fun send_fail() {
         val sender2 = ExecuteSender(
-            ipythonContext.conv()
+            kernelContext.conv()
         )
-        this.ipythonContext.stopIPython()
+        this.kernelContext.stopKernel()
         val out = sender2.send(
             message
         )

@@ -18,7 +18,7 @@ abstract class UUIDMsgHandler : MsgHandler {
         fun make(msgType: MsgType, handlerFunction: (msg: JPRawMessage) -> Unit = {}): UUIDMsgHandler {
             return object : UUIDMsgHandler() {
                 private val mt = msgType
-                override fun handle(msg: JPRawMessage) {
+                override suspend fun handle(msg: JPRawMessage) {
                     handlerFunction(msg)
                 }
                 override fun msgType(): MsgType {

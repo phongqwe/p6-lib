@@ -18,8 +18,8 @@ class KernelInfoSenderTest : TestOnJupyter() {
             msgContent = Shell.KernelInfo.Request.Content(),
             "msg_id_abc_123"
         )
-        this.ipythonContext.startIPython()
-        val sender = this.ipythonContext.getSenderProvider().unwrap().getKernelInfoSender()
+        this.kernelContext.startKernel()
+        val sender = this.kernelContext.getSenderProvider().unwrap().getKernelInfoSender()
         val o =sender.send(message)
         println(o.unwrap())
     }

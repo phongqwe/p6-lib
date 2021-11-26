@@ -58,7 +58,7 @@ class KernelContextImp @Inject internal constructor(
      * - heart beat service is running + zmq is live (heart beat is ok)
      */
     @OptIn(DelicateCoroutinesApi::class)
-    override fun startIPython(): Result<Unit, Exception> {
+    override fun startKernel(): Result<Unit, Exception> {
         if (this.isRunning()) {
             return Ok(Unit)
         } else {
@@ -107,7 +107,7 @@ class KernelContextImp @Inject internal constructor(
             }
         }
     }
-    override fun stopIPython(): Result<Unit, Exception> {
+    override fun stopKernel(): Result<Unit, Exception> {
         if (this.isNotRunning()) {
             return Ok(Unit)
         }
@@ -178,9 +178,9 @@ class KernelContextImp @Inject internal constructor(
 
     override fun restartIPython(): Result<Unit, Exception> {
         if (this.isRunning()) {
-            val rt = this.stopIPython()
+            val rt = this.stopKernel()
                 .andThen {
-                    this.startIPython()
+                    this.startKernel()
                 }
             return rt
         } else {

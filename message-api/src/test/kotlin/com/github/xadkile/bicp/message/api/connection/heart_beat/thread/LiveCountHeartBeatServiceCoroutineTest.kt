@@ -21,37 +21,37 @@ internal class LiveCountHeartBeatServiceThreadTest : TestOnJupyter() {
 
     @BeforeEach
     fun beforeEach() {
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         socket = this.zcontext.createSocket(SocketType.REQ).also {
-            it.connect(this.ipythonContext.getChannelProvider().unwrap().heartbeatChannel().makeAddress())
+            it.connect(this.kernelContext.getChannelProvider().unwrap().heartbeatChannel().makeAddress())
         }
         hbService2 = LiveCountHeartBeatServiceThread(
-            this.zcontext,this.ipythonContext.getSocketProvider().unwrap(), liveCount, interval,
+            this.zcontext,this.kernelContext.getSocketProvider().unwrap(), liveCount, interval,
         )
-        hbService = this.ipythonContext.getHeartBeatService().unwrap()
+        hbService = this.kernelContext.getHeartBeatService().unwrap()
     }
 
     @AfterEach
     fun afterEach(){
         hbService.stop()
-        this.ipythonContext.stopIPython()
+        this.kernelContext.stopKernel()
     }
 
     @Test
     fun dumm(){
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         hbService2.start()
     }
 
     @Test
     fun start() {
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         assertTrue(hbService.isServiceRunning())
     }
 
     @Test
     fun isAlive() {
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         hbService.start()
         assertTrue(hbService.isServiceRunning())
         Thread.sleep(1000)
@@ -60,7 +60,7 @@ internal class LiveCountHeartBeatServiceThreadTest : TestOnJupyter() {
 
     @Test
     fun stop() {
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         hbService.start()
         hbService.stop()
         assertFalse(hbService.isServiceRunning())

@@ -21,11 +21,11 @@ internal class LiveCountHeartBeatServiceUpdatableTest : TestOnJupyter() {
 
     @BeforeEach
     fun beforeEach() {
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         hbService = LiveCountHeartBeatServiceUpdatable(
             this.zcontext,newSocketProvider(), liveCount, interval,
         )
-        this.ipythonContext.setOnStartProcessListener{context->
+        this.kernelContext.setOnStartProcessListener{ context->
             hbService.updateSocket(newSocketProvider())
         }
     }
@@ -33,23 +33,23 @@ internal class LiveCountHeartBeatServiceUpdatableTest : TestOnJupyter() {
     @AfterEach
     fun afterEach(){
         hbService.stop()
-        this.ipythonContext.stopIPython()
+        this.kernelContext.stopKernel()
     }
 
     @Test
     fun start() {
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         hbService.start()
         assertTrue(hbService.isServiceRunning())
         Thread.sleep(1000)
         assertTrue(hbService.isHBAlive())
 
-        this.ipythonContext.stopIPython()
+        this.kernelContext.stopKernel()
         assertTrue(hbService.isServiceRunning())
         Thread.sleep(1000)
         assertFalse(hbService.isHBAlive())
 
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         Thread.sleep(1000)
         assertTrue(hbService.isServiceRunning())
         assertTrue(hbService.isHBAlive())
@@ -57,10 +57,10 @@ internal class LiveCountHeartBeatServiceUpdatableTest : TestOnJupyter() {
 
     private fun newSocket():ZMQ.Socket{
         return this.zcontext.createSocket(SocketType.REQ).also {
-            it.connect(this.ipythonContext.getChannelProvider().unwrap().heartbeatChannel().makeAddress())
+            it.connect(this.kernelContext.getChannelProvider().unwrap().heartbeatChannel().makeAddress())
         }
     }
     private fun newSocketProvider():SocketProvider{
-        return this.ipythonContext.getSocketProvider().unwrap()
+        return this.kernelContext.getSocketProvider().unwrap()
     }
 }

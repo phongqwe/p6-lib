@@ -29,22 +29,22 @@ interface KernelContext : KernelContextReadOnly {
      *
      * It is guarantee that once IPython start, components objects are available for use. They include: IPython Process, connection file object, session object, channel provider, sender factory.
      *
-     * Call [startIPython] on an already running manager does not change the state of this manager, return Ok result.
+     * Call [startKernel] on an already running manager does not change the state of this manager, return Ok result.
      *
-     * Return true if successfully launch IPython kerne, false otherwise.
+     * Return true if successfully launch the kernel, false otherwise.
      *
      * It must be guaranteed that connection file is created and read, and process (jpython + zmq) is on and ready to accept command.
      */
-    fun startIPython(): Result<Unit, Exception>
+    fun startKernel(): Result<Unit, Exception>
 
     /**
-     * Kill the current IPython process and delete the current connection file.
+     * Kill the current kernel process and delete the current connection file.
      *
      * Stop an already stopped manager does nothing, return Ok result.
      *
      * It must be guaranteed that connection file is deleted, process is completely killed after calling stop.
      */
-    fun stopIPython(): Result<Unit, Exception>
+    fun stopKernel(): Result<Unit, Exception>
 
     /**
      * Terminate the current process and launch a new IPython Process.

@@ -17,8 +17,7 @@ import org.zeromq.ZMsg
  * [parseExceptionHandler] to handle exception of unable to parse zmq message
  */
 class IOPubListener constructor(
-    private val kernelContext:KernelContextReadOnlyConv,
-    private val cScope: CoroutineScope=GlobalScope,
+    private val kernelContext: KernelContextReadOnlyConv,
     private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val defaultHandler: (msg: JPRawMessage) -> Unit = {},
     private val parseExceptionHandler: (exception: Exception) -> Unit = { /*do nothing*/ },
@@ -28,6 +27,7 @@ class IOPubListener constructor(
     private var job: Job? = null
     private var internalRunning = true
     val socketProvider: SocketProvider = kernelContext.getSocketProvider().unwrap()
+
     /**
      * I have 3 way to write this listener
      * 1. I can write it bare, don't use any coroutine or anything. State is managed internally
@@ -36,60 +36,27 @@ class IOPubListener constructor(
      *      + with injected scope
      *      + with auto inherited scope
      */
-    override fun start() {
-        this.job = cScope.launch(cDispatcher) {
-            val iopubSocket: ZMQ.Socket = socketProvider.ioPubSocket()
-            iopubSocket.use {
-                while (isActive) {
-                    val msg = ZMsg.recvMsg(iopubSocket, ZMQ.DONTWAIT)
-                    if (msg != null) {
-                        val rawMsgResult = JPRawMessage.fromPayload(msg.map { it.data })
-                        when (rawMsgResult) {
-                            is Ok -> {
-                                val rawMsg = rawMsgResult.unwrap()
-                                val identity = rawMsg.identities
-                                val msgType = if (identity.endsWith("execute_result")) {
-                                    IOPub.ExecuteResult.msgType
-                                } else if (identity.endsWith("status")) {
-                                    IOPub.Status.msgType
-                                } else {
-                                    MsgType.NOT_RECOGNIZE
-                                }
-                                if (msgType == MsgType.NOT_RECOGNIZE) {
-                                    defaultHandler(rawMsg)
-                                } else {
-                                    dispatch(msgType, rawMsg)
-                                }
-                            }
-                            else -> {
-                                parseExceptionHandler(rawMsgResult.unwrapError())
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    suspend fun startSus() {
-        coroutineScope {
-            job = launch(cDispatcher) {
-                val iopubSocket: ZMQ.Socket = socketProvider.ioPubSocket()
-                iopubSocket.use {
+    override suspend fun start() {
+         coroutineScope {
+             job = launch(cDispatcher) {
+                socketProvider.ioPubSocket().use {
                     while (isActive) {
-                        val msg = ZMsg.recvMsg(iopubSocket, ZMQ.DONTWAIT)
+                        val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
                         if (msg != null) {
-                            val rawMsgResult = JPRawMessage.fromPayload(msg.map { it.data })
-                            when (rawMsgResult) {
+                            when (val rawMsgResult = JPRawMessage.fromPayload(msg.map { f->f.data })) {
                                 is Ok -> {
                                     val rawMsg = rawMsgResult.unwrap()
                                     val identity = rawMsg.identities
-                                    val msgType = if (identity.endsWith("execute_result")) {
-                                        IOPub.ExecuteResult.msgType
-                                    } else if (identity.endsWith("status")) {
-                                        IOPub.Status.msgType
-                                    } else {
-                                        MsgType.NOT_RECOGNIZE
+                                    val msgType = when {
+                                        identity.endsWith("execute_result") -> {
+                                            IOPub.ExecuteResult.msgType
+                                        }
+                                        identity.endsWith("status") -> {
+                                            IOPub.Status.msgType
+                                        }
+                                        else -> {
+                                            MsgType.NOT_RECOGNIZE
+                                        }
                                     }
                                     if (msgType == MsgType.NOT_RECOGNIZE) {
                                         defaultHandler(rawMsg)
@@ -108,42 +75,10 @@ class IOPubListener constructor(
         }
     }
 
-    fun startBare() {
-
-        val iopubSocket: ZMQ.Socket = socketProvider.ioPubSocket()
-        this.internalRunning = true
-
-        iopubSocket.use {
-            while (this.internalRunning) {
-                val msg = ZMsg.recvMsg(iopubSocket, ZMQ.DONTWAIT)
-                if (msg != null) {
-                    val rawMsgResult = JPRawMessage.fromPayload(msg.map { it.data })
-                    when (rawMsgResult) {
-                        is Ok -> {
-                            val rawMsg = rawMsgResult.unwrap()
-                            val identity = rawMsg.identities
-                            val msgType = if (identity.endsWith("execute_result")) {
-                                IOPub.ExecuteResult.msgType
-                            } else if (identity.endsWith("status")) {
-                                IOPub.Status.msgType
-                            } else {
-                                MsgType.NOT_RECOGNIZE
-                            }
-                            if (msgType == MsgType.NOT_RECOGNIZE) {
-                                defaultHandler(rawMsg)
-                            } else {
-                                dispatch(msgType, rawMsg)
-                            }
-                        }
-                        else -> {
-                            parseExceptionHandler(rawMsgResult.unwrapError())
-                        }
-                    }
-                }
-            }
-        }
+    override suspend fun stopSuspend() {
+        job?.cancelAndJoin()
+        this.job = null
     }
-
 
     override fun stop() {
 
@@ -154,7 +89,7 @@ class IOPubListener constructor(
 
     }
 
-    fun stopII(){
+    fun stopII() {
         this.internalRunning = false
     }
 
@@ -162,7 +97,7 @@ class IOPubListener constructor(
         return this.job?.isActive == true
     }
 
-    private fun dispatch(msgType: MsgType, msg: JPRawMessage) {
+    private suspend fun dispatch(msgType: MsgType, msg: JPRawMessage) {
         handlerContainer.getHandlers(msgType).forEach {
             it.handle(msg)
         }

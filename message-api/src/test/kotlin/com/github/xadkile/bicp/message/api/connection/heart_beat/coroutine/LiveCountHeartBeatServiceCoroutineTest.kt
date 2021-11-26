@@ -7,7 +7,6 @@ import kotlinx.coroutines.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import kotlin.coroutines.CoroutineContext
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
@@ -17,9 +16,9 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     @OptIn(ExperimentalCoroutinesApi::class)
     @BeforeEach
     fun beforeEach() {
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         hbService = LiveCountHeartBeatServiceCoroutine(
-            zcontext, this.ipythonContext.getSocketProvider().unwrap(), 3, 1000, TestCoroutineScope(),mainThreadSurrogate
+            zcontext, this.kernelContext.getSocketProvider().unwrap(), 3, 1000, TestCoroutineScope(),mainThreadSurrogate
         )
     }
 
@@ -39,13 +38,13 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     @AfterEach
     fun afterEach() {
         hbService.stop()
-        ipythonContext.stopIPython()
+        kernelContext.stopKernel()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun start() {
-        ipythonContext.startIPython()
+        kernelContext.startKernel()
         runBlockingTest {
             hbService.start()
         }
@@ -54,7 +53,7 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
 
     @Test
     fun isAlive() {
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         runBlockingTest {
             hbService.start()
         }
@@ -65,7 +64,7 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
 
     @Test
     fun stop() {
-        ipythonContext.startIPython()
+        kernelContext.startKernel()
         hbService.start()
         hbService.stop()
         assertFalse(hbService.isServiceRunning())

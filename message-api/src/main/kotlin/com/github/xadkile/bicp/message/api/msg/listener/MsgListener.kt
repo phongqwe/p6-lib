@@ -7,8 +7,9 @@ import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
  * Dispatch message to the appropriate handlers.
  */
 interface MsgListener : MsgHandlerContainer,AutoCloseable {
-    fun start()
+    suspend fun start()
     fun stop()
+    suspend fun stopSuspend()
     fun isRunning():Boolean
 }
 

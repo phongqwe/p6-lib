@@ -14,7 +14,7 @@ internal class ZMQMsgSenderTest : TestOnJupyter() {
 
     @Test
     fun send_Ok() {
-        this.ipythonContext.startIPython()
+        this.kernelContext.startKernel()
         // send ok
         val t = System.currentTimeMillis()
         val o = ZMQMsgSender.send(
@@ -22,9 +22,9 @@ internal class ZMQMsgSenderTest : TestOnJupyter() {
             socket= this.zcontext.createSocket(SocketType.REQ).also {
                 it.connect(this.iPythonContextConv.getHeartBeatAddress().unwrap())
             },
-            hbs= this.ipythonContext.getHeartBeatService().unwrap().conv(),
+            hbs= this.kernelContext.getHeartBeatService().unwrap().conv(),
             interval = 1000,
-            zContext = this.ipythonContext.zContext()
+            zContext = this.kernelContext.zContext()
         )
         println(System.currentTimeMillis()-t)
         assertTrue (o is Ok,o.toString())

@@ -8,7 +8,7 @@ interface MsgHandler {
     /**
      * callback function
      */
-    fun handle(msg: JPRawMessage)
+    suspend fun handle(msg: JPRawMessage)
 
     /**
      * unique id

@@ -30,7 +30,7 @@ internal class KernelContextImpTest {
 
     @AfterEach
     fun afterAll(){
-        pm.stopIPython()
+        pm.stopKernel()
     }
 
     @Test
@@ -39,7 +39,7 @@ internal class KernelContextImpTest {
         pm.setOnStartProcessListener {
             start = true
         }
-        pm.startIPython()
+        pm.startKernel()
         assertTrue(start)
         var afterStop = false
         var beforeStop = false
@@ -49,7 +49,7 @@ internal class KernelContextImpTest {
         pm.setOnBeforeProcessStopListener{
             beforeStop = true
         }
-        pm.stopIPython()
+        pm.stopKernel()
         assertTrue(afterStop)
         assertTrue(beforeStop)
     }
@@ -57,7 +57,7 @@ internal class KernelContextImpTest {
     @Test
     fun startIPython_FromNotStartedYet() {
         assertTrue(pm.getIPythonProcess() is Err)
-        val rs = pm.startIPython()
+        val rs = pm.startKernel()
         assertTrue(rs is Ok)
         assertTrue(pm.isRunning())
         assertTrue(pm.getIPythonProcess() is Ok,pm.getIPythonProcess().toString())
@@ -74,16 +74,16 @@ internal class KernelContextImpTest {
 
     @Test
     fun startIPython_FromAlreadyStarted() {
-        val rs0 = pm.startIPython()
+        val rs0 = pm.startKernel()
         assertTrue(rs0 is Ok)
-        val rs = pm.startIPython()
+        val rs = pm.startKernel()
         assertTrue(rs is Ok)
     }
 
     @Test
     fun stopIPython() {
-        pm.startIPython()
-        val rs = pm.stopIPython()
+        pm.startKernel()
+        val rs = pm.stopKernel()
         assertTrue(rs is Ok)
         assertTrue(pm.isNotRunning())
         assertTrue(pm.getIPythonProcess() is Err)
@@ -98,16 +98,16 @@ internal class KernelContextImpTest {
     }
     @Test
     fun stopIPython_onAlreadyStopped() {
-        pm.startIPython()
-        val rs = pm.stopIPython()
+        pm.startKernel()
+        val rs = pm.stopKernel()
         assertTrue(rs is Ok, rs.toString())
-        val rs2 = pm.stopIPython()
+        val rs2 = pm.stopKernel()
         assertTrue(rs2 is Ok, rs.toString())
     }
 
     @Test
     fun restartIPython() {
-        pm.startIPython()
+        pm.startKernel()
         val oldConnectionFile = pm.getConnectionFileContent().get()
         assertNotNull(oldConnectionFile)
         val rs = pm.restartIPython()
@@ -119,8 +119,8 @@ internal class KernelContextImpTest {
 
     @Test
     fun restartIPython_OnStopped() {
-        pm.startIPython()
-        pm.stopIPython()
+        pm.startKernel()
+        pm.stopKernel()
         val rs = pm.restartIPython()
         assertTrue(rs is Err)
         assertTrue(rs.getError() is IllegalStateException)
