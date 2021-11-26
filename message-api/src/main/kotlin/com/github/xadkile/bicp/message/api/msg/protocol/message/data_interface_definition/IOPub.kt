@@ -8,6 +8,24 @@ import com.google.gson.annotations.SerializedName
 import javax.inject.Qualifier
 
 object IOPub {
+    object Status{
+        val msgType = MsgType.IOPub_status
+
+
+        /**
+         * When the kernel starts to handle a message, it will enter the 'busy'
+         * state and when it finishes, it will enter the 'idle' state.
+         * The kernel will publish state 'starting' exactly ONCE at process startup.
+         */
+        data class Content(
+            @SerializedName("execution_state")
+            val executionState: ExecutionState
+        ) : MsgContent
+
+        enum class ExecutionState{
+            busy, idle, starting
+        }
+    }
     object ExecuteResult{
         val msgType = MsgType.IOPub_execute_result
         data class Content(

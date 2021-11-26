@@ -18,13 +18,17 @@ import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
  *  It is best that MsgSender(s) are provided by [SenderProvider], which in turn, is provided by IPythonContext.
  */
 interface MsgSender<I:JPMessage<*,*>,O> {
+
+    /**
+     * should this send function be a suspending function?
+     * A suspending function is one that can suspend a coroutine scope
+     * A suspending function can use coroutineScope{} inside it. That means, it automatically latched itself to the nearest coroutine scope. This ensure that whatever coroutine launched inside this function will live just as long as the outer scope.
+     * If I allow scope injection, then the nested coroutine may outlive the nearest scope.
+     *
+     */
     fun send(message:I):O
 
-    class UnableToSendMsgException(
-        val msg: JPMessage<*,*>
-    ) : Exception()
 
-    class UnableToQueueMsgException(
-        val msg: JPMessage<*,*>
-    ):Exception()
+
+
 }

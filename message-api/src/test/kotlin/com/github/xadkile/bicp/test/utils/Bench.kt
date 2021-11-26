@@ -1,12 +1,11 @@
 package com.github.xadkile.bicp.test.utils
 
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteReply
+import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
 import com.github.xadkile.bicp.message.api.msg.sender.shell.KernelInfoInput
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
-import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -103,29 +102,31 @@ class Bench : TestOnJupyter() {
     @Test
     fun z3() {
         runBlocking {
-            // coroutineScope only ends when all the launch(es) are completed
-            coroutineScope {
-                launch {
-                    delay(2000L)
-                    println("World 2")
-                }
-                launch {
-                    delay(1000L)
-                    println("World 1")
-                }
-                println("Hello")
+            coroutineScope{
+                // coroutineScope only ends when all the launch(es) are completed
+                sf()
             }
-            // this only run after the coroutineScope above finish with all of its tasks.
-            println("End")
+
         }
     }
 
+    suspend fun sf(){
+        f1()
+        f2()
+    }
 
+    suspend fun f1(){
+        coroutineScope {  }
+        println("f1")
+    }
 
+    suspend fun f2(){
+        println("f2")
+    }
 
     @Test
     fun z2() {
-        val message: ExecuteReply = ExecuteRequest.autoCreate(
+        val message: ExecuteRequest = ExecuteRequest.autoCreate(
             sessionId = "session_id",
             username = "user_name",
             msgType = Shell.Execute.msgType,

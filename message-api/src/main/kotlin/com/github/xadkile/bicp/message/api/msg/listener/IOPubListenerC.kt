@@ -15,25 +15,19 @@ import org.zeromq.ZMsg
  * [defaultHandler] to handle DONT_EXIST msg type
  * [parseExceptionHandler] to handle exception of unable to parse zmq message
  */
-class IOPubListenerService constructor(
+class IOPubListenerC constructor(
     private val socketProvider: SocketProvider,
-    private val cScope: CoroutineScope,
-    private val cDispatcher: CoroutineDispatcher,
-    private val defaultHandler: MsgHandler = MsgHandlers.default,
-    private val parseExceptionHandler: (exception:Exception) -> Unit = {
-       println(it)
-    },
-) : MsgListenerService {
+    private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val defaultHandler: (msg:JPRawMessage) -> Unit = {},
+    private val parseExceptionHandler: (exception:Exception) -> Unit = { /*do nothing*/ },
+) : MsgListenerC {
 
     private val handlerContainer: MsgHandlerContainer = HandlerContainerImp()
     private var job: Job? = null
 
-    init {
-        this.addHandler(defaultHandler)
-    }
-
-    override fun start() {
-        this.job = cScope.launch(cDispatcher) {
+    override suspend fun start() {
+         coroutineScope {
+            this@IOPubListenerC.job = launch(cDispatcher) {
             val iopubSocket: ZMQ.Socket = socketProvider.ioPubSocket()
             iopubSocket.use {
                 while (isActive) {
@@ -43,12 +37,21 @@ class IOPubListenerService constructor(
                         when(rawMsgResult){
                             is Ok ->{
                                 val rawMsg = rawMsgResult.unwrap()
-                                val msgType = if (rawMsg.identities.contains("execute_result")) {
+                                val identity = rawMsg.identities
+                                val msgType = if (identity.endsWith("execute_result")) {
                                     IOPub.ExecuteResult.msgType
-                                } else {
-                                    MsgType.DONT_EXIST
                                 }
-                                dispatch(msgType, rawMsg)
+                                else if(identity.endsWith("status")){
+                                    IOPub.Status.msgType
+                                }
+                                else {
+                                    MsgType.NOT_RECOGNIZE
+                                }
+                                if(msgType == MsgType.NOT_RECOGNIZE){
+                                    defaultHandler(rawMsg)
+                                }else{
+                                    dispatch(msgType, rawMsg)
+                                }
                             }
                             else ->{
                                 parseExceptionHandler(rawMsgResult.unwrapError())
@@ -57,6 +60,7 @@ class IOPubListenerService constructor(
                     }
                 }
             }
+        }
         }
     }
 
@@ -128,5 +132,9 @@ class IOPubListenerService constructor(
 
     override fun isEmpty(): Boolean {
         return this.handlerContainer.isEmpty()
+    }
+
+    override fun close() {
+        this.stop()
     }
 }

@@ -14,8 +14,8 @@ class SenderProviderImp internal constructor(
 ) :
     SenderProvider {
 
-    override fun getExecuteRequestSender(): MsgSender<ExecuteReply, Result<ExecuteRequest, Exception>> {
-        return ExecuteSender(socketProvider.shellSocket(), this.msgEncoder,heartBeatServiceConv,zcontext)
+    override fun getExecuteRequestSender(): MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> {
+        return ExecuteSender(socketProvider, this.msgEncoder,heartBeatServiceConv,zcontext)
     }
 
     override fun getKernelInfoSender(): MsgSender<KernelInfoInput, Result<KernelInfoOutput, Exception>> {

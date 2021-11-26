@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class IOPubListenerServiceTest : TestOnJupyter() {
+internal class IOPubListenerTest : TestOnJupyter() {
     @Test
     fun start() {
         runBlocking {
@@ -23,34 +23,41 @@ internal class IOPubListenerServiceTest : TestOnJupyter() {
 
             var handlerWasTriggered = 0
             // rmd: settup listener, handler
-            val listener = IOPubListenerService(
-                ipythonContext.getSocketProvider().unwrap(),
-                this,
-                mainThreadSurrogate
+            val listener = IOPubListener(
+                socketProvider = ipythonContext.getSocketProvider().unwrap(),
+                cScope=this,
+                cDispatcher = mainThreadSurrogate,
+                defaultHandler = {
+                    println(it.identities)
+                }
+
             )
             listener.addHandler(MsgHandlers.withUUID(MsgType.IOPub_execute_result) { msg: JPRawMessage ->
                 val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
                 println(md)
                 handlerWasTriggered += 1
             })
+
             listener.start()
             assertTrue(listener.isRunning(), "listener should be running")
             // rmd: send message
+            val msg:ExecuteRequest = ExecuteRequest.autoCreate(
+                sessionId = "session_id",
+                username = "user_name",
+                msgType = Shell.Execute.msgType,
+                msgContent = Shell.Execute.Request.Content(
+                    code = "x=1+1*2;y=x*2;y",
+                    silent = false,
+                    storeHistory = true,
+                    userExpressions = mapOf(),
+                    allowStdin = false,
+                    stopOnError = true
+                ),
+                "msg_id_abc_123"
+            )
+            println(msg.header)
             ipythonContext.getSenderProvider().unwrap().getExecuteRequestSender().also {
-                it.send(ExecuteRequest.autoCreate(
-                    sessionId = "session_id",
-                    username = "user_name",
-                    msgType = Shell.Execute.msgType,
-                    msgContent = Shell.Execute.Request.Content(
-                        code = "x=1+1*2;y=x*2;y",
-                        silent = false,
-                        storeHistory = true,
-                        userExpressions = mapOf(),
-                        allowStdin = false,
-                        stopOnError = true
-                    ),
-                    "msg_id_abc_123"
-                ))
+                it.send(msg)
             }
 
             delay(1000)

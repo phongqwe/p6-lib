@@ -6,8 +6,8 @@ import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
  * Listen for in-coming message.
  * Dispatch message to the appropriate handlers.
  */
-interface MsgListenerService : MsgHandlerContainer {
-    fun start()
+interface MsgListenerC : MsgHandlerContainer,AutoCloseable {
+    suspend fun start()
     fun stop()
     fun isRunning():Boolean
 }

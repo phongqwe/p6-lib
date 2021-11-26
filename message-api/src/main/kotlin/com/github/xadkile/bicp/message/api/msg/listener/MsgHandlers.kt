@@ -1,6 +1,5 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
-import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 
@@ -17,8 +16,9 @@ class MsgHandlers {
                 }
             }
         }
-        val default = withUUID(MsgType.DONT_EXIST){
-            println(it)
+        val DoNothing = withUUID(MsgType.NOT_RECOGNIZE){}
+        fun default(handlerFunction: (msg: JPRawMessage) -> Unit = {}):UUIDMsgHandler{
+            return withUUID(MsgType.NOT_RECOGNIZE,handlerFunction)
         }
     }
 }

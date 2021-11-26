@@ -17,11 +17,11 @@ import kotlin.test.assertTrue
 internal class ExecuteSenderTest : TestOnJupyter() {
 
     @BeforeEach
-    fun beforeEach(){
+    fun beforeEach() {
         this.ipythonContext.startIPython()
     }
 
-    val message: ExecuteReply = ExecuteRequest.autoCreate(
+    val message: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
         msgType = Shell.Execute.msgType,
@@ -35,7 +35,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
         ),
         "msg_id_abc_123"
     )
-    val malformedCodeMsg: ExecuteReply = ExecuteRequest.autoCreate(
+    val malformedCodeMsg: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
         msgType = Shell.Execute.msgType,
@@ -52,14 +52,8 @@ internal class ExecuteSenderTest : TestOnJupyter() {
 
     @Test
     fun send_ok() {
-
-        val zcontext = this.ipythonContext.zContext()
-        val shellSocket = zcontext.createSocket(SocketType.REQ).also {
-            it.connect(this.iPythonContextConv.getShellAddress().unwrap())
-        }
-
         val sender2 = ExecuteSender(
-            shellSocket,
+            this.ipythonContext.getSocketProvider().unwrap(),
             this.ipythonContext.getMsgEncoder().unwrap(),
             this.ipythonContext.getHeartBeatService().unwrap().conv(),
             this.ipythonContext.zContext()
@@ -77,14 +71,8 @@ internal class ExecuteSenderTest : TestOnJupyter() {
      */
     @Test
     fun send_malformedCode() {
-        val connectionFile = this.ipythonContext.getConnectionFileContent().unwrap()
-        val zcontext = this.ipythonContext.zContext()
-        val shellSocket = zcontext.createSocket(SocketType.REQ).also {
-            it.connect(connectionFile.createShellChannel().makeAddress())
-        }
-
         val sender2 = ExecuteSender(
-            shellSocket,
+            this.ipythonContext.getSocketProvider().unwrap(),
             this.ipythonContext.getMsgEncoder().unwrap(),
             this.ipythonContext.getHeartBeatService().unwrap().conv(),
             this.ipythonContext.zContext()
@@ -102,13 +90,8 @@ internal class ExecuteSenderTest : TestOnJupyter() {
      */
     @Test
     fun send_fail() {
-        val zcontext = this.ipythonContext.zContext()
-        val channelProvider = this.ipythonContext.getChannelProvider().unwrap()
-        val shellSocket = zcontext.createSocket(SocketType.REQ).also {
-            it.connect(channelProvider.shellChannel().makeAddress())
-        }
         val sender2 = ExecuteSender(
-            shellSocket,
+            this.ipythonContext.getSocketProvider().unwrap(),
             this.ipythonContext.getMsgEncoder().unwrap(),
             this.ipythonContext.getHeartBeatService().unwrap().conv(),
             this.ipythonContext.zContext()
@@ -117,6 +100,6 @@ internal class ExecuteSenderTest : TestOnJupyter() {
         val out = sender2.send(
             message
         )
-        assertTrue (out is Err,out.toString())
+        assertTrue(out is Err, out.toString())
     }
 }

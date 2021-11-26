@@ -27,9 +27,11 @@ enum class MsgType {
     @SerializedName("execute_result")
     IOPub_execute_result,
 
+    @SerializedName("status")
+    IOPub_status,
 
 
-    DONT_EXIST
+    NOT_RECOGNIZE
 
     ;
 }
