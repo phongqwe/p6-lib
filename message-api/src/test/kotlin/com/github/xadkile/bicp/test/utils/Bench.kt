@@ -42,17 +42,48 @@ class Bench : TestOnJupyter() {
     }
 
     @Test
-    fun z3() {
+    fun z32() {
         runBlocking {
-
+            launch { println("first in runBlocking") }
             coroutineScope {
-                launch {
+                // how to make this non-blocking
+                coroutineScope {
+                    // adding delay here will postpone the execution of the following code
+                    delay(1000)
+                    var x: Long = 0L
+                    while (x < 4000_000_000) {
+                        x++
+                    }
+                    println("Last: $x")
+                }
+                coroutineScope {
                     // coroutine C2
                     println("Second")
                     println("Third")
                 }
+                println("ZEEZEEZ")
+            }
 
-                // how to make this non-blocking
+            // out here,
+            println("end of run Blocking")
+            // C1 and C2 are independent coroutine
+        }
+    }
+
+    /**
+     * The problem of launch{}
+     * How launch {...} work:
+     * launch{..} are queued and executed in their order of appearance.
+     * for coroutineScope{..} the direct codes are always run BEFORE any direct launch
+     * for runBlocking{..} the direct code are always run AFTER any direct launch
+     * to have true non-blocking behavior, see z32
+     */
+    @Test
+    fun z3() {
+        runBlocking {
+            launch { println("first in runBlocking") }
+            coroutineScope {
+                // how to make this non-blocking ??????
                 launch {
                     // adding delay here will postpone the execution of the following code
                     delay(1000)
@@ -62,15 +93,18 @@ class Bench : TestOnJupyter() {
                     }
                     println("Last: $x")
                 }
+                launch {
+                    // coroutine C2
+                    println("Second")
+                    println("Third")
+                }
                 // the non blocking behavior is only recorded between launch and outside code.
                 // launch does not block outside code
                 // out here, the code is not block, and always run before launch/async
                 println("ZEEZEEZ")
-
             }
-            println("After scope")
-
-
+            // out here,
+            println("end of run Blocking")
             // C1 and C2 are independent coroutine
         }
     }
