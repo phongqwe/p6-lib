@@ -20,6 +20,6 @@ class SenderProviderImp internal constructor(
     }
 
     override fun getKernelInfoSender(): MsgSender<KernelInfoInput, Result<KernelInfoOutput, Exception>> {
-        return KernelInfoSender(socketProvider.shellSocket(), this.msgEncoder,heartBeatServiceConv,zcontext)
+        return KernelInfoSender(kernelContext)
     }
 }

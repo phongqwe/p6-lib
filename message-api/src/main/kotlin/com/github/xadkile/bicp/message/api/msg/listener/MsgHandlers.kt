@@ -16,8 +16,8 @@ class MsgHandlers {
                 }
             }
         }
-        val DoNothing = withUUID(MsgType.NOT_RECOGNIZE){}
-        fun default(handlerFunction:suspend (msg: JPRawMessage) -> Unit = {}):UUIDMsgHandler{
+
+        fun default(handlerFunction: suspend (msg: JPRawMessage) -> Unit = {}):UUIDMsgHandler{
             return withUUID(MsgType.NOT_RECOGNIZE,handlerFunction)
         }
     }

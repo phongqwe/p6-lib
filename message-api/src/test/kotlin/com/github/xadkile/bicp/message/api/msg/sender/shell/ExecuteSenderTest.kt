@@ -6,6 +6,8 @@ import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgStatus
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -51,15 +53,18 @@ internal class ExecuteSenderTest : TestOnJupyter() {
 
     @Test
     fun send_ok() {
-        val sender2 = ExecuteSender(
-            kernelContext.conv()
-        )
+        runBlocking {
+            val sender2 = ExecuteSender(
+                kernelContext.conv()
+            )
 
-        val out = sender2.send(message)
+            val out = sender2.send(message, Dispatchers.Default)
 
-        assertTrue { out is Ok }
-        assertEquals(MsgStatus.ok, out.unwrap().content.status)
-        println("==OUT==\n${out.unwrap()}\n====")
+            assertTrue { out is Ok }
+            assertEquals(MsgStatus.ok, out.unwrap().content.status)
+            println("==OUT==\n${out.unwrap()}\n====")
+        }
+
     }
 
     /**
@@ -67,29 +72,30 @@ internal class ExecuteSenderTest : TestOnJupyter() {
      */
     @Test
     fun send_malformedCode() {
-        val sender2 = ExecuteSender(
-            kernelContext.conv()
-        )
+        runBlocking {
+            val sender2 = ExecuteSender(
+                kernelContext.conv()
+            )
 
-        val out = sender2.send(malformedCodeMsg)
+            val out = sender2.send(malformedCodeMsg,Dispatchers.Default)
 
-        assertTrue { out is Ok }
-        assertEquals(MsgStatus.error, out.unwrap().content.status)
-        println("==OUT==\n${out.unwrap()}\n====")
+            assertTrue { out is Ok }
+            assertEquals(MsgStatus.error, out.unwrap().content.status)
+            println("==OUT==\n${out.unwrap()}\n====")
+        }
+
     }
 
     /**
-     * unable to send message
+     * unable to send message, because kernel stopped
      */
     @Test
     fun send_fail() {
-        val sender2 = ExecuteSender(
-            kernelContext.conv()
-        )
-        this.kernelContext.stopKernel()
-        val out = sender2.send(
-            message
-        )
-        assertTrue(out is Err, out.toString())
+        runBlocking {
+            val sender2 = ExecuteSender(kernelContext.conv())
+            kernelContext.stopKernel()
+            val out = sender2.send(message, Dispatchers.Default)
+            assertTrue(out is Err, out.toString())
+        }
     }
 }

@@ -1,6 +1,8 @@
 package com.github.xadkile.bicp.message.api.msg.sender
 
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 
 /**
  * Send a JPMessage.
@@ -16,19 +18,11 @@ import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
  *  - encoder: key in connection file.
  *  - heart beat service: depend on port, address in connection file.
  *  It is best that MsgSender(s) are provided by [SenderProvider], which in turn, is provided by IPythonContext.
+ *
+ *  Sender should not outlive the scope in which it was launch, so don't inject external coroutine scope when implement this interface
  */
 interface MsgSender<I:JPMessage<*,*>,O> {
 
-    /**
-     * should this send function be a suspending function?
-     * A suspending function is one that can suspend a coroutine scope
-     * A suspending function can use coroutineScope{} inside it. That means, it automatically latched itself to the nearest coroutine scope. This ensure that whatever coroutine launched inside this function will live just as long as the outer scope.
-     * If I allow scope injection, then the nested coroutine may outlive the nearest scope.
-     *
-     */
-    fun send(message:I):O
-
-
-
+    suspend fun send(message:I, dispatcher: CoroutineDispatcher):O
 
 }

@@ -3,6 +3,7 @@ package com.github.xadkile.bicp.message.api.msg.sender
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
+import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.ipython_context.MsgEncoder
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage

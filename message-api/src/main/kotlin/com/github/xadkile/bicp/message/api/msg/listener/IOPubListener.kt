@@ -11,34 +11,33 @@ import org.zeromq.ZMQ
 import org.zeromq.ZMsg
 
 /**
- * Listen to pub msg from IOPub channel
+ * Listen to pub msg from IOPub channel.
  * Dispatch msg to appropriate handlers.
  * [defaultHandler] to handle DONT_EXIST msg type
- * [parseExceptionHandler] to handle exception of unable to parse zmq message
+ * [parseExceptionHandler] to handle exception of unable to parse zmq message.
+ * Now, the question is: should I allow suspend function in interface, or should I only write raw logic code and w
+ * manual state handling or depend on coroutine ????????
+ * manual state handling is dangerous for sure.
+ * But...manual state allow a clean state
+ *
+ *
  */
 class IOPubListener constructor(
     private val kernelContext: KernelContextReadOnlyConv,
-    private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
+//    private val externalScope:CoroutineScope,
+//    private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val defaultHandler: (msg: JPRawMessage) -> Unit = {},
     private val parseExceptionHandler: (exception: Exception) -> Unit = { /*do nothing*/ },
+    private val parallelHandler:Boolean = false
 ) : MsgListener {
 
     private val handlerContainer: MsgHandlerContainer = HandlerContainerImp()
     private var job: Job? = null
-    private var internalRunning = true
-    val socketProvider: SocketProvider = kernelContext.getSocketProvider().unwrap()
+    private val socketProvider: SocketProvider = kernelContext.getSocketProvider().unwrap()
 
-    /**
-     * I have 3 way to write this listener
-     * 1. I can write it bare, don't use any coroutine or anything. State is managed internally
-     *  => must make effort to launch it on the correct scope
-     * 2. Write with baked in coroutine
-     *      + with injected scope
-     *      + with auto inherited scope
-     */
-    override suspend fun start() {
-         coroutineScope {
-             job = launch(cDispatcher) {
+    override suspend fun start(externalScope:CoroutineScope,cDispatcher: CoroutineDispatcher) {
+        withContext(cDispatcher) {
+            job = externalScope.launch {
                 socketProvider.ioPubSocket().use {
                     while (isActive) {
                         val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
@@ -75,22 +74,9 @@ class IOPubListener constructor(
         }
     }
 
-    override suspend fun stopSuspend() {
+    override suspend fun stop() {
         job?.cancelAndJoin()
         this.job = null
-    }
-
-    override fun stop() {
-
-        runBlocking {
-            job?.cancelAndJoin()
-        }
-        this.job = null
-
-    }
-
-    fun stopII() {
-        this.internalRunning = false
     }
 
     override fun isRunning(): Boolean {
@@ -98,8 +84,16 @@ class IOPubListener constructor(
     }
 
     private suspend fun dispatch(msgType: MsgType, msg: JPRawMessage) {
-        handlerContainer.getHandlers(msgType).forEach {
-            it.handle(msg)
+        if(parallelHandler){
+            supervisorScope {
+                handlerContainer.getHandlers(msgType).forEach {
+                    launch{it.handle(msg)}
+                }
+            }
+        }else{
+            handlerContainer.getHandlers(msgType).forEach {
+                it.handle(msg)
+            }
         }
     }
 
@@ -157,6 +151,8 @@ class IOPubListener constructor(
     }
 
     override fun close() {
-        this.stop()
+        runBlocking {
+            stop()
+        }
     }
 }

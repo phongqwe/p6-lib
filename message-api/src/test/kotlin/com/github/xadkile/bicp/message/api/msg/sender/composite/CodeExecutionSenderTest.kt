@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class CodeExecutionSenderTest : TestOnJupyter(){
+internal class CodeExecutionSenderTest : TestOnJupyter() {
 
     /**
      * TODO write more edge case test:
@@ -20,9 +20,9 @@ internal class CodeExecutionSenderTest : TestOnJupyter(){
      */
     @Test
     fun send() {
-        kernelContext.startKernel()
-        kernelContext.getHeartBeatService().unwrap().start()
         runBlocking {
+            kernelContext.startKernel()
+            kernelContext.getHeartBeatService().unwrap().start()
 
             val message: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
@@ -39,7 +39,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter(){
                 "msg_id_abc_123"
             )
             val sender = CodeExecutionSender(kernelContext.conv())
-            val o = sender.send(message,  Dispatchers.Default)
+            val o = sender.send(message, Dispatchers.Default)
             println(o)
         }
     }

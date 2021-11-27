@@ -102,24 +102,7 @@ class Bench : TestOnJupyter() {
     @Test
     fun z3() {
         runBlocking {
-            // coroutineScope will only complete when all of its children job complete
-            // the child job is run in parallel
-            coroutineScope {
-                launch {
-                    var x= 0
-                    while(x<10){
-                        println("x:"+x)
-                        ++x
-                        delay(200)
-                    }
-                }
-                var x= 0
-                while(x<10){
-                    println("z:"+x)
-                    ++x
-                    delay(200)
-                }
-            }
+            f12()
             // this code won't run until the above coroutineScope complete
             var x= 0
             while(x<10){
@@ -133,8 +116,8 @@ class Bench : TestOnJupyter() {
     }
 
 
-    suspend fun f1(){
-        coroutineScope {
+    suspend fun f12(){
+        supervisorScope {
             launch {
                 var x= 0
                 while(x<10){
@@ -143,8 +126,23 @@ class Bench : TestOnJupyter() {
                     delay(200)
                 }
             }
+            launch {
+                var x= 0
+                while(x<10){
+                    println("z:"+x)
+                    ++x
+                    delay(200)
+                }
+            }
         }
-
+    }
+    fun f1(){
+                var x= 0
+                while(x<10){
+                    println("x:"+x)
+                    ++x
+                    Thread.sleep(200)
+                }
     }
 
     suspend fun f2(){
@@ -184,7 +182,7 @@ class Bench : TestOnJupyter() {
 
 
         val sender = this.kernelContext.getSenderProvider().unwrap().getExecuteRequestSender()
-        val o = sender.send(message)
+//        val o = sender.send(message)
 
     }
 
