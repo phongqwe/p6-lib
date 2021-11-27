@@ -31,25 +31,26 @@ class CodeExecutionSender(
     ): Result<ExecuteResult, Exception> {
 
         if(kernelContext.isNotRunning()){
-            return Err(KernelIsDownException())
+            return Err(KernelIsDownException.occurAt(this))
         }
 
         var rt: Result<ExecuteResult, Exception>? = null
         val executeSender = ExecuteSender(kernelContext)
         val ioPubListener = IOPubListener(
             kernelContext = kernelContext.conv(),
-        )
-
-        ioPubListener.addHandler(
-            MsgHandlers.withUUID(IOPub.ExecuteResult.msgType) {
-                val receivedMsg: ExecuteResult = it.toModel()
-                if (receivedMsg.parentHeader == message.header) {
-                    rt = Ok(receivedMsg)
-                    ioPubListener.stop()
+        ).also { listener->
+            listener.addHandler(
+                MsgHandlers.withUUID(IOPub.ExecuteResult.msgType) {
+                    val receivedMsg: ExecuteResult = it.toModel()
+                    if (receivedMsg.parentHeader == message.header) {
+                        rt = Ok(receivedMsg)
+                        listener.stop()
+                    }
                 }
-            }
-        )
-        coroutineScope {
+            )
+        }
+
+        withContext(dispatcher) {
             // rmd: start the iopub listener, run it on a separated job.
             launch {
                 ioPubListener.start(this, dispatcher)

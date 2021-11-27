@@ -20,11 +20,11 @@ import org.zeromq.ZMsg
  *  Sending requests to zmq.
  *  Receiving responses from zmq.'
  */
-class ZMQMsgSender {
+internal class ZMQMsgSender {
 
     companion object {
         /**
-         * wrapper function allowing calling send function on JPMessage
+         * wrapper function allowing calling [send] function on [JPMessage]
          * [zContext] is for creating poller
          */
         fun sendJPMsg(

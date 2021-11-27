@@ -96,6 +96,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
             kernelContext.stopKernel()
             val out = sender2.send(message, Dispatchers.Default)
             assertTrue(out is Err, out.toString())
+            println(out)
         }
     }
 }

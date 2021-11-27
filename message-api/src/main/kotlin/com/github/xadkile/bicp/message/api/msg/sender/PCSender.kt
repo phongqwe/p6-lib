@@ -12,9 +12,9 @@ import org.zeromq.ZContext
 import org.zeromq.ZMQ
 
 /**
- * encapsulate parsing and type conversion of output
+ * encapsulate parsing (P) and type conversion (C) of output
  */
-internal class ZSender<I: JPMessage<*, *>,O: JPMessage<*, *>> internal constructor(
+internal class PCSender<I: JPMessage<*, *>,O: JPMessage<*, *>> internal constructor(
     val socket: ZMQ.Socket,
     val msgEncoder: MsgEncoder,
     val hbService: HeartBeatServiceConv,

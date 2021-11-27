@@ -24,8 +24,6 @@ import org.zeromq.ZMsg
  */
 class IOPubListener constructor(
     private val kernelContext: KernelContextReadOnlyConv,
-//    private val externalScope:CoroutineScope,
-//    private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val defaultHandler: (msg: JPRawMessage) -> Unit = {},
     private val parseExceptionHandler: (exception: Exception) -> Unit = { /*do nothing*/ },
     private val parallelHandler:Boolean = false
@@ -33,9 +31,9 @@ class IOPubListener constructor(
 
     private val handlerContainer: MsgHandlerContainer = HandlerContainerImp()
     private var job: Job? = null
-    private val socketProvider: SocketProvider = kernelContext.getSocketProvider().unwrap()
 
     override suspend fun start(externalScope:CoroutineScope,cDispatcher: CoroutineDispatcher) {
+        val socketProvider: SocketProvider = kernelContext.getSocketProvider().unwrap()
         withContext(cDispatcher) {
             job = externalScope.launch {
                 socketProvider.ioPubSocket().use {

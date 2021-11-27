@@ -12,177 +12,131 @@ import org.junit.jupiter.api.TestInstance
 import org.zeromq.*
 import java.util.*
 import kotlin.concurrent.thread
+import kotlin.system.measureTimeMillis
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
-    /**
-     * DetatchedRunnable = autonomous thread. Have no context, does not return any PAIR socket
-     * AttachedRunnable = have context, return a PAIR socket (for what?)
-     * The PAIR socket AttachedRunnable returns is a "bind" socket.
-     * PAIR sockets are bidirectional.
-     * This way, I can write to the bind socket, so that anything listening to this will know if something happend.
-     * For example:
-     *      Within an AttachedRunnable, I do some work, and write the result out to the connect socket
-     *      The externals code use listen using the bind socket and get the output out. Or something.
-     * The socket address is: "inproc://zctx-pipe-{socket-hashCode}"
-     * So AttachedRunnable is for broadcasting receiving information to the outside of its thread usig socket as the transportation channel
-     *
-     * For DettachedRunnable, I can accomplished the same thing by passing object reference to DettachedRunnable.
-     * But I need to make sure that this is safe. Sharing state is dangerous.
-     * ======
-     * for io pub/sub
-     * I will need to run a long running background service that constantly listen to the iopub channel.
-     * When I receive a message, I will need to filter and route it to where it should be.
-     * I need to define a strict set of criteria so that the message is sent to the appropriate handler
-     * 1. Message type:
-     *  - IOPub publish several type of events. Each type should have 1 lv0 handler
-     *  - For each event type, there maybe multiple sub target or lv1 handler. The lv0 handler should handle routing message to the correct lv1 handler.
-     *
-     *  I need to study JP message document and write down the event type + sub type.
-     *  So, I can have 1 central hub of IOPUb listener.
-     *  Then use the identity field to route msg to the correct handler:
-     *  eg:
-     *  - identity with "execute_result" should go to executeResult handler, to display the result on the UI view or something.
-     *  - identity with "status" should go to status handler service, so that it can provide kernel status to other components.
-     *
-     *
-     */
-    class ZListener(val subSocket: ZMQ.Socket) : ZThread.IDetachedRunnable {
-
-        override fun run(args: Array<out Any>?) {
-            while (true) {
-                val msg = ZMsg.recvMsg(subSocket)
-                val rawMsg = JPRawMessage.fromPayload(msg.map { it.data }).unwrap()
-                if (rawMsg.identities.contains("execute_result")) {
-                    val md = rawMsg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
-                    println(md)
-                } else {
-                    println(rawMsg)
-                }
-            }
-        }
-    }
-
-    class ZListenerAttached : ZThread.IAttachedRunnable {
-        override fun run(args: Array<out Any>, ctx: ZContext, connectPipe: ZMQ.Socket) {
-            var c = 0
-            val poller = ctx.createPoller(1)
-            poller.register(connectPipe, ZMQ.Poller.POLLIN)
-//            while (c<100) {
-//                connectPipe.send("" + c)
-//                c++
-//            }
-            while (true) {
-                poller.poll(1000)
-                if (poller.pollin(0)) {
-                    println("Z+:" + connectPipe.recvStr())
-                }
-            }
-        }
-    }
 
     @Test
-    fun z5(){
-
-
-    }
-
-    @Test
-    fun z4(){
+    fun z4() {
 
         runBlocking {
-            println(this.hashCode())
             coroutineScope {
-                println(this.hashCode())
+                launch {
+                    var x: Long = 0L
+                    while (x < 10) {
+                        println("x $x")
+                        ++x
+                    }
+                }
+
+                launch {
+                    var x: Long = 0L
+                    while (x < 10) {
+                        println("y $x")
+                        ++x
+                    }
+                }
             }
-            delay(1000)
-            println("END")
         }
     }
+
     @Test
     fun z3() {
         runBlocking {
-            f12()
-            // this code won't run until the above coroutineScope complete
-            var x= 0
-            while(x<10){
-                println("y:"+x)
-                ++x
-                Thread.sleep(200)
-            }
 
-        }
-
-    }
-
-
-    suspend fun f12(){
-        supervisorScope {
-            launch {
-                var x= 0
-                while(x<10){
-                    println("x:"+x)
-                    ++x
-                    delay(200)
+            coroutineScope {
+                launch {
+                    // coroutine C2
+                    println("Second")
+                    println("Third")
                 }
-            }
-            launch {
-                var x= 0
-                while(x<10){
-                    println("z:"+x)
-                    ++x
-                    delay(200)
+
+                // how to make this non-blocking
+                launch {
+                    // adding delay here will postpone the execution of the following code
+                    delay(1000)
+                    var x: Long = 0L
+                    while (x < 4000_000_000) {
+                        x++
+                    }
+                    println("Last: $x")
                 }
+                // the non blocking behavior is only recorded between launch and outside code.
+                // launch does not block outside code
+                // out here, the code is not block, and always run before launch/async
+                println("ZEEZEEZ")
+
             }
+            println("After scope")
+
+
+            // C1 and C2 are independent coroutine
         }
     }
-    fun f1(){
-                var x= 0
-                while(x<10){
-                    println("x:"+x)
-                    ++x
-                    Thread.sleep(200)
-                }
+
+
+    /**
+     * So suspending function is like a delay(). It can block (suspend) a coroutine's operation in the middle, but not the thread underneath, so that the underlying thread can freely go on launching other coroutine or do other things.
+     * A suspending function ensures that calling it does not block the underlying function.
+     * It actually not directly related to creating any coroutine.
+     * I must be aware that: suspending function does not have a coroutine scope, or a context, or a dispatcher inherently sticked to it. It's sole purpose is the ability block the caller coroutine.
+     */
+    suspend fun doSomethingUsefulOne(): Int {
+        delay(1000L) // pretend we are doing something useful here
+        return 13
     }
 
-    suspend fun f2(){
-        var x= 0
-        while(true){
-            println("y:"+x)
-            ++x
-            delay(200)
+    suspend fun doSomethingUsefulTwo(): Int {
+        delay(1000L) // pretend we are doing something useful here, too
+        return 29
+    }
+
+    fun heavyWorkLoad(): Long {
+        var x: Long = 0L
+        while (x < 4000_000_000) {
+            x++
         }
+        return x
+    }
+
+    suspend fun heavyWorkLoadSus(): String {
+        return coroutineScope {
+            withContext(Dispatchers.Default) {
+                var x: Long = 0L
+                while (x < 4000_000_000) {
+                    x++
+                }
+                "Sus"
+            }
+        }
+        // this blocks
+//        return coroutineScope {
+//                var x: Long = 0L
+//                while (x < 4000_000_000) {
+//                    x++
+//                }
+//                "Sus"
+//        }
+    }
+
+    suspend fun heavyWorkLoadBareSus(): String {
+        var x: Long = 0L
+        while (x < 4000_000_000) {
+            x++
+        }
+        return "Bare sus"
     }
 
     @Test
     fun z2() {
-        val message: ExecuteRequest = ExecuteRequest.autoCreate(
-            sessionId = "session_id",
-            username = "user_name",
-            msgType = Shell.Execute.msgType,
-            msgContent = Shell.Execute.Request.Content(
-                code = "x=1+1*2;y=x*2;y",
-                silent = false,
-                storeHistory = true,
-                userExpressions = mapOf(),
-                allowStdin = false,
-                stopOnError = true
-            ),
-            "msg_id_abc_123"
-        )
-
-        val messageKI: KernelInfoInput = KernelInfoInput.autoCreate(
-            sessionId = "session_id",
-            username = "user_name",
-            msgType = Shell.KernelInfo.Request.msgType,
-            msgContent = Shell.KernelInfo.Request.Content(),
-            "msg_id_abc_123"
-        )
-        this.kernelContext.startKernel()
-
-
-        val sender = this.kernelContext.getSenderProvider().unwrap().getExecuteRequestSender()
-//        val o = sender.send(message)
+        val t = measureTimeMillis {
+            var x: Long = 0L
+            while (x < 4000_000_000) {
+                x++
+            }
+        }
+        println(t)
 
     }
 

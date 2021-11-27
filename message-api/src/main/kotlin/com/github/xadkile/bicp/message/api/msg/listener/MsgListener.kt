@@ -17,7 +17,7 @@ interface MsgListener : MsgHandlerContainer, AutoCloseable {
      */
     suspend fun start(
         externalScope: CoroutineScope,
-        cDispatcher: CoroutineDispatcher = Dispatchers.Default)
+        cDispatcher: CoroutineDispatcher = Dispatchers.IO)
 
     suspend fun stop()
 

@@ -18,11 +18,12 @@ import kotlinx.coroutines.Dispatchers
  *  - encoder: key in connection file.
  *  - heart beat service: depend on port, address in connection file.
  *  It is best that MsgSender(s) are provided by [SenderProvider], which in turn, is provided by IPythonContext.
- *
- *  Sender should not outlive the scope in which it was launch, so don't inject external coroutine scope when implement this interface
  */
-interface MsgSender<I:JPMessage<*,*>,O> {
+interface MsgSender<I : JPMessage<*, *>, O> {
 
-    suspend fun send(message:I, dispatcher: CoroutineDispatcher):O
+    /**
+     *  Sender should not outlive the scope in which it was launch, so don't inject external coroutine scope when implement this interface
+     */
+    suspend fun send(message: I, dispatcher: CoroutineDispatcher = Dispatchers.IO): O
 
 }
