@@ -1,6 +1,6 @@
 package com.github.xadkile.bicp.test.utils
 
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelConfig
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelConfig
 import com.google.gson.Gson
 import java.net.URL
 import java.nio.file.Files

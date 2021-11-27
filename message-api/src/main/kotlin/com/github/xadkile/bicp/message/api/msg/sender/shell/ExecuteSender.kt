@@ -3,15 +3,12 @@ package com.github.xadkile.bicp.message.api.msg.sender.shell
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
-import com.github.xadkile.bicp.message.api.connection.ipython_context.*
+import com.github.xadkile.bicp.message.api.connection.kernel_context.*
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.ZSender
 import kotlinx.coroutines.*
-import org.zeromq.ZContext
-import org.zeromq.ZMQ
 
 typealias ExecuteReply = JPMessage<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>
 

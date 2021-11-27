@@ -1,6 +1,6 @@
 package com.github.xadkile.bicp.test.utils
 
-import com.github.xadkile.bicp.message.api.connection.ipython_context.*
+import com.github.xadkile.bicp.message.api.connection.kernel_context.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.newSingleThreadContext

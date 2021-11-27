@@ -1,16 +1,12 @@
 package com.github.xadkile.bicp.test.utils
 
-import com.github.xadkile.bicp.message.api.connection.ipython_context.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
-import org.zeromq.ZContext
 
 /**
  * For running test on runBlocking{...}

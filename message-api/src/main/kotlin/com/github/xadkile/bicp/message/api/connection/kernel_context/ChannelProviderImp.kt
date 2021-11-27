@@ -1,7 +1,6 @@
-package com.github.xadkile.bicp.message.api.connection.ipython_context
+package com.github.xadkile.bicp.message.api.connection.kernel_context
 
 import com.github.xadkile.bicp.message.api.channel.ChannelInfo
-import com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent
 
 class ChannelProviderImp internal constructor(private val connectFile: com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent) :
     ChannelProvider {

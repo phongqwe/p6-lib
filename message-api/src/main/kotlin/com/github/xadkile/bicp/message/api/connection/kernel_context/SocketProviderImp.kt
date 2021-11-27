@@ -1,6 +1,5 @@
-package com.github.xadkile.bicp.message.api.connection.ipython_context
+package com.github.xadkile.bicp.message.api.connection.kernel_context
 
-import com.github.michaelbull.result.unwrap
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ

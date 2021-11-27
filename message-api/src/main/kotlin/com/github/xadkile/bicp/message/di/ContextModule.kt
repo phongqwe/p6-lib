@@ -1,8 +1,8 @@
 package com.github.xadkile.bicp.message.di
 
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContextReadOnly
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContext
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContextImp
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnly
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContext
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextImp
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

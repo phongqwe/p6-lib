@@ -6,7 +6,7 @@ import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
-import com.github.xadkile.bicp.message.api.connection.ipython_context.MsgEncoder
+import com.github.xadkile.bicp.message.api.connection.kernel_context.MsgEncoder
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToQueueZMsgException

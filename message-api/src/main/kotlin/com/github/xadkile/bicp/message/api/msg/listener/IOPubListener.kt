@@ -1,8 +1,8 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContextReadOnlyConv
-import com.github.xadkile.bicp.message.api.connection.ipython_context.SocketProvider
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
+import com.github.xadkile.bicp.message.api.connection.kernel_context.SocketProvider
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub

@@ -1,7 +1,7 @@
 package com.github.xadkile.bicp.message.di
 
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelConfig
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContext
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelConfig
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContext
 import dagger.BindsInstance
 import dagger.Component
 import org.zeromq.ZContext

@@ -1,8 +1,8 @@
 package com.github.xadkile.bicp.message.api.connection
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelConfig
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContextImp
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelConfig
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextImp
 import com.github.xadkile.bicp.test.utils.TestResources
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach

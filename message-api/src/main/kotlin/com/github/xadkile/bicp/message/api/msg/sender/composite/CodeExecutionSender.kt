@@ -3,16 +3,13 @@ package com.github.xadkile.bicp.message.api.msg.sender.composite
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.unwrap
 import com.github.michaelbull.result.unwrapError
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelContextReadOnlyConv
-import com.github.xadkile.bicp.message.api.connection.ipython_context.KernelIsDownException
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelIsDownException
 import com.github.xadkile.bicp.message.api.msg.listener.IOPubListener
 import com.github.xadkile.bicp.message.api.msg.listener.MsgHandlers
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgStatus
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToSendMsgException
@@ -20,8 +17,6 @@ import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteSender
 import com.github.xadkile.bicp.message.api.other.Sleeper
 import kotlinx.coroutines.*
-import org.zeromq.ZMQ
-import org.zeromq.ZMsg
 
 
 typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>
