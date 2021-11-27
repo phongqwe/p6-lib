@@ -10,6 +10,7 @@ import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.*
+import java.math.BigInteger
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.system.measureTimeMillis
@@ -44,29 +45,17 @@ class Bench : TestOnJupyter() {
     @Test
     fun z32() {
         runBlocking {
-            launch { println("first in runBlocking") }
-            coroutineScope {
-                // how to make this non-blocking
-                coroutineScope {
-                    // adding delay here will postpone the execution of the following code
-                    delay(1000)
-                    var x: Long = 0L
-                    while (x < 4000_000_000) {
-                        x++
-                    }
-                    println("Last: $x")
-                }
-                coroutineScope {
-                    // coroutine C2
+            val time = measureTimeMillis {
+                val one = async {
+                println("last")
+                    doSomethingUsefulOne() }
+                val two = async { doSomethingUsefulTwo() }
+                launch(Dispatchers.Default) {
                     println("Second")
-                    println("Third")
                 }
-                println("ZEEZEEZ")
+                println("The answer is ${one.await() + two.await()}")
             }
-
-            // out here,
-            println("end of run Blocking")
-            // C1 and C2 are independent coroutine
+            println("Completed in $time ms")
         }
     }
 
@@ -83,17 +72,16 @@ class Bench : TestOnJupyter() {
         runBlocking {
             launch { println("first in runBlocking") }
             coroutineScope {
-                // how to make this non-blocking ??????
-                launch {
+                // how to make this non-blocking: specify a dispatcher such as Dispatchers.Default. If i dont, it will use the dispatcher of runBlocking because it inherit it.
+                launch(Dispatchers.Default) {
                     // adding delay here will postpone the execution of the following code
-                    delay(1000)
                     var x: Long = 0L
                     while (x < 4000_000_000) {
                         x++
                     }
                     println("Last: $x")
                 }
-                launch {
+                launch(Dispatchers.Default) {
                     // coroutine C2
                     println("Second")
                     println("Third")
@@ -116,14 +104,29 @@ class Bench : TestOnJupyter() {
      * It actually not directly related to creating any coroutine.
      * I must be aware that: suspending function does not have a coroutine scope, or a context, or a dispatcher inherently sticked to it. It's sole purpose is the ability block the caller coroutine.
      */
-    suspend fun doSomethingUsefulOne(): Int {
-        delay(1000L) // pretend we are doing something useful here
-        return 13
+     suspend fun doSomethingUsefulOne(dispatcher: CoroutineDispatcher=Dispatchers.Default): BigInteger {
+        return withContext(dispatcher){
+            println("in doSomethingUsefulOne")
+//        return BigInteger(1500, Random()).nextProbablePrime()
+            var x: Long = 0L
+            while (x < 4000_000_000) {
+                x++
+            }
+             BigInteger.valueOf(x)
+        }
+
     }
 
-    suspend fun doSomethingUsefulTwo(): Int {
-        delay(1000L) // pretend we are doing something useful here, too
-        return 29
+     suspend fun doSomethingUsefulTwo(dispatcher: CoroutineDispatcher=Dispatchers.Default): BigInteger {
+//        return BigInteger(1500, Random()).nextProbablePrime()
+         return withContext(dispatcher){
+             println("in doSomethingUsefulTwo")
+             var x: Long = 0L
+             while (x < 4000_000_000) {
+                 x++
+             }
+              BigInteger.valueOf(x)
+         }
     }
 
     fun heavyWorkLoad(): Long {
@@ -144,14 +147,7 @@ class Bench : TestOnJupyter() {
                 "Sus"
             }
         }
-        // this blocks
-//        return coroutineScope {
-//                var x: Long = 0L
-//                while (x < 4000_000_000) {
-//                    x++
-//                }
-//                "Sus"
-//        }
+
     }
 
     suspend fun heavyWorkLoadBareSus(): String {
