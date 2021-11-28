@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.*
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.SocketProvider
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
@@ -26,44 +27,42 @@ class IOPubListener constructor(
     private val kernelContext: KernelContextReadOnlyConv,
     private val defaultHandler: (msg: JPRawMessage) -> Unit = {},
     private val parseExceptionHandler: (exception: Exception) -> Unit = { /*do nothing*/ },
-    private val parallelHandler:Boolean = false
+    private val parallelHandler: Boolean = false,
 ) : MsgListener {
 
     private val handlerContainer: MsgHandlerContainer = HandlerContainerImp()
     private var job: Job? = null
 
-    override suspend fun start(externalScope:CoroutineScope,cDispatcher: CoroutineDispatcher) {
+    override fun start(externalScope: CoroutineScope, cDispatcher: CoroutineDispatcher) {
         val socketProvider: SocketProvider = kernelContext.getSocketProvider().unwrap()
-        withContext(cDispatcher) {
-            job = externalScope.launch {
-                socketProvider.ioPubSocket().use {
-                    while (isActive) {
-                        val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
-                        if (msg != null) {
-                            when (val rawMsgResult = JPRawMessage.fromPayload(msg.map { f->f.data })) {
-                                is Ok -> {
-                                    val rawMsg = rawMsgResult.unwrap()
-                                    val identity = rawMsg.identities
-                                    val msgType = when {
-                                        identity.endsWith("execute_result") -> {
-                                            IOPub.ExecuteResult.msgType
-                                        }
-                                        identity.endsWith("status") -> {
-                                            IOPub.Status.msgType
-                                        }
-                                        else -> {
-                                            MsgType.NOT_RECOGNIZE
-                                        }
+        job = externalScope.launch(cDispatcher) {
+            socketProvider.ioPubSocket().use {
+                while (isActive) {
+                    val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
+                    if (msg != null) {
+                        when (val rawMsgResult = JPRawMessage.fromPayload(msg.map { f -> f.data })) {
+                            is Ok -> {
+                                val rawMsg = rawMsgResult.unwrap()
+                                val identity = rawMsg.identities
+                                val msgType = when {
+                                    identity.endsWith("execute_result") -> {
+                                        IOPub.ExecuteResult.msgType
                                     }
-                                    if (msgType == MsgType.NOT_RECOGNIZE) {
-                                        defaultHandler(rawMsg)
-                                    } else {
-                                        dispatch(msgType, rawMsg)
+                                    identity.endsWith("status") -> {
+                                        IOPub.Status.msgType
+                                    }
+                                    else -> {
+                                        MsgType.NOT_RECOGNIZE
                                     }
                                 }
-                                else -> {
-                                    parseExceptionHandler(rawMsgResult.unwrapError())
+                                if (msgType == MsgType.NOT_RECOGNIZE) {
+                                    defaultHandler(rawMsg)
+                                } else {
+                                    dispatch(msgType, rawMsg)
                                 }
+                            }
+                            else -> {
+                                parseExceptionHandler(rawMsgResult.unwrapError())
                             }
                         }
                     }
@@ -82,13 +81,13 @@ class IOPubListener constructor(
     }
 
     private suspend fun dispatch(msgType: MsgType, msg: JPRawMessage) {
-        if(parallelHandler){
+        if (parallelHandler) {
             supervisorScope {
                 handlerContainer.getHandlers(msgType).forEach {
-                    launch{it.handle(msg)}
+                    launch { it.handle(msg) }
                 }
             }
-        }else{
+        } else {
             handlerContainer.getHandlers(msgType).forEach {
                 it.handle(msg)
             }
@@ -115,42 +114,25 @@ class IOPubListener constructor(
         this.handlerContainer.removeHandler(handlerId)
     }
 
-    override fun removeHandler(msgType: MsgType, handlerId: String) {
-        this.removeHandler(msgType, handlerId)
-    }
-
     override fun removeHandler(handler: MsgHandler) {
         this.removeHandler(handler)
-    }
-
-    override val entries: Set<Map.Entry<MsgType, List<MsgHandler>>>
-        get() = this.handlerContainer.entries
-    override val keys: Set<MsgType>
-        get() = this.handlerContainer.keys
-    override val size: Int
-        get() = this.handlerContainer.size
-    override val values: Collection<List<MsgHandler>>
-        get() = this.handlerContainer.values
-
-    override fun containsKey(key: MsgType): Boolean {
-        return this.handlerContainer.containsKey(key)
-    }
-
-    override fun containsValue(value: List<MsgHandler>): Boolean {
-        return this.handlerContainer.containsValue(value)
-    }
-
-    override fun get(key: MsgType): List<MsgHandler>? {
-        return this.handlerContainer.get(key)
     }
 
     override fun isEmpty(): Boolean {
         return this.handlerContainer.isEmpty()
     }
 
+    override fun isNotEmpty(): Boolean {
+        return this.handlerContainer.isNotEmpty()
+    }
+
     override fun close() {
         runBlocking {
             stop()
         }
+    }
+
+    override fun getKernelContext(): KernelContextReadOnly {
+        return this.kernelContext
     }
 }

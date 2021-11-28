@@ -39,13 +39,6 @@ internal class HandlerContainerImpTest {
         hContainer.addHandler(h1)
         hContainer.removeHandler(h1)
         assertTrue(hContainer.isEmpty())
-
-        hContainer.addHandler(h1)
-        hContainer.removeHandler(h2.msgType(),h1.id())
-        assertTrue(hContainer.isNotEmpty())
-
-        hContainer.removeHandler(h1.msgType(),h1.id())
-        assertTrue(hContainer.isEmpty())
     }
 
     @Test

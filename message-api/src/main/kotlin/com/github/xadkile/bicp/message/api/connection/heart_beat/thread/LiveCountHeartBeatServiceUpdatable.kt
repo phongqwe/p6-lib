@@ -11,7 +11,8 @@ import kotlin.concurrent.thread
 
 /**
  * This service can exist independently from [IPythonContext]
- * TODO what is the point of this class, if the kernel is dead, there's no point in running this services.
+ * TODO what is the point of this class?, if the kernel is dead, there's no point in running this services.
+ * TODO There's a risk that the kernel is killed externally, and something (this class maybe) must be watching that. But I should not be concern with this too much as it requires great deal of attention, but brings little reward
  * @deprecated don't use
  */
 internal class LiveCountHeartBeatServiceUpdatable constructor(

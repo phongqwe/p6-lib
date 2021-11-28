@@ -4,6 +4,7 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.heart_beat.HeartBeatServiceConv
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelIsDownException
 import com.github.xadkile.bicp.message.api.connection.kernel_context.MsgEncoder
@@ -28,17 +29,32 @@ class KernelInfoSender internal constructor(
         message: KernelInfoInput,
         dispatcher: CoroutineDispatcher,
     ): Result<KernelInfoOutput, Exception> {
-        if (this.kernelContext.isNotRunning()) {
-            return Err(KernelIsDownException.occurAt(this))
+        return this.checkContextRunningThen {
+            withContext(dispatcher) {
+                val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().shellSocket()
+                val msgEncoder: MsgEncoder = kernelContext.getMsgEncoder().unwrap()
+                val hbService: HeartBeatServiceConv = kernelContext.getConvHeartBeatService().unwrap()
+                val zContext: ZContext = kernelContext.zContext()
+                val zSender = PCSender<KernelInfoInput, KernelInfoOutput>(socket, msgEncoder, hbService, zContext)
+                val rt = zSender.send<Shell.KernelInfo.Request.MetaData, Shell.KernelInfo.Request.Content>(message)
+                rt
+            }
         }
-        return withContext(dispatcher) {
-            val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().shellSocket()
-            val msgEncoder: MsgEncoder = kernelContext.getMsgEncoder().unwrap()
-            val hbService: HeartBeatServiceConv = kernelContext.getConvHeartBeatService().unwrap()
-            val zContext: ZContext = kernelContext.zContext()
-            val zSender = PCSender<KernelInfoInput, KernelInfoOutput>(socket, msgEncoder, hbService, zContext)
-            val rt = zSender.send<Shell.KernelInfo.Request.MetaData, Shell.KernelInfo.Request.Content>(message)
-            rt
-        }
+//        if (this.kernelContext.isNotRunning()) {
+//            return Err(KernelIsDownException.occurAt(this))
+//        }
+//        return withContext(dispatcher) {
+//            val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().shellSocket()
+//            val msgEncoder: MsgEncoder = kernelContext.getMsgEncoder().unwrap()
+//            val hbService: HeartBeatServiceConv = kernelContext.getConvHeartBeatService().unwrap()
+//            val zContext: ZContext = kernelContext.zContext()
+//            val zSender = PCSender<KernelInfoInput, KernelInfoOutput>(socket, msgEncoder, hbService, zContext)
+//            val rt = zSender.send<Shell.KernelInfo.Request.MetaData, Shell.KernelInfo.Request.Content>(message)
+//            rt
+//        }
+    }
+
+    override fun getKernelContext(): KernelContextReadOnly {
+        return this.kernelContext
     }
 }
