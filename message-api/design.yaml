@@ -11,7 +11,12 @@ message-api:
           - message encoder
           - message id generator
     Objects provided by the context must NOT be directly created manually
-    
+    Handling external kernel interruption:
+      - Long running background services:
+        - Long-running services that depends on the liveness of kernel must watch out for external kernel interruption (such as external process kill). I must define and design a clear behavior for each service, and take into account the effect of external interruption.
+        - Long-running services MUST NOT handle the interruption event by itself. It must expose enough functions that can perform the defined behavior (above), but again, must NOT invoke the handling within their main logic loop.
+        - A central hub/watcher will watch for these interruption events, and then issues commands to each services on what to do when it happend.
   Exceptions propagating, handling:
     - Exceptions should be returned as Result<> object instead of throwing directly.
     - Each type of error should be represent by a unique class of Exception. This choice allow any kind of class of Exception containing any type of data in any structured be returned to exception handlers.
+    -

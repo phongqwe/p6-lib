@@ -18,6 +18,26 @@ import org.zeromq.ZMsg
  * Normally, I would like to:
  *  - notify all handler that something is wrong, and they should do something about it.
  *      => need to extend the handler interface to handle
+ *  The behavior of this listener is very complex:
+ *  1st: it will listen to incoming message
+ *      + if the message is in ok format (can be parsed) -> dispatch the msg to handler
+ *      + if the message is malformed -> call parse exception handler
+ *  2nd: if the kernel is killed midway
+ *      + run kernel interruption handler, then stop itself.
+ *
+ *     ==============
+
+ *
+ *               + external interruption is a very dangerous behavior, it will disrrupt the kernel context and everything else. Should this listener handled the case by itself ? No. Stuffing too much logic in one function is bad. Very hard to test and extremely buggy. Each function should be as single-minded as possible.
+ *
+ *               For system level services, they must be tied to a single point of control (the context), so that they can be started, shutdown, restarted all at once.
+ *
+ *               To handle external interruption, that should be the responsibility of something else (process watcher & context). These watcher will watch for interruption events, then send signal to some kind of service hub to centralize the controlling of services. Such hub will issue commands to each service, telling then what to do.
+ *
+ *               I may define a behavior (in a function) that should happens when an interruption occur, but I must not invoke such behavior scatteringly, and only invoke such behavior in side the service hub.
+ *
+ *               Action should be simple, single-goal, limited state, so that they can be combine externally
+ *
  *
  */
 class IOPubListener constructor(
@@ -41,7 +61,6 @@ class IOPubListener constructor(
     private var job: Job? = null
 
     /**
-     * TODO how to handle exception when kernel context not running
      * this will start this listener on a coroutine that runs concurrently, in parallel, or whatnot.
      */
     override suspend fun start(
@@ -82,7 +101,10 @@ class IOPubListener constructor(
                                 }
                             }
                         } else {
+                            // consider moving this outside of this code.
+                                // It is invoking kernel interruption handling action within its logic loop.
                             reactOnKernelDown(dispatcher)
+                            break
                         }
                     }
                 }
@@ -105,6 +127,7 @@ class IOPubListener constructor(
                 }
             }
         }
+        this.stop()
     }
 
     override suspend fun stop() {
