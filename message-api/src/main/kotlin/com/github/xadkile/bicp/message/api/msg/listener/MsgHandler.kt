@@ -8,7 +8,7 @@ interface MsgHandler {
      * callback function
      * A handler may need to interact with other suspend function, so this function is a suspend function
      */
-    suspend fun handle(msg: JPRawMessage)
+    suspend fun handle(msg: JPRawMessage, listener:MsgListener)
 
     /**
      * unique id

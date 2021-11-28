@@ -5,11 +5,11 @@ import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 
 class MsgHandlers {
     companion object {
-        fun withUUID(msgType: MsgType, handlerFunction: suspend (msg: JPRawMessage) -> Unit = {}): UUIDMsgHandler {
+        fun withUUID(msgType: MsgType, handlerFunction: suspend (msg: JPRawMessage, listener:MsgListener) -> Unit = {m,l->}): UUIDMsgHandler {
             return object : UUIDMsgHandler() {
                 private val mt = msgType
-                override suspend fun handle(msg: JPRawMessage) {
-                    handlerFunction(msg)
+                override suspend fun handle(msg: JPRawMessage, listener:MsgListener) {
+                    handlerFunction(msg,listener)
                 }
                 override fun msgType(): MsgType {
                     return mt
@@ -17,7 +17,7 @@ class MsgHandlers {
             }
         }
 
-        fun default(handlerFunction: suspend (msg: JPRawMessage) -> Unit = {}):UUIDMsgHandler{
+        fun default(handlerFunction: suspend (msg: JPRawMessage, listener:MsgListener) -> Unit = {_,_->}):UUIDMsgHandler{
             return withUUID(MsgType.NOT_RECOGNIZE,handlerFunction)
         }
     }

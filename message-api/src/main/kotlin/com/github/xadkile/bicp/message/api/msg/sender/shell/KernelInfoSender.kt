@@ -40,18 +40,6 @@ class KernelInfoSender internal constructor(
                 rt
             }
         }
-//        if (this.kernelContext.isNotRunning()) {
-//            return Err(KernelIsDownException.occurAt(this))
-//        }
-//        return withContext(dispatcher) {
-//            val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().shellSocket()
-//            val msgEncoder: MsgEncoder = kernelContext.getMsgEncoder().unwrap()
-//            val hbService: HeartBeatServiceConv = kernelContext.getConvHeartBeatService().unwrap()
-//            val zContext: ZContext = kernelContext.zContext()
-//            val zSender = PCSender<KernelInfoInput, KernelInfoOutput>(socket, msgEncoder, hbService, zContext)
-//            val rt = zSender.send<Shell.KernelInfo.Request.MetaData, Shell.KernelInfo.Request.Content>(message)
-//            rt
-//        }
     }
 
     override fun getKernelContext(): KernelContextReadOnly {

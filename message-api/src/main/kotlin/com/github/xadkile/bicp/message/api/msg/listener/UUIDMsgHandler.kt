@@ -15,11 +15,11 @@ abstract class UUIDMsgHandler : MsgHandler {
         return _id
     }
     companion object {
-        fun make(msgType: MsgType, handlerFunction:suspend  (msg: JPRawMessage) -> Unit = {}): UUIDMsgHandler {
+        fun make(msgType: MsgType, handlerFunction:suspend  (msg: JPRawMessage, listener:MsgListener) -> Unit ): UUIDMsgHandler {
             return object : UUIDMsgHandler() {
                 private val mt = msgType
-                override suspend  fun handle(msg: JPRawMessage) {
-                    handlerFunction(msg)
+                override suspend  fun handle(msg: JPRawMessage, listener:MsgListener) {
+                    handlerFunction(msg,listener)
                 }
                 override fun msgType(): MsgType {
                     return mt

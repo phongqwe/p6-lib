@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.*
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContext
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.SocketProvider
@@ -25,50 +26,66 @@ import org.zeromq.ZMsg
  */
 class IOPubListener constructor(
     private val kernelContext: KernelContextReadOnlyConv,
-    private val defaultHandler: (msg: JPRawMessage) -> Unit = {},
-    private val parseExceptionHandler: (exception: Exception) -> Unit = { /*do nothing*/ },
+    private val defaultHandler: suspend (msg: JPRawMessage,listener:IOPubListener) -> Unit,
+    private val parseExceptionHandler:suspend (exception: Exception,listener:IOPubListener) -> Unit,
     private val parallelHandler: Boolean = false,
 ) : MsgListener {
+
+    constructor(
+        kernelContext: KernelContext,
+        defaultHandler:suspend (msg: JPRawMessage,listener:IOPubListener) -> Unit = { _,_-> /*do nothing*/ },
+        parseExceptionHandler: suspend(exception: Exception,listener:IOPubListener) -> Unit = {_,_-> /*do nothing*/ },
+        parallelHandler: Boolean = false,
+    ) : this(
+        kernelContext.conv(), defaultHandler, parseExceptionHandler, parallelHandler
+    )
 
     private val handlerContainer: MsgHandlerContainer = HandlerContainerImp()
     private var job: Job? = null
 
-    override fun start(externalScope: CoroutineScope, cDispatcher: CoroutineDispatcher) {
-        val socketProvider: SocketProvider = kernelContext.getSocketProvider().unwrap()
-        job = externalScope.launch(cDispatcher) {
-            socketProvider.ioPubSocket().use {
-                while (isActive) {
-                    val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
-                    if (msg != null) {
-                        when (val rawMsgResult = JPRawMessage.fromPayload(msg.map { f -> f.data })) {
-                            is Ok -> {
-                                val rawMsg = rawMsgResult.unwrap()
-                                val identity = rawMsg.identities
-                                val msgType = when {
-                                    identity.endsWith("execute_result") -> {
-                                        IOPub.ExecuteResult.msgType
+    /**
+     * TODO how to handle exception when kernel context not running
+     * this will start this listener on a coroutine that runs concurrently, in parallel, or whatnot.
+     */
+    override suspend fun start(externalScope: CoroutineScope, cDispatcher: CoroutineDispatcher) : Result<Unit,Exception>{
+        return this.checkContextRunningThen {
+            job = externalScope.launch(cDispatcher) {
+                kernelContext.getSocketProvider().unwrap().ioPubSocket().use {
+                    while (isActive) {
+                        val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
+                        if (msg != null) {
+                            when (val rawMsgResult = JPRawMessage.fromPayload(msg.map { f -> f.data })) {
+                                is Ok -> {
+                                    val rawMsg = rawMsgResult.unwrap()
+                                    val identity = rawMsg.identities
+                                    val msgType = when {
+                                        identity.endsWith("execute_result") -> {
+                                            IOPub.ExecuteResult.msgType
+                                        }
+                                        identity.endsWith("status") -> {
+                                            IOPub.Status.msgType
+                                        }
+                                        else -> {
+                                            MsgType.NOT_RECOGNIZE
+                                        }
                                     }
-                                    identity.endsWith("status") -> {
-                                        IOPub.Status.msgType
-                                    }
-                                    else -> {
-                                        MsgType.NOT_RECOGNIZE
+                                    if (msgType == MsgType.NOT_RECOGNIZE) {
+                                        defaultHandler(rawMsg, this@IOPubListener)
+                                    } else {
+                                        dispatch(msgType, rawMsg, cDispatcher)
                                     }
                                 }
-                                if (msgType == MsgType.NOT_RECOGNIZE) {
-                                    defaultHandler(rawMsg)
-                                } else {
-                                    dispatch(msgType, rawMsg)
+                                else -> {
+                                    parseExceptionHandler(rawMsgResult.unwrapError(),this@IOPubListener)
                                 }
-                            }
-                            else -> {
-                                parseExceptionHandler(rawMsgResult.unwrapError())
                             }
                         }
                     }
                 }
             }
+            Ok(Unit)
         }
+
     }
 
     override suspend fun stop() {
@@ -80,16 +97,16 @@ class IOPubListener constructor(
         return this.job?.isActive == true
     }
 
-    private suspend fun dispatch(msgType: MsgType, msg: JPRawMessage) {
+    private suspend fun dispatch(msgType: MsgType, msg: JPRawMessage, dispatcher: CoroutineDispatcher) {
         if (parallelHandler) {
             supervisorScope {
                 handlerContainer.getHandlers(msgType).forEach {
-                    launch { it.handle(msg) }
+                    launch(dispatcher) { it.handle(msg,this@IOPubListener) }
                 }
             }
         } else {
             handlerContainer.getHandlers(msgType).forEach {
-                it.handle(msg)
+                it.handle(msg,this)
             }
         }
     }
