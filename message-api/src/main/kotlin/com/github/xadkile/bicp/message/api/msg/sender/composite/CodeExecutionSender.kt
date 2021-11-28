@@ -19,6 +19,9 @@ import kotlinx.coroutines.*
 
 typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>
 
+/**
+ * If the kernel die midway, this would wait forever
+ */
 class CodeExecutionSender(
     val kernelContext: KernelContextReadOnlyConv,
     val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>>,
@@ -30,7 +33,7 @@ class CodeExecutionSender(
         dispatcher: CoroutineDispatcher,
     ): Result<ExecuteResult, Exception> {
 
-        if(kernelContext.isNotRunning()){
+        if (kernelContext.isNotRunning()) {
             return Err(KernelIsDownException.occurAt(this))
         }
 
@@ -38,18 +41,24 @@ class CodeExecutionSender(
         // p: config listener
         ioPubListener.also { listener ->
             listener.addHandler(
-                MsgHandlers.withUUID(IOPub.ExecuteResult.msgType) { m, l ->
-                    val receivedMsg: ExecuteResult = m.toModel()
-                    if (receivedMsg.parentHeader == message.header) {
-                        rt = Ok(receivedMsg)
-                        listener.stop()
+                MsgHandlers.withUUID(IOPub.ExecuteResult.msgType,
+                    handlerFunction = { m, l ->
+                        val receivedMsg: ExecuteResult = m.toModel()
+                        if (receivedMsg.parentHeader == message.header) {
+                            rt = Ok(receivedMsg)
+                            l.stop()
+                        }
+                    },
+                    exceptionFunction = { e, l ->
+                        rt= Err(e)
+                        l.stop()
                     }
-                }
+                )
             )
         }
         coroutineScope {
             // rmd: start the iopub listener, it is on a separated coroutine.
-            val startRs =  ioPubListener.start(this, dispatcher)
+            val startRs = ioPubListener.start(this, dispatcher)
             if (startRs is Ok) {
                 Sleeper.waitUntil { ioPubListener.isRunning() }
                 launch(dispatcher) {
@@ -70,8 +79,7 @@ class CodeExecutionSender(
                         ioPubListener.stop()
                     }
                 }
-            }
-            else {
+            } else {
                 rt = Err(startRs.unwrapError())
                 ioPubListener.stop()
             }
@@ -80,7 +88,7 @@ class CodeExecutionSender(
             rt != null
         }
         ioPubListener.stop()
-       return rt!!
+        return rt!!
 
     }
 

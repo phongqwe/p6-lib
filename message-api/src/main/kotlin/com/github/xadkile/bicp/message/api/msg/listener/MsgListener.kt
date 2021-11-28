@@ -21,7 +21,7 @@ interface MsgListener : MsgHandlerContainer, AutoCloseable, HaveKernelContext {
      */
     suspend fun start(
         externalScope: CoroutineScope,
-        cDispatcher: CoroutineDispatcher = Dispatchers.IO,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Result<Unit, Exception>
 
     suspend fun stop()

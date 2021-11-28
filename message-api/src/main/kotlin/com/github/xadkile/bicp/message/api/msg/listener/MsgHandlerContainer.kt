@@ -13,8 +13,9 @@ interface MsgHandlerContainer {
     fun containHandler(handler: MsgHandler): Boolean
 
     fun removeHandler(handlerId: String)
-//    fun removeHandler(msgType: MsgType, handlerId: String)
     fun removeHandler(handler: MsgHandler)
+
+    fun allHandlers():List<MsgHandler>
 
     fun isEmpty():Boolean
     fun isNotEmpty():Boolean

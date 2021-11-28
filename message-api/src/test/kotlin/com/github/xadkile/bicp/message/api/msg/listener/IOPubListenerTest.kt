@@ -1,9 +1,7 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
-import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.bicp.message.api.connection.kernel_context.SocketProvider
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
@@ -56,18 +54,22 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
         // p: create a mock kernel context
         mockkStatic("com.github.michaelbull.result.UnwrapKt")
-        val mockContext = mockk<KernelContextReadOnlyConv>().also {
+        val mockContext: KernelContextReadOnlyConv = mockk<KernelContextReadOnlyConv>().also {
             every { it.getSocketProvider().unwrap().ioPubSocket() } returns subSocket
-            every {it.isRunning()} returns true
-            every {it.isNotRunning()} returns false
+            every { it.isRunning() } returns true
+            every { it.isNotRunning() } returns false
+            every { it.getConvHeartBeatService().unwrap().isHBAlive() } returns true
         }
 
         var exceptionHandlerTriggerCount = 0
 
-        val listener = IOPubListener(mockContext,
+        val listener = IOPubListener(
+            mockContext,
             { m, l -> },
-            { e, l -> exceptionHandlerTriggerCount++
-            l.stop()})
+            { e, l ->
+                exceptionHandlerTriggerCount++
+                l.stop()
+            }, false, HandlerContainerImp())
 
         listener.start(this, Dispatchers.Default)
 
@@ -96,9 +98,13 @@ internal class IOPubListenerTest : TestOnJupyter() {
                 l.stop()
             }
         ).also {
-            it.addHandler(MsgHandlers.withUUID(MsgType.Control_shutdown_reply) { m, l ->
-                handlerTriggeredCount++
-            })
+            it.addHandler(MsgHandlers.withUUID(
+                msgType = MsgType.Control_shutdown_reply,
+                handlerFunction = { m, l ->
+                    handlerTriggeredCount++
+                },
+                exceptionFunction = { e, l -> println(e) })
+            )
         }
 
         listener.start(this, Dispatchers.Default)
@@ -126,12 +132,15 @@ internal class IOPubListenerTest : TestOnJupyter() {
                 kernelContext = kernelContext,
             )
 
-            listener.addHandler(MsgHandlers.withUUID(MsgType.IOPub_execute_result) { msg: JPRawMessage, l: MsgListener ->
-                val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
-                println(md)
-                handlerWasTriggered += 1
-                listener.stop()
-            })
+            listener.addHandler(MsgHandlers.withUUID(MsgType.IOPub_execute_result,
+                handlerFunction = { msg: JPRawMessage, l: MsgListener ->
+                    val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
+                    println(md)
+                    handlerWasTriggered += 1
+                    listener.stop()
+                },
+                exceptionFunction = { e, l -> println(e) })
+            )
 
             listener.start(this, Dispatchers.Default)
 

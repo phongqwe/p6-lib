@@ -42,15 +42,6 @@ class HandlerContainerImp: MsgHandlerContainer {
         }
     }
 
-//    override fun removeHandler(msgType: MsgType, handlerId: String) {
-//        val newList = this.getHandlers(msgType).filter { it.id()!=handlerId }
-//        if(newList.isEmpty()){
-//            this.map.remove(msgType)
-//        }else{
-//            this.map[msgType] = newList
-//        }
-//    }
-
     override fun removeHandler( handler: MsgHandler) {
         val msgType = handler.msgType()
         val newList = this.getHandlers(msgType).filter { it != handler || it.id() != handler.id() }
@@ -61,27 +52,10 @@ class HandlerContainerImp: MsgHandlerContainer {
         }
     }
 
-//    override val entries: Set<Map.Entry<MsgType, List<MsgHandler>>>
-//        get() = this.map.entries
-//    override val keys: Set<MsgType>
-//        get() = this.map.keys
-//    override val size: Int
-//        get() = this.map.size
-//    override val values: Collection<List<MsgHandler>>
-//        get() = this.map.values
-//
-//    override fun containsKey(key: MsgType): Boolean {
-//        return this.map.containsKey(key)
-//    }
-//
-//    override fun containsValue(value: List<MsgHandler>): Boolean {
-//        return this.map.containsValue(value)
-//    }
-//
-//    override fun get(key: MsgType): List<MsgHandler>? {
-//        return this.map.get(key)
-//    }
-//
+    override fun allHandlers(): List<MsgHandler> {
+        return this.map.values.flatten()
+    }
+
     override fun isEmpty(): Boolean {
         return this.map.isEmpty()
     }

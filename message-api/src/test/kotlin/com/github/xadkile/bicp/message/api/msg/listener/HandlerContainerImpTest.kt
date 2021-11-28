@@ -8,10 +8,10 @@ import org.junit.jupiter.api.BeforeEach
 
 internal class HandlerContainerImpTest {
 
-    val h1 = MsgHandlers.withUUID(msgType = MsgType.IOPub_execute_result)
-    val h2 = MsgHandlers.withUUID(msgType = MsgType.Shell_kernel_info_reply)
-    val h3 = MsgHandlers.withUUID(msgType = MsgType.Shell_kernel_info_request)
-    val h4 =MsgHandlers.withUUID(msgType = MsgType.IOPub_execute_result)
+    val h1 = MsgHandlers.withUUID(msgType = MsgType.IOPub_execute_result,{m,l->},{e,l->})
+    val h2 = MsgHandlers.withUUID(msgType = MsgType.Shell_kernel_info_reply,{m,l->},{e,l->})
+    val h3 = MsgHandlers.withUUID(msgType = MsgType.Shell_kernel_info_request,{m,l->},{e,l->})
+    val h4 =MsgHandlers.withUUID(msgType = MsgType.IOPub_execute_result,{m,l->},{e,l->})
     var hContainer = HandlerContainerImp()
 
     @BeforeEach
