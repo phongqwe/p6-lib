@@ -147,7 +147,6 @@ class Bench : TestOnJupyter() {
                 "Sus"
             }
         }
-
     }
 
     suspend fun heavyWorkLoadBareSus(): String {
@@ -160,18 +159,12 @@ class Bench : TestOnJupyter() {
 
     @Test
     fun z2() {
-        val t = measureTimeMillis {
-            var x: Long = 0L
-            while (x < 4000_000_000) {
-                x++
-            }
-        }
-        println(t)
+
 
     }
 
-    @Test
-    fun z() {
+//    @Test
+    fun zmqExample() {
         val weatherServer = thread(true) {
             ZContext().use { context ->
                 val publisher = context.createSocket(SocketType.PUB)

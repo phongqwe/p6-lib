@@ -103,8 +103,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
                 handlerFunction = { m, l ->
                     handlerTriggeredCount++
                 },
-                exceptionFunction = { e, l -> println(e) })
-            )
+            ))
         }
 
         listener.start(this, Dispatchers.Default)
@@ -139,7 +138,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
                     handlerWasTriggered += 1
                     listener.stop()
                 },
-                exceptionFunction = { e, l -> println(e) })
+            )
             )
 
             listener.start(this, Dispatchers.Default)

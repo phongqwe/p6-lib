@@ -3,7 +3,7 @@ package com.github.xadkile.bicp.message.api.msg.listener
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 
 /**
- * reconsider extending Map interface and trim down this interface
+ * A container of [MsgHandler]
  */
 interface MsgHandlerContainer {
     fun addHandler(handler: MsgHandler)

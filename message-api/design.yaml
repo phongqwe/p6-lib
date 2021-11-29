@@ -11,12 +11,20 @@ message-api:
           - message encoder
           - message id generator
     Objects provided by the context must NOT be directly created manually
-    Handling external kernel interruption:
-      - Long running background services:
-        - Long-running services that depends on the liveness of kernel must watch out for external kernel interruption (such as external process kill). I must define and design a clear behavior for each service, and take into account the effect of external interruption.
-        - Long-running services MUST NOT handle the interruption event by itself. It must expose enough functions that can perform the defined behavior (above), but again, must NOT invoke the handling within their main logic loop.
-        - A central hub/watcher will watch for these interruption events, and then issues commands to each services on what to do when it happend.
+    Services and system events:
+      - Service should only work in ideal condition. They can handle certain edge cases that are within their power, but MUST NOT handle cases related to system events (such as kernel interruption). They must be designed in away so that they are capable of react to system events, but the trigger of such reaction is done externally, in classes that are responsible for handling system-level events.
+      - Cases:
+        - kernel interruption:
+          - Kernel interruption is handled by service hub/controller or the context. Services should have a clear abstraction (one or more functions) to handle this. But the trigger of such contraption resides in the hub/controller/context.
+      - Consequence of this design:
+          - this design lead to the fact that if I forget to handle system event in the hub for certain services, they will stuck in a confusing state.
+          - Eg:
+              - MsgListener run in a infinite loop and processes msg as they come. When the kernel is interrupted, but the hub/controller/context does not do command MsgListener to do something (such as restart), the MsgListener will continue to run its infinite loop
+      - Justification of this design:
+          - Aside from services that are in charge of watching system events, This responsibility does not belong to other services, and making them aware of such services internally will lead to injecting a whole lot of uncessary thing into them, bloating the services up, and violate separation of concern/single responsibility principle.
+          - So the safe way to make them (the non-system-event services) aware of and be able to react to events is to let the event-watcher services trigger the non-wacher services.
+
   Exceptions propagating, handling:
     - Exceptions should be returned as Result<> object instead of throwing directly.
-    - Each type of error should be represent by a unique class of Exception. This choice allow any kind of class of Exception containing any type of data in any structured be returned to exception handlers.
-    -
+    - Each type of error should be represent by a unique class of Exception. This choice allows any kind of class of Exception containing any type of data in any structured be returned to exception handlers.
+    - It must be defined clearly which layers will handle exceptions. Layers that emmit exception but does not handle them must pass them on in the form of Result<> object.

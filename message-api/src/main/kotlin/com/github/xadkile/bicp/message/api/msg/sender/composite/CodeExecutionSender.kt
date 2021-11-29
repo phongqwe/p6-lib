@@ -48,10 +48,6 @@ class CodeExecutionSender(
                             rt = Ok(receivedMsg)
                             l.stop()
                         }
-                    },
-                    exceptionFunction = { e, l ->
-                        rt= Err(e)
-                        l.stop()
                     }
                 )
             )
