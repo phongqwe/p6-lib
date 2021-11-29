@@ -82,7 +82,6 @@ class KernelContextImp @Inject internal constructor(
                 this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
                 this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
                 this.msgCounter = MsgCounterImp()
-//                this.msgIdGenerator = SequentialMsgIdGenerator(this.session!!.getSessionId(), this.msgCounter!!)
                 this.msgIdGenerator = RandomMsgIdGenerator()
 
                 // rmd: start heart beat service
@@ -90,16 +89,19 @@ class KernelContextImp @Inject internal constructor(
                     socketProvider = this.socketProvider!!,
                     zContext = this.zcontext,
                     cScope = GlobalScope,
-                ).also { it.start() }
-
-                // rmd: wait until heart beat service is live
-                Sleeper.sleepUntil(50){this.hbService?.isServiceRunning() == true}
-                Sleeper.sleepUntil(50){this.hbService?.isHBAlive() == true}
+                )
 
                 // x: senderProvider depend on heart beat service,
                 // x: so it must be initialized after hb service is created
                 this.senderProvider =
-                    SenderProviderImp( this.zcontext, this.msgEncoder!!, this.hbService!!.conv(), this.socketProvider!!, this.conv())
+                    SenderProviderImp( this.conv())
+
+                // ph: start services
+                this.hbService!!.start()
+
+                // rmd: wait until heart beat service is live
+                Sleeper.sleepUntil(50){this.hbService?.isServiceRunning() == true}
+                Sleeper.sleepUntil(50){this.hbService?.isHBAlive() == true}
                 this.onProcessStartListener.run(this)
                 return Ok(Unit)
             } catch (e: Exception) {

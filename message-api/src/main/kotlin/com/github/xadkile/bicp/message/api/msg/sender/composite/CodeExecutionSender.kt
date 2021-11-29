@@ -87,8 +87,4 @@ class CodeExecutionSender(
         return rt!!
 
     }
-
-    override fun getKernelContext(): KernelContextReadOnly {
-        return this.kernelContext
-    }
 }

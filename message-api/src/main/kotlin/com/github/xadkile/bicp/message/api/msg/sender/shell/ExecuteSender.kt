@@ -24,21 +24,19 @@ class ExecuteSender internal constructor(
         message: ExecuteRequest,
         dispatcher: CoroutineDispatcher,
     ): Result<ExecuteReply, Exception> {
-        return this.checkContextRunningThen {
-            withContext(dispatcher) {
-                val pcSender = PCSender<ExecuteRequest, ExecuteReply>(
-                    kernelContext.getSocketProvider().unwrap().shellSocket(),
-                    kernelContext.getMsgEncoder().unwrap(),
-                    kernelContext.getConvHeartBeatService().unwrap(),
-                    kernelContext.zContext())
-                val rt: Result<ExecuteReply, Exception> =
-                    pcSender.send<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
-                rt
-            }
+        if(this.kernelContext.isNotRunning()){
+            return Err(KernelIsDownException.occurAt(this))
         }
-    }
+        return withContext(dispatcher) {
+            val pcSender = PCSender<ExecuteRequest, ExecuteReply>(
+                kernelContext.getSocketProvider().unwrap().shellSocket(),
+                kernelContext.getMsgEncoder().unwrap(),
+                kernelContext.getConvHeartBeatService().unwrap(),
+                kernelContext.zContext())
+            val rt: Result<ExecuteReply, Exception> =
+                pcSender.send<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
+            rt
+        }
 
-    override fun getKernelContext(): KernelContextReadOnly {
-        return this.kernelContext
     }
 }

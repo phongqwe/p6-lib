@@ -88,10 +88,6 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
 
             // p: mockk is horribly slow here
             val mockSender = object : MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> {
-                override fun getKernelContext(): KernelContextReadOnly {
-                    TODO("Not yet implemented")
-                }
-
                 override suspend fun send(
                     message: ExecuteRequest,
                     dispatcher: CoroutineDispatcher,

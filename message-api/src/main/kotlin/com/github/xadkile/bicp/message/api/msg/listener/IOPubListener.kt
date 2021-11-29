@@ -7,6 +7,7 @@ import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.system.SystemEvent
 import kotlinx.coroutines.*
+import org.zeromq.ZMQ
 import org.zeromq.ZMsg
 
 /**
@@ -52,7 +53,7 @@ class IOPubListener constructor(
                     // p: start the service loop
                     while (isActive) {
                         if (kernelContext.getConvHeartBeatService().unwrap().isHBAlive()) {
-                            val msg = ZMsg.recvMsg(it)
+                            val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
                             if (msg != null) {
                                 val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
                                 when (parseResult) {

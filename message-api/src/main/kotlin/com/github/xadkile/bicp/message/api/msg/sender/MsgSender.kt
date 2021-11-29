@@ -21,7 +21,7 @@ import kotlinx.coroutines.Dispatchers
  *  It is best that MsgSender(s) are provided by [SenderProvider], which in turn, is provided by [KernelContext].
  *
  */
-interface MsgSender<I : JPMessage<*, *>, O> : HaveKernelContext {
+interface MsgSender<I : JPMessage<*, *>, O> {
 
     /**
      *  Sender should not outlive the scope in which it was launch, so don't inject external coroutine scope when implement this interface

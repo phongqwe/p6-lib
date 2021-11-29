@@ -17,7 +17,7 @@ internal class OnStderrWatcherTest : TestOnRBCoroutine(){
             val watcher = OnStderrWatcher(
                 onStdErrListener = { p,c ->
                     flag = true
-                    println("STD_ERR:${c}")
+                    println("TEST_LABEL:${c}")
                 },
                 cScope = this,
                 cDispatcher = mainThreadSurrogate

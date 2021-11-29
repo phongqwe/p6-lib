@@ -7,10 +7,6 @@ import com.github.xadkile.bicp.message.api.msg.sender.shell.*
 import org.zeromq.ZContext
 
 class SenderProviderImp internal constructor(
-    val zcontext: ZContext,
-    val msgEncoder: MsgEncoder,
-    val heartBeatServiceConv: HeartBeatServiceConv,
-    val socketProvider: SocketProvider,
     val kernelContext:KernelContextReadOnlyConv
 ) :
     SenderProvider {
