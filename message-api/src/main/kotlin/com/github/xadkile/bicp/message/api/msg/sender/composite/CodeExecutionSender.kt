@@ -24,6 +24,12 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
  * If the kernel die midway, this would wait forever
  * TODO This is essentially a state machine, think of a way to structure it better. The current structure is messy.
  * TODO make it clearer what exception is returned and when they are returned
+ * The state machine revolves around:
+ *  - the status of the kernel: idle, busy
+ *  - the status of heart beat channel: on or off
+ *  - the status of return value: null or not null
+ *  - the status of the listener: running or not
+ *  anything else?
  */
 class CodeExecutionSender(
     val kernelContext: KernelContextReadOnlyConv,
