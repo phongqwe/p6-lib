@@ -22,6 +22,7 @@ object IOPub {
             val executionState: ExecutionState
         ) : MsgContent
 
+        class MetaData() : MsgMetaData
         enum class ExecutionState{
             busy, idle, starting
         }

@@ -22,6 +22,8 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
 
 /**
  * If the kernel die midway, this would wait forever
+ * TODO This is essentially a state machine, think of a way to structure it better. The current structure is messy.
+ * TODO make it clearer what exception is returned and when they are returned
  */
 class CodeExecutionSender(
     val kernelContext: KernelContextReadOnlyConv,
@@ -42,15 +44,25 @@ class CodeExecutionSender(
 
         // p: config listener
         ioPubListener.addHandler(
-            MsgHandlers.withUUID(IOPub.ExecuteResult.msgType,
-                handlerFunction = { m, l ->
-                    val receivedMsg: ExecuteResult = m.toModel()
-                    if (receivedMsg.parentHeader == message.header) {
-                        rt = Ok(receivedMsg)
+            MsgHandlers.withUUID(IOPub.ExecuteResult.msgType) { m, l ->
+                val receivedMsg: ExecuteResult = m.toModel()
+                if (receivedMsg.parentHeader == message.header) {
+                    rt = Ok(receivedMsg)
+//                    l.stop()
+                }
+            }
+        )
+        ioPubListener.addHandler(
+            // ph: stop when computing status become "idle"
+            MsgHandlers.withUUID(IOPub.Status.msgType) { m,l->
+                val msg:JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = m.toModel()
+                if(msg.parentHeader == message.header){
+                    if(msg.content.executionState == IOPub.Status.ExecutionState.idle){
+                        println("Reach idle state-> stop")
                         l.stop()
                     }
                 }
-            )
+            }
         )
 
         // ph: sending the computing request
@@ -64,14 +76,14 @@ class CodeExecutionSender(
                 Sleeper.waitUntil { ioPubListener.isRunning() }
                 launch(dispatcher) {
                     val sendStatus = executeSender.send(message, dispatcher)
-                    if(sendStatus is Ok){
+                    if (sendStatus is Ok) {
                         val msgIsOk: Boolean = sendStatus.get()!!.content.status == MsgStatus.ok
-                        if(msgIsOk.not()){
+                        if (msgIsOk.not()) {
                             rt = Err(UnableToSendMsgException(message))
                             ioPubListener.stop()
                         }
-                    }else{
-                        rt=Err(sendStatus.unwrapError())
+                    } else {
+                        rt = Err(sendStatus.unwrapError())
                         ioPubListener.stop()
                     }
                 }
@@ -85,19 +97,18 @@ class CodeExecutionSender(
         Sleeper.waitUntil {
             val hasResult = (rt != null)
             val kernelDie = kernelContext.getConvHeartBeatService().unwrap().isHBAlive().not()
-            val kernelTurnIdle= false  // TODO add code to listen to event when kernel status turn to idle
-            hasResult  || kernelDie || kernelTurnIdle
+            val ioPubListenerIsStopped = ioPubListener.isRunning().not()
+            hasResult || kernelDie || ioPubListenerIsStopped
         }
 
         ioPubListener.stop()
 
-        if(rt!=null){
+        if (rt != null) {
             return rt!!
-        }
-        else{
-            if(kernelContext.isNotRunning()){
+        } else {
+            if (kernelContext.isNotRunning()) {
                 return Err(KernelIsDownException.occurAt(this))
-            }else{
+            } else {
                 return Err(UnknownException.occurAt(this))
             }
         }

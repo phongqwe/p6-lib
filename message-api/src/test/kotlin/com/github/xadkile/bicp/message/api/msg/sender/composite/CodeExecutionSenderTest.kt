@@ -127,6 +127,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             coEvery { it.start(any(), any()) } returns Err(IllegalStateException())
             every { it.addHandler(any()) } returns Unit
             coEvery { it.stop() } returns Unit
+            every{it.isRunning()} returns false
         }
         val sender = CodeExecutionSender(kernelContext.conv(), ExecuteSender(kernelContext.conv()), mockListener)
         val o = sender.send(message)
