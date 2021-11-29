@@ -42,46 +42,42 @@ class IOPubListener constructor(
         externalScope: CoroutineScope,
         dispatcher: CoroutineDispatcher,
     ): Result<Unit, Exception> {
-        return this.checkContextRunningThen {
-            job = externalScope.launch(dispatcher) {
-                kernelContext.getSocketProvider().unwrap().ioPubSocket().use {
-                    // add default handler
-                    addHandler(
-                        MsgHandlers.withUUID(MsgType.NOT_RECOGNIZE,defaultHandler)
-                    )
+        if (this.kernelContext.isNotRunning()) {
+            return Err(KernelIsDownException.occurAt(this))
+        }
+        job = externalScope.launch(dispatcher) {
+            kernelContext.getSocketProvider().unwrap().ioPubSocket().use {
+                // add default handler
+                addHandler(MsgHandlers.withUUID(MsgType.NOT_RECOGNIZE, defaultHandler))
 
-                    // p: start the service loop
-                    while (isActive) {
-                        if (kernelContext.getConvHeartBeatService().unwrap().isHBAlive()) {
-                            val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
-                            if (msg != null) {
-                                val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
-                                when (parseResult) {
-                                    is Ok -> {
-                                        val rawMsg:JPRawMessage = parseResult.unwrap()
-                                        val msgType:MsgType = extractMsgType(rawMsg.identities)
-                                        dispatch(msgType, rawMsg, dispatcher)
-//                                        if (msgType == MsgType.NOT_RECOGNIZE) {
-//                                            defaultHandler(rawMsg, this@IOPubListener)
-//                                        } else {
-//
-//                                        }
-                                    }
-                                    else -> {
-                                        parseExceptionHandler(parseResult.unwrapError(), this@IOPubListener)
-                                    }
+                // p: start the service loop
+                // p: the current config allow the service to run forever, even when the kernel is down.
+                // ph: when the kernel is down, this service simply does not do anything. Just hang there.
+                while (isActive) {
+                    if (kernelContext.getConvHeartBeatService().unwrap().isHBAlive()) {
+                        val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
+                        if (msg != null) {
+                            val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
+                            when (parseResult) {
+                                is Ok -> {
+                                    val rawMsg: JPRawMessage = parseResult.unwrap()
+                                    val msgType: MsgType = extractMsgType(rawMsg.identities)
+                                    dispatch(msgType, rawMsg, dispatcher)
+                                }
+                                else -> {
+                                    parseExceptionHandler(parseResult.unwrapError(), this@IOPubListener)
                                 }
                             }
                         }
                     }
                 }
             }
-            Ok(Unit)
         }
+        return Ok(Unit)
     }
 
-    private fun extractMsgType(msgIdentity:String):MsgType{
-        val msgType:MsgType = when {
+    private fun extractMsgType(msgIdentity: String): MsgType {
+        val msgType: MsgType = when {
 
             msgIdentity.endsWith(IOPub.ExecuteResult.msgType.text()) -> IOPub.ExecuteResult.msgType
 

@@ -16,4 +16,13 @@ object Sleeper {
     fun waitUntil(isTrue: () -> Boolean){
         while(isTrue()==false){}
     }
+
+    fun waitAsLongAs(isTrue: () -> Boolean){
+        while(isTrue()){}
+    }
 }
+
+class Sleeper2{
+
+}
+

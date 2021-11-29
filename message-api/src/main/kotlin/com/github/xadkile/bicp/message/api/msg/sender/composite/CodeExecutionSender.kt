@@ -1,9 +1,10 @@
 package com.github.xadkile.bicp.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelIsDownException
+import com.github.xadkile.bicp.message.api.exception.UnknownException
+import com.github.xadkile.bicp.message.api.msg.listener.IOPubListener
 import com.github.xadkile.bicp.message.api.msg.listener.MsgHandlers
 import com.github.xadkile.bicp.message.api.msg.listener.MsgListener
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
@@ -25,7 +26,7 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
 class CodeExecutionSender(
     val kernelContext: KernelContextReadOnlyConv,
     val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>>,
-    val ioPubListener: MsgListener,
+    val ioPubListener: IOPubListener,
 ) : MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>> {
 
     override suspend fun send(
@@ -38,40 +39,39 @@ class CodeExecutionSender(
         }
 
         var rt: Result<ExecuteResult, Exception>? = null
+
         // p: config listener
-        ioPubListener.also { listener ->
-            listener.addHandler(
-                MsgHandlers.withUUID(IOPub.ExecuteResult.msgType,
-                    handlerFunction = { m, l ->
-                        val receivedMsg: ExecuteResult = m.toModel()
-                        if (receivedMsg.parentHeader == message.header) {
-                            rt = Ok(receivedMsg)
-                            l.stop()
-                        }
+        ioPubListener.addHandler(
+            MsgHandlers.withUUID(IOPub.ExecuteResult.msgType,
+                handlerFunction = { m, l ->
+                    val receivedMsg: ExecuteResult = m.toModel()
+                    if (receivedMsg.parentHeader == message.header) {
+                        rt = Ok(receivedMsg)
+                        l.stop()
                     }
-                )
+                }
             )
-        }
+        )
+
+        // ph: sending the computing request
         coroutineScope {
             // rmd: start the iopub listener, it is on a separated coroutine.
             val startRs = ioPubListener.start(this, dispatcher)
+
+            // ph: only send the message if the ioPubListener was started successfully
             if (startRs is Ok) {
+                // rmd: wait until ioPubListener to go online
                 Sleeper.waitUntil { ioPubListener.isRunning() }
                 launch(dispatcher) {
-                    // rmd: wait until ioPubListener to go online
                     val sendStatus = executeSender.send(message, dispatcher)
-                    val sendRes: Result<MsgStatus, Exception> = if (sendStatus is Ok) {
-                        val msgOk: Boolean = sendStatus.get()!!.content.status == MsgStatus.ok
-                        if (msgOk) {
-                            Ok(MsgStatus.ok)
-                        } else {
-                            Err(UnableToSendMsgException(message))
+                    if(sendStatus is Ok){
+                        val msgIsOk: Boolean = sendStatus.get()!!.content.status == MsgStatus.ok
+                        if(msgIsOk.not()){
+                            rt = Err(UnableToSendMsgException(message))
+                            ioPubListener.stop()
                         }
-                    } else {
-                        Err(sendStatus.unwrapError())
-                    }
-                    if (sendRes is Err) {
-                        rt = sendRes
+                    }else{
+                        rt=Err(sendStatus.unwrapError())
                         ioPubListener.stop()
                     }
                 }
@@ -80,11 +80,26 @@ class CodeExecutionSender(
                 ioPubListener.stop()
             }
         }
-        Sleeper.waitUntil {
-            rt != null
-        }
-        ioPubListener.stop()
-        return rt!!
 
+        // ph: this ensure that this sender will wait until either rt has a result or the kernel died
+        Sleeper.waitUntil {
+            val hasResult = (rt != null)
+            val kernelDie = kernelContext.getConvHeartBeatService().unwrap().isHBAlive().not()
+            val kernelTurnIdle= false  // TODO add code to listen to event when kernel status turn to idle
+            hasResult  || kernelDie || kernelTurnIdle
+        }
+
+        ioPubListener.stop()
+
+        if(rt!=null){
+            return rt!!
+        }
+        else{
+            if(kernelContext.isNotRunning()){
+                return Err(KernelIsDownException.occurAt(this))
+            }else{
+                return Err(UnknownException.occurAt(this))
+            }
+        }
     }
 }

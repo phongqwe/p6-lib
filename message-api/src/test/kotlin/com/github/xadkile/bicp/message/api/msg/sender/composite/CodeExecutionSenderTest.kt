@@ -123,7 +123,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun send_unableToStartListener() = runBlocking {
         kernelContext.startKernel()
-        val mockListener = mockk<MsgListener>().also {
+        val mockListener = mockk<IOPubListener>().also {
             coEvery { it.start(any(), any()) } returns Err(IllegalStateException())
             every { it.addHandler(any()) } returns Unit
             coEvery { it.stop() } returns Unit
