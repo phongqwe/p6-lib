@@ -21,6 +21,7 @@ class IOPubListener constructor(
     private val parseExceptionHandler: suspend (exception: Exception, listener: IOPubListener) -> Unit,
     private val parallelHandler: Boolean,
     private val handlerContainer: MsgHandlerContainer,
+    private val ignoreKernelRunningStatus:Boolean=false
 ) : MsgListener {
 
     constructor(
@@ -51,7 +52,6 @@ class IOPubListener constructor(
                 addHandler(MsgHandlers.withUUID(MsgType.NOT_RECOGNIZE, defaultHandler))
 
                 // p: start the service loop
-                // p: the current config allow the service to run forever, even when the kernel is down.
                 // ph: when the kernel is down, this service simply does not do anything. Just hang there.
                 while (isActive) {
                     if (kernelContext.getConvHeartBeatService().unwrap().isHBAlive()) {
@@ -70,6 +70,12 @@ class IOPubListener constructor(
                             }
                         }
                     }
+//                    else{
+//                        // ph: stop the listener when
+//                        if(ignoreKernelRunningStatus==false){
+//                            break
+//                        }
+//                    }
                 }
             }
         }

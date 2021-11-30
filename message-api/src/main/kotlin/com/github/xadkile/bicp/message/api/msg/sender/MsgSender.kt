@@ -28,14 +28,4 @@ interface MsgSender<I : JPMessage<*, *>, O> {
      */
     suspend fun send(message: I, dispatcher: CoroutineDispatcher = Dispatchers.IO): O
 
-    // TODO implement these.
-//    fun <T>onBeforeSend(event:SenderEvent<T>):MsgSender<I,O>
-//    fun <T>onSent(event:SenderEvent<T>):MsgSender<I,O>
-//    fun <T>onProcessing(event:SenderEvent<T>):MsgSender<I,O>
-//    fun <T>onDone(event:SenderEvent<T>):MsgSender<I,O>
-
 }
-
-//fun interface SenderEvent<D> {
-//    fun invoke(data:D)
-//}
