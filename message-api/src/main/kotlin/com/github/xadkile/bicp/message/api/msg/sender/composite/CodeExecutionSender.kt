@@ -20,15 +20,7 @@ import kotlinx.coroutines.*
 typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>
 
 /**
- * If the kernel die midway, this would wait forever
- * TODO This is essentially a state machine, think of a way to structure it better. The current structure is messy.
- * TODO make it clearer what exception is returned and when they are returned
- * The state machine revolves around:
- *  - the status of the kernel: idle, busy
- *  - the status of heart beat channel: on or off
- *  - the status of return value: null or not null
- *  - the status of the listener: running or not
- *  anything else?
+ * Send an piece of code to be executed in the kernel. Return the result of the computation itself.
  */
 class CodeExecutionSender(
     val kernelContext: KernelContextReadOnlyConv,
@@ -48,21 +40,19 @@ class CodeExecutionSender(
         var rt: Result<ExecuteResult, Exception>? = null
         var state = SendingState.Start
 
-        // p: config listener
+        // p: config listener - catch execute_result message
         ioPubListener.addHandler(
             MsgHandlers.withUUID(IOPub.ExecuteResult.msgType) { m, l ->
                 val receivedMsg: ExecuteResult = m.toModel()
                 if (receivedMsg.parentHeader == message.header) {
-                    state = state.sideEffect({
-                        rt = Ok(receivedMsg)
-                        l.stop()
-                    }, rt, kernelContext, ioPubListener)
+                    rt = Ok(receivedMsg)
+                    l.stop()
+                    state = state.transit(rt, kernelContext, ioPubListener)
                 }
             }
         )
-
+        // ph: config listener - catch status messages, "busy", "idle"
         ioPubListener.addHandler(
-            // ph: catch "idle" and "busy" status message
             MsgHandlers.withUUID(IOPub.Status.msgType) { m, l ->
                 val msg: JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = m.toModel()
                 if (msg.parentHeader == message.header) {
@@ -80,8 +70,8 @@ class CodeExecutionSender(
 
         // ph: sending the computing request
         coroutineScope {
-            // rmd: start the iopub listener on a separated coroutine.
-            val startRs = ioPubListener.start(this, dispatcher)
+            // ph: start the listener on a separated coroutine.
+            val startRs:Result<Unit,Exception> = ioPubListener.start(this, dispatcher)
 
             // ph: only send the message if the ioPubListener was started successfully
             if (startRs is Ok) {
@@ -92,50 +82,34 @@ class CodeExecutionSender(
                     if (sendStatus is Ok) {
                         val msgIsOk: Boolean = sendStatus.get()!!.content.status == MsgStatus.ok
                         if (msgIsOk.not()) {
-                            state = state.sideEffect({
-                                rt = Err(UnableToSendMsgException(message))
-                                ioPubListener.stop()
-                            }, rt, kernelContext, ioPubListener)
+                            rt = Err(UnableToSendMsgException(message))
+                            ioPubListener.stop()
+                            state = state.transit(rt, kernelContext, ioPubListener)
                         }
                     } else {
-                        state = state.sideEffect({
-                            rt = Err(sendStatus.unwrapError())
-                            ioPubListener.stop()
-                        }, rt, kernelContext, ioPubListener)
+                        rt = Err(sendStatus.unwrapError())
+                        ioPubListener.stop()
+                        state = state.transit(rt, kernelContext, ioPubListener)
                     }
                 }
             } else {
-                state = state.sideEffect({
-                    rt = Err(startRs.unwrapError())
-                    ioPubListener.stop()
-                }, rt, kernelContext, ioPubListener)
+                rt = Err(startRs.unwrapError())
+                ioPubListener.stop()
+                state = state.transit(rt, kernelContext, ioPubListener)
             }
         }
 
         // ph: this ensure that this sender will wait until state reach terminal states: Done, KernelDown,ListenerDown
-        while (true) {
-            when(state){
-                SendingState.Done,/*SendingState.KernelDown,SendingState.ListenerDown*/ -> break
-                else -> {}
-            }
+        while (state != SendingState.Done) {
             state = state.transit(rt, kernelContext, ioPubListener)
         }
-        state = state.sideEffect({ ioPubListener.stop() }, rt, kernelContext, ioPubListener)
+        ioPubListener.stop()
+        state = state.transit( rt, kernelContext, ioPubListener)
 
-//        when(state){
-//            SendingState.Done -> return rt!!
-//            SendingState.KernelDown -> return  Err(KernelIsDownException.occurAt(this))
-//            SendingState.ListenerDown -> return Err(UnknownException.occurAt(this))
-//            else -> return Err(UnknownException.occurAt(this))
-//        }
         if (state == SendingState.Done) {
             return rt!!
         } else {
-            if (kernelContext.isNotRunning()) {
-                return Err(KernelIsDownException.occurAt(this))
-            } else {
-                return Err(UnknownException.occurAt(this))
-            }
+            return Err(UnknownException.occurAt(this))
         }
     }
 
@@ -145,48 +119,23 @@ class CodeExecutionSender(
     internal enum class SendingState {
         Start {
             override fun transit(
-                rtHasResult: Boolean,
+                hasResult: Boolean,
                 kernelIsRunning: Boolean,
                 listenerIsRunning: Boolean,
             ): SendingState {
-                return Working.transit(rtHasResult, kernelIsRunning, listenerIsRunning)
+                return Working.transit(hasResult, kernelIsRunning, listenerIsRunning)
             }
         },
-//        KernelDown {
-//            override fun transit(
-//                rtHasResult: Boolean,
-//                kernelIsRunning: Boolean,
-//                listenerIsRunning: Boolean,
-//            ): SendingState {
-//                return this
-//            }
-//        },
-//        ListenerDown {
-//            override fun transit(
-//                rtHasResult: Boolean,
-//                kernelIsRunning: Boolean,
-//                listenerIsRunning: Boolean,
-//            ): SendingState {
-//                return this
-//            }
-//        },
         Working {
             override fun transit(
-                rtHasResult: Boolean,
+                hasResult: Boolean,
                 kernelIsRunning: Boolean,
                 listenerIsRunning: Boolean,
             ): SendingState {
 
-                if (rtHasResult) {
+                if (hasResult) {
                     return Done
-                }/*else{
-                    if (kernelIsRunning == false) {
-                        return KernelDown
-                    }
-                    if (listenerIsRunning == false) {
-                        return ListenerDown
-                    }
-                }*/
+                }
                 if (kernelIsRunning == false) {
                     return Done
                 }
@@ -198,7 +147,7 @@ class CodeExecutionSender(
         },
         Done {
             override fun transit(
-                rtHasResult: Boolean,
+                hasResult: Boolean,
                 kernelIsRunning: Boolean,
                 listenerIsRunning: Boolean,
             ): SendingState {
@@ -212,7 +161,7 @@ class CodeExecutionSender(
          * transit state with direct value
          */
         abstract fun transit(
-            rtHasResult: Boolean,
+            hasResult: Boolean,
             kernelIsRunning: Boolean,
             listenerIsRunning: Boolean,
         ): SendingState
@@ -227,22 +176,9 @@ class CodeExecutionSender(
         ): SendingState {
 
             return this.transit(
-                rtHasResult = rt != null,
+                hasResult = rt != null,
                 kernelIsRunning = kernelContext.getConvHeartBeatService().get()?.isHBAlive() ?: false,
                 listenerIsRunning = ioPubListener.isRunning())
-        }
-
-        /**
-         * run a side effect function, then transit state
-         */
-        suspend fun sideEffect(
-            sideEffectFunc: suspend () -> Unit, rt: Result<*, *>?,
-            kernelContext: KernelContextReadOnlyConv,
-            ioPubListener: IOPubListener,
-        ): SendingState {
-
-            sideEffectFunc()
-            return this.transit(rt, kernelContext, ioPubListener)
         }
     }
 }

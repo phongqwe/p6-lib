@@ -66,11 +66,11 @@ class KernelContextImp @Inject internal constructor(
             try {
                 this.process = processBuilder.inheritIO().start()
                 // rmd: wait for process to come live
-                Sleeper.sleepUntil(50) { this.process?.isAlive == true }
+                Sleeper.threadSleepUntil(50) { this.process?.isAlive == true }
 
                 // rmd: read connection file
                 this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
-                Sleeper.sleepUntil(50){Files.exists(this.connectionFilePath!!)}
+                Sleeper.threadSleepUntil(50){Files.exists(this.connectionFilePath!!)}
 
                 this.connectionFileContent =
                     com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent.fromJsonFile(ipythonConfig.getConnectionFilePath()).unwrap()
@@ -100,8 +100,8 @@ class KernelContextImp @Inject internal constructor(
                 this.hbService!!.start()
 
                 // rmd: wait until heart beat service is live
-                Sleeper.sleepUntil(50){this.hbService?.isServiceRunning() == true}
-                Sleeper.sleepUntil(50){this.hbService?.isHBAlive() == true}
+                Sleeper.threadSleepUntil(50){this.hbService?.isServiceRunning() == true}
+                Sleeper.threadSleepUntil(50){this.hbService?.isHBAlive() == true}
                 this.onProcessStartListener.run(this)
                 return Ok(Unit)
             } catch (e: Exception) {
@@ -118,7 +118,7 @@ class KernelContextImp @Inject internal constructor(
                 this.onBeforeStopListener.run(this)
                 this.process?.destroy()
                 // rmd: polling until the process is completely dead
-                Sleeper.sleepUntil(50){this.process?.isAlive == false}
+                Sleeper.threadSleepUntil(50){this.process?.isAlive == false}
                 this.process = null
                 this.onAfterStopListener.run(this)
             }
@@ -145,7 +145,7 @@ class KernelContextImp @Inject internal constructor(
             // x: delete connection file
             Files.delete(cpath)
             // rmd: wait until file is deleted completely
-            Sleeper.sleepUntil(50){ !Files.exists(cpath) }
+            Sleeper.threadSleepUntil(50){ !Files.exists(cpath) }
             this.connectionFilePath = null
         }
         // x: destroy other resources

@@ -4,7 +4,7 @@ object Sleeper {
     /**
      * run Thread.sleep until predicate become true.
      */
-    fun sleepUntil(waitTime:Long,predicate:() -> Boolean){
+    fun threadSleepUntil(waitTime:Long, predicate:() -> Boolean){
         while(predicate() == false){
             Thread.sleep(waitTime)
         }
