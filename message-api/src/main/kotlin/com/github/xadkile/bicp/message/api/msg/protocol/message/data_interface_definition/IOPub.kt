@@ -10,7 +10,12 @@ object IOPub {
     object Error : MsgDefinitionEncapsulation{
         val msgType = MsgType.IOPub_error
 
-        class Content : MsgContent
+        // TODO this structure is extract from real message, not from document
+        class Content(
+            val traceback: List<String>,
+            val ename:String,
+            val evalue:String
+        ) : MsgContent
 
         class MetaData : MsgMetaData
 

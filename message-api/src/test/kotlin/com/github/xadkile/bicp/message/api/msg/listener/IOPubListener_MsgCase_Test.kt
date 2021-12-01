@@ -2,10 +2,12 @@ package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
+import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.handler
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
 import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
@@ -29,9 +31,10 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
         kernelContext.stopKernel()
     }
 
-//    @Test
+    @Test
     fun errMsg() {
         runBlocking {
+            kernelContext.startKernel()
             val errMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
@@ -46,28 +49,27 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 ),
                 "msg_id_abc_123_err"
             )
+            var errHandlerWasTrigger = 0
             val listener = IOPubListener(
                 kernelContext = kernelContext,
             )
 
-            listener.addHandler(MsgHandlers.withUUID(
-                MsgType.IOPub_execute_result,
-                handlerFunction = { msg: JPRawMessage, l: MsgListener ->
-                    val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
-                    println(md)
-                    listener.stop()
-                },
-            )
+            listener.addHandler(
+                IOPub.Error.handler { msg, listener ->
+                    errHandlerWasTrigger +=1
+                    println(msg)
+                    val jpMsg:JPMessage<IOPub.Error.MetaData,IOPub.Error.Content> = msg.toModel()
+                    println(jpMsg)
+                }
             )
 
             listener.start(this, Dispatchers.Default)
+            kernelContext.getSenderProvider().unwrap().getExecuteRequestSender().send(errMsg)
+            listener.stop()
+            Thread.sleep(1000)
+            assertEquals(1,errHandlerWasTrigger, "error handler should be triggered exactly once")
 
-            Sleeper.waitUntil { listener.isRunning() }
-//            listener.stop()
         }
-
-
-
     }
 
 
