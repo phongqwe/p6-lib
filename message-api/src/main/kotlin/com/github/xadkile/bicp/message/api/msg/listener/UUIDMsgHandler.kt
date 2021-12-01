@@ -1,7 +1,5 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import java.util.*
 
 /**

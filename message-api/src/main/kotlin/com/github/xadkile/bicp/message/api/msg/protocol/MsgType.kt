@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.msg.protocol.message
+package com.github.xadkile.bicp.message.api.msg.protocol
 
 import com.google.gson.annotations.SerializedName
 
@@ -7,6 +7,20 @@ import com.google.gson.annotations.SerializedName
  * https://jupyter-client.readthedocs.io/en/latest/messaging.html
  */
 enum class MsgType {
+    @SerializedName("interrupt_request")
+    Control_interrupt_request {
+        override fun text(): String {
+           return "interrupt_request"
+        }
+    },
+
+    @SerializedName("interrupt_reply")
+    Control_interrupt_reply {
+        override fun text(): String {
+            return "interrupt_reply"
+        }
+    },
+
     @SerializedName("shutdown_request")
     Control_shutdown_request {
         override fun text(): String {

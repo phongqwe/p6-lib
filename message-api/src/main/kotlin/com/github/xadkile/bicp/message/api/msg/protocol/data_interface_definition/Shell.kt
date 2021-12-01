@@ -1,16 +1,15 @@
-package com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition
+package com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition
 
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgContent
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgMetaData
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgStatus
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgContent
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgMetaData
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgStatus
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import com.google.gson.annotations.SerializedName
 import java.util.*
-import javax.inject.Qualifier
 
 object Shell{
     object Execute{
-        object Request : MsgDefinitionEncapsulation{
+        object Request : MsgDefinitionEncapsulation {
 
             val msgType = MsgType.Shell_execute_request
 
@@ -30,11 +29,11 @@ object Shell{
             class MetaData : MsgMetaData {}
 
             override fun getMsgType2(): MsgType {
-                return this.msgType
+                return msgType
             }
         }
 
-        object Reply:MsgDefinitionEncapsulation{
+        object Reply: MsgDefinitionEncapsulation {
 
             val msgType = MsgType.Shell_execute_reply
 
@@ -61,14 +60,14 @@ object Shell{
             ) : MsgMetaData
 
             override fun getMsgType2(): MsgType {
-                return this.msgType
+                return msgType
             }
         }
     }
 
     object KernelInfo{
 
-        object Request:MsgDefinitionEncapsulation{
+        object Request: MsgDefinitionEncapsulation {
 
             val msgType = MsgType.Shell_kernel_info_request
 
@@ -80,19 +79,19 @@ object Shell{
                 return msgType
             }
         }
-        object Reply:MsgDefinitionEncapsulation{
+        object Reply: MsgDefinitionEncapsulation {
 
             val msgType = MsgType.Shell_kernel_info_reply
 
             class Content(
-                status:MsgStatus,
+                status: MsgStatus,
                 @SerializedName("protocol_version")
                 val protocolVersion:String,
                 val implementation:String,
                 @SerializedName("implementation_version")
                 val implementationVersion:String,
                 @SerializedName("language_info")
-                val languageInfo:LanguageInfo,
+                val languageInfo: LanguageInfo,
                 val banner:String,
                 val debugger:Boolean,
                 @SerializedName("help_links")
@@ -100,7 +99,7 @@ object Shell{
                 traceback: List<String>,
                 ename:String,
                 evalue:String
-            ) : MsgContent,CommonReplyContent(status,traceback, ename, evalue)
+            ) : MsgContent, CommonReplyContent(status,traceback, ename, evalue)
 
             class MetaData: MsgMetaData
 
@@ -128,11 +127,4 @@ object Shell{
             }
         }
     }
-
-    sealed class CommonReplyContent(
-        val status: MsgStatus,
-        val traceback: List<String>,
-        val ename:String,
-        val evalue:String
-    )
 }

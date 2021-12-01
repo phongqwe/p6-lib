@@ -1,7 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection.kernel_context
 
 import com.github.xadkile.bicp.common.HmacMaker
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 
 class MsgEncoderImp internal constructor(val keyStr: String) : MsgEncoder {
 

@@ -1,6 +1,6 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 
 class HandlerContainerImp: MsgHandlerContainer {
 
@@ -25,7 +25,7 @@ class HandlerContainerImp: MsgHandlerContainer {
     }
 
     override fun removeHandler(handlerId: String) {
-        var key:MsgType?=null
+        var key: MsgType?=null
         for((k,v) in this.map){
             if(v.any { it.id() == handlerId }){
                 key = k

@@ -1,6 +1,6 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*

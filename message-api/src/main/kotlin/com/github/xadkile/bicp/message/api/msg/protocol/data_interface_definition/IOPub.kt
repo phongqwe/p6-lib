@@ -1,16 +1,15 @@
-package com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition
+package com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition
 
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgContent
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgMetaData
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgContent
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgMetaData
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import com.google.gson.annotations.SerializedName
 
 object IOPub {
 
-    object Error : MsgDefinitionEncapsulation{
+    object Error : MsgDefinitionEncapsulation {
         val msgType = MsgType.IOPub_error
 
-        // TODO this structure is extract from real message, not from document
         class Content(
             val traceback: List<String>,
             val ename:String,
@@ -24,7 +23,7 @@ object IOPub {
         }
     }
 
-    object Status:MsgDefinitionEncapsulation{
+    object Status: MsgDefinitionEncapsulation {
         val msgType = MsgType.IOPub_status
 
         /**
@@ -47,7 +46,7 @@ object IOPub {
             return msgType
         }
     }
-    object ExecuteResult:MsgDefinitionEncapsulation{
+    object ExecuteResult: MsgDefinitionEncapsulation {
 
         val msgType = MsgType.IOPub_execute_result
 
@@ -58,20 +57,20 @@ object IOPub {
             val transient: Map<String, Any>,
             @SerializedName("execution_count")
             val executionCount:Int
-        ) :MsgContent{
+        ) : MsgContent {
             fun getTextPlain():String?{
                 return data["text/plain"]?.toString()
             }
         }
 
-        class MetaData:MsgMetaData
+        class MetaData: MsgMetaData
 
         override fun getMsgType2(): MsgType {
             return msgType
         }
     }
 
-    object DisplayData:MsgDefinitionEncapsulation {
+    object DisplayData: MsgDefinitionEncapsulation {
 
         val msgType = MsgType.IOPub_display_data
 

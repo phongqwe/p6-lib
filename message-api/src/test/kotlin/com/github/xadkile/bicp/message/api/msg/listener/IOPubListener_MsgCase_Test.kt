@@ -1,25 +1,19 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.handler
+import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.handler
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
-import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkStatic
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.zeromq.SocketType
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -58,7 +52,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 IOPub.Error.handler { msg, listener ->
                     errHandlerWasTrigger +=1
                     println(msg)
-                    val jpMsg:JPMessage<IOPub.Error.MetaData,IOPub.Error.Content> = msg.toModel()
+                    val jpMsg: JPMessage<IOPub.Error.MetaData, IOPub.Error.Content> = msg.toModel()
                     println(jpMsg)
                 }
             )

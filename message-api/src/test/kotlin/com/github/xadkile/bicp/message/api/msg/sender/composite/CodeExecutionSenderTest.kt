@@ -4,7 +4,7 @@ import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelIsDownException
 import com.github.xadkile.bicp.message.api.msg.listener.HandlerContainerImp
 import com.github.xadkile.bicp.message.api.msg.listener.IOPubListener
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToSendMsgException
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteReply

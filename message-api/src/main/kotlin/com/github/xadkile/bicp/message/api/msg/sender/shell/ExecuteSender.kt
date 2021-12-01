@@ -4,8 +4,8 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.kernel_context.*
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.PCSender
 import kotlinx.coroutines.*

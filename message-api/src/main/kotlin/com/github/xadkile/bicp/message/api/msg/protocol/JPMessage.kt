@@ -1,10 +1,7 @@
-package com.github.xadkile.bicp.message.api.msg.protocol.message
+package com.github.xadkile.bicp.message.api.msg.protocol
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
-import com.github.xadkile.bicp.message.api.msg.protocol.MessageHeader
-import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolConstant
-import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolUtils
 
 
 class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
@@ -49,8 +46,8 @@ class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
             )
         }
 
-        inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent> fromPayload(payload:List<ByteArray>):Result<JPMessage<META,CONTENT>,Exception>{
-            val rawMsg:Result<JPRawMessage,Exception> =JPRawMessage.fromPayload(payload.map { it })
+        inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent> fromPayload(payload:List<ByteArray>):Result<JPMessage<META, CONTENT>,Exception>{
+            val rawMsg:Result<JPRawMessage,Exception> = JPRawMessage.fromPayload(payload.map { it })
             return rawMsg.map { it.toModel() }
         }
     }

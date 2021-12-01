@@ -1,7 +1,6 @@
 package com.github.xadkile.bicp.message.api.msg.sender
 
-import com.github.xadkile.bicp.message.api.connection.util.HaveKernelContext
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 

@@ -1,13 +1,10 @@
-package com.github.xadkile.bicp.message.api.msg.message
+package com.github.xadkile.bicp.message.api.msg.protocol
 
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.common.HmacMaker
-import com.github.xadkile.bicp.message.api.msg.protocol.MessageHeader
-import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolUtils
-import com.github.xadkile.bicp.message.api.msg.protocol.message.*
 import com.google.gson.annotations.SerializedName
 import org.junit.jupiter.api.Test
 import java.util.*

@@ -1,7 +1,7 @@
 package com.github.xadkile.bicp.message.api.msg.sender.shell
 
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking

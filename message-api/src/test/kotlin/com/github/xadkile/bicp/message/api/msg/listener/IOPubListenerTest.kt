@@ -2,10 +2,10 @@ package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
+import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
 import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
@@ -149,7 +149,8 @@ internal class IOPubListenerTest : TestOnJupyter() {
                 kernelContext = kernelContext,
             )
 
-            listener.addHandler(MsgHandlers.withUUID(MsgType.IOPub_execute_result,
+            listener.addHandler(MsgHandlers.withUUID(
+                MsgType.IOPub_execute_result,
                 handlerFunction = { msg: JPRawMessage, l: MsgListener ->
                     val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
                     println(md)

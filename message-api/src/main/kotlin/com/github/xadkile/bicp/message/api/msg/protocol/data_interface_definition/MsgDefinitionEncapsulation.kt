@@ -1,10 +1,10 @@
-package com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition
+package com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition
 
 import com.github.xadkile.bicp.message.api.msg.listener.MsgHandler
 import com.github.xadkile.bicp.message.api.msg.listener.MsgHandlers
 import com.github.xadkile.bicp.message.api.msg.listener.MsgListener
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 
 interface MsgDefinitionEncapsulation {
     fun getMsgType2(): MsgType

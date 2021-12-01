@@ -2,9 +2,9 @@ package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.*
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
+import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.message.api.system.SystemEvent
 import kotlinx.coroutines.*

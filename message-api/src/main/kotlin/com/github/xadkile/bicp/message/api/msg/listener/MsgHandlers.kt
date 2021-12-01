@@ -1,7 +1,7 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
+import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 
 /**
  *
@@ -9,7 +9,7 @@ import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 class MsgHandlers {
     companion object {
         fun withUUID(msgType: MsgType,
-                     handlerFunction:suspend  (msg: JPRawMessage, listener:MsgListener) -> Unit = {_,_->},
+                     handlerFunction:suspend  (msg: JPRawMessage, listener:MsgListener) -> Unit = { _, _->},
         ): UUIDMsgHandler {
             return object : UUIDMsgHandler() {
                 private val mt = msgType

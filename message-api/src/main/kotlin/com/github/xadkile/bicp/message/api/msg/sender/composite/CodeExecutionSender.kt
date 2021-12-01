@@ -5,11 +5,10 @@ import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelConte
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelIsDownException
 import com.github.xadkile.bicp.message.api.exception.UnknownException
 import com.github.xadkile.bicp.message.api.msg.listener.IOPubListener
-import com.github.xadkile.bicp.message.api.msg.listener.MsgHandlers
-import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgStatus
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
-import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.handler
+import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgStatus
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
+import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.handler
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToSendMsgException
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteReply

@@ -1,14 +1,10 @@
-package com.github.xadkile.bicp.message.api.msg.protocol.message
+package com.github.xadkile.bicp.message.api.msg.protocol
 
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.common.HmacMaker
-import com.github.xadkile.bicp.message.api.msg.protocol.InvalidPayloadSizeException
 import com.google.gson.GsonBuilder
-import com.github.xadkile.bicp.message.api.msg.protocol.MessageHeader
-import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolConstant
-import com.github.xadkile.bicp.message.api.msg.protocol.ProtocolUtils
 
 /**
  * For reading raw data from zmq sockets
