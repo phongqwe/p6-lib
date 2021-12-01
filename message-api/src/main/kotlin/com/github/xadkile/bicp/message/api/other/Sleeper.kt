@@ -22,7 +22,4 @@ object Sleeper {
     }
 }
 
-class Sleeper2{
-
-}
 

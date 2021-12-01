@@ -5,6 +5,7 @@ import com.github.xadkile.bicp.message.api.connection.kernel_context.*
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
+import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.message.api.system.SystemEvent
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ
@@ -70,15 +71,10 @@ class IOPubListener constructor(
                             }
                         }
                     }
-//                    else{
-//                        // ph: stop the listener when
-//                        if(ignoreKernelRunningStatus==false){
-//                            break
-//                        }
-//                    }
                 }
             }
         }
+        Sleeper.waitUntil { job?.isActive == true}
         return Ok(Unit)
     }
 
