@@ -19,8 +19,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
 
+
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class IOPubListenerTest : TestOnJupyter() {
+internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
     val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
@@ -54,86 +56,6 @@ internal class IOPubListenerTest : TestOnJupyter() {
     @AfterEach
     fun ae() {
         kernelContext.stopKernel()
-    }
-
-    /**
-     * Test sending malformed message
-     */
-    @Test
-    fun testParseExceptionHandler() = runBlocking {
-        // p: start a zmq pub-sub socket pair
-        val pubSocket = zcontext.createSocket(SocketType.PUB).also {
-            it.bind("tcp://*:5555")
-        }
-        val subSocket = zcontext.createSocket(SocketType.SUB).also {
-            it.connect("tcp://localhost:5555")
-            it.subscribe("")
-        }
-
-        // p: create a mock kernel context
-        mockkStatic("com.github.michaelbull.result.UnwrapKt")
-        val mockContext: KernelContextReadOnlyConv = mockk<KernelContextReadOnlyConv>().also {
-            every { it.getSocketProvider().unwrap().ioPubSocket() } returns subSocket
-            every { it.isRunning() } returns true
-            every { it.isNotRunning() } returns false
-            every { it.getConvHeartBeatService().unwrap().isHBAlive() } returns true
-        }
-
-        var exceptionHandlerTriggerCount = 0
-
-        val listener = IOPubListener(
-            mockContext,
-            { m, l -> },
-            { e, l ->
-                exceptionHandlerTriggerCount++
-                l.stop()
-            }, false, HandlerContainerImp())
-
-        listener.start(this, Dispatchers.Default)
-
-        Sleeper.waitUntil { listener.isRunning() }
-        // p: send a malformed message that cannot be parse by the listener
-        pubSocket.send("malformed", 0)
-
-        // p: wait for the msg to be handled by listener
-        delay(1000)
-        assertEquals(1, exceptionHandlerTriggerCount, "Exception handler should be triggered exactly once")
-    }
-
-    /**
-     * default handler should be triggered if the listener does not have appropriate handler to handle certain kind of message
-     */
-    @Test
-    fun testTriggeringDefaultHandler() = runBlocking {
-
-        kernelContext.startKernel()
-        var defaultHandlerTriggeredCount = 0
-        var handlerTriggeredCount = 0
-        val listener = IOPubListener(
-            kernelContext,
-            defaultHandler = { msg, l ->
-                defaultHandlerTriggeredCount++
-                l.stop()
-            }
-        ).also {
-            it.addHandler(MsgHandlers.withUUID(
-                msgType = MsgType.Control_shutdown_reply,
-                handlerFunction = { m, l ->
-                    handlerTriggeredCount++
-                },
-            ))
-        }
-
-        listener.start(this, Dispatchers.Default)
-        Sleeper.waitUntil { listener.isRunning() }
-        // rmd: send message
-
-        kernelContext.getSenderProvider().unwrap().getExecuteRequestSender().also {
-            it.send(okMsg, Dispatchers.Default)
-        }
-        delay(1000)
-        assertEquals(1, defaultHandlerTriggeredCount, "default handler should be triggered exactly once")
-        assertEquals(0, handlerTriggeredCount, "incorrect handler should not triggered")
     }
 
     @Test

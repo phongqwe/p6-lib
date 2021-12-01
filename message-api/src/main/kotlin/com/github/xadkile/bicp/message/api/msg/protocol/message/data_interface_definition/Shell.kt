@@ -10,7 +10,7 @@ import javax.inject.Qualifier
 
 object Shell{
 
-    object ExecuteRequest {
+    object ExecuteRequest : MsgDefinitionEncapsulation{
 
         val msgType = MsgType.Shell_execute_request
 
@@ -28,9 +28,13 @@ object Shell{
         ): MsgContent
 
         class MetaData : MsgMetaData {}
+
+        override fun getMsgType2(): MsgType {
+            return this.msgType
+        }
     }
 
-    object ExecuteReply{
+    object ExecuteReply:MsgDefinitionEncapsulation{
 
         val msgType = MsgType.Shell_execute_reply
 
@@ -52,15 +56,24 @@ object Shell{
             val engine: String,
             val status: MsgStatus,
         ) : MsgMetaData
+
+        override fun getMsgType2(): MsgType {
+            return this.msgType
+        }
     }
 
     object KernelInfo{
-        object Request{
+        object Request:MsgDefinitionEncapsulation{
             val msgType = MsgType.Shell_kernel_info_request
             class Content : MsgContent
             class MetaData: MsgMetaData
+
+            override fun getMsgType2(): MsgType {
+                return msgType
+            }
         }
-        object Reply{
+        object Reply:MsgDefinitionEncapsulation{
+            
             val msgType = MsgType.Shell_kernel_info_reply
 
             data class Content(
@@ -98,6 +111,10 @@ object Shell{
                 @SerializedName("nbconvert_exporter")
                 val nbConvertExporter:String
             )
+
+            override fun getMsgType2(): MsgType {
+                return msgType
+            }
         }
     }
 }

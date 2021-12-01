@@ -2,23 +2,25 @@ package com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_
 
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgContent
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgMetaData
-import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgStatus
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgType
 import com.google.gson.annotations.SerializedName
-import javax.inject.Qualifier
 
 object IOPub {
 
-    object Error {
+    object Error : MsgDefinitionEncapsulation{
         val msgType = MsgType.IOPub_error
-//        data class Content():MsgContent {
-//
-//        }
+
+        class Content : MsgContent
+
+        class MetaData : MsgMetaData
+
+        override fun getMsgType2(): MsgType {
+            return msgType
+        }
     }
 
-    object Status{
+    object Status:MsgDefinitionEncapsulation{
         val msgType = MsgType.IOPub_status
-
 
         /**
          * When the kernel starts to handle a message, it will enter the 'busy'
@@ -31,12 +33,19 @@ object IOPub {
         ) : MsgContent
 
         class MetaData() : MsgMetaData
+
         enum class ExecutionState{
             busy, idle, starting
         }
+
+        override fun getMsgType2(): MsgType {
+            return msgType
+        }
     }
-    object ExecuteResult{
+    object ExecuteResult:MsgDefinitionEncapsulation{
+
         val msgType = MsgType.IOPub_execute_result
+
         data class Content(
             val data: Map<String, Any>,
             @SerializedName("metadata")
@@ -49,16 +58,27 @@ object IOPub {
                 return data["text/plain"]?.toString()
             }
         }
+
         class MetaData:MsgMetaData
+
+        override fun getMsgType2(): MsgType {
+            return msgType
+        }
     }
 
-    object DisplayData {
+    object DisplayData:MsgDefinitionEncapsulation {
+
         val msgType = MsgType.IOPub_display_data
+
         class Content(
             val data: Map<String, Any>,
             @SerializedName("metadata")
             val metaData: Map<String, Any>,
             val transient: Map<String, Any>
         ) : MsgContent
+
+        override fun getMsgType2(): MsgType {
+            return msgType
+        }
     }
 }

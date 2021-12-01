@@ -9,6 +9,7 @@ import com.github.xadkile.bicp.message.api.msg.listener.MsgHandlers
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.MsgStatus
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.IOPub
+import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.handler
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToSendMsgException
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteReply
@@ -42,25 +43,27 @@ class CodeExecutionSender(
 
         // p: config listener - catch execute_result message
         ioPubListener.addHandler(
-            MsgHandlers.withUUID(IOPub.ExecuteResult.msgType) { m, l ->
-                val receivedMsg: ExecuteResult = m.toModel()
+            IOPub.ExecuteResult.handler { msg, listener ->
+                val receivedMsg: ExecuteResult = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
                     rt = Ok(receivedMsg)
-                    l.stop()
+                    listener.stop()
                     state = state.transit(rt, kernelContext, ioPubListener)
                 }
             }
         )
+
+
         // ph: config listener - catch status messages, "busy", "idle"
         ioPubListener.addHandler(
-            MsgHandlers.withUUID(IOPub.Status.msgType) { m, l ->
-                val msg: JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = m.toModel()
-                if (msg.parentHeader == message.header) {
-                    if (msg.content.executionState == IOPub.Status.ExecutionState.idle) {
+            IOPub.Status.handler { msg, listener ->
+                val jpMsg: JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = msg.toModel()
+                if (jpMsg.parentHeader == message.header) {
+                    if (jpMsg.content.executionState == IOPub.Status.ExecutionState.idle) {
                         println("Reach idle state-> stop")
                         // TODO consider keeping or not keeping this marker handler. Does it solve any problem?
-                        l.stop()
-                    } else if (msg.content.executionState == IOPub.Status.ExecutionState.busy) {
+                        listener.stop()
+                    } else if (jpMsg.content.executionState == IOPub.Status.ExecutionState.busy) {
                         println("Reach busy -> start computing")
                         // TODO consider keeping or not keeping this marker handler. Does it solve any problem?
                     }
@@ -69,18 +72,8 @@ class CodeExecutionSender(
         )
 
         ioPubListener.addHandler(
-            MsgHandlers.withUUID(IOPub.Status.msgType) { m, l ->
-                val msg: JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = m.toModel()
-                if (msg.parentHeader == message.header) {
-                    if (msg.content.executionState == IOPub.Status.ExecutionState.idle) {
-                        println("Reach idle state-> stop")
-                        // TODO consider keeping or not keeping this marker handler. Does it solve any problem?
-                        l.stop()
-                    } else if (msg.content.executionState == IOPub.Status.ExecutionState.busy) {
-                        println("Reach busy -> start computing")
-                        // TODO consider keeping or not keeping this marker handler. Does it solve any problem?
-                    }
-                }
+            IOPub.Error.handler { msg, listener ->
+                println(msg)
             }
         )
 
@@ -88,7 +81,7 @@ class CodeExecutionSender(
         // ph: sending the computing request
         coroutineScope {
             // ph: start the listener on a separated coroutine.
-            val startRs:Result<Unit,Exception> = ioPubListener.start(this, dispatcher)
+            val startRs: Result<Unit, Exception> = ioPubListener.start(this, dispatcher)
 
             // ph: only send the message if the ioPubListener was started successfully
             if (startRs is Ok) {
@@ -121,7 +114,7 @@ class CodeExecutionSender(
             state = state.transit(rt, kernelContext, ioPubListener)
         }
         ioPubListener.stop()
-        state = state.transit( rt, kernelContext, ioPubListener)
+        state = state.transit(rt, kernelContext, ioPubListener)
 
         if (state == SendingState.Done) {
             return rt!!
