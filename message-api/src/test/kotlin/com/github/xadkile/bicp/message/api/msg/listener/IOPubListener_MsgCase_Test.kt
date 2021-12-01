@@ -38,8 +38,8 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             val errMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
-                msgType = Shell.ExecuteRequest.msgType,
-                msgContent = Shell.ExecuteRequest.Content(
+                msgType = Shell.Execute.Request.msgType,
+                msgContent = Shell.Execute.Request.Content(
                     code = "x=1+1/*2;y=x*2;y",
                     silent = false,
                     storeHistory = true,
@@ -64,7 +64,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             )
 
             listener.start(this, Dispatchers.Default)
-            kernelContext.getSenderProvider().unwrap().getExecuteRequestSender().send(errMsg)
+            val sr = kernelContext.getSenderProvider().unwrap().getExecuteRequestSender().send(errMsg)
             listener.stop()
             Thread.sleep(1000)
             assertEquals(1,errHandlerWasTrigger, "error handler should be triggered exactly once")
@@ -79,8 +79,8 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
-                msgType = Shell.ExecuteRequest.msgType,
-                msgContent = Shell.ExecuteRequest.Content(
+                msgType = Shell.Execute.Request.msgType,
+                msgContent = Shell.Execute.Request.Content(
                     code = "x=1+1*2;y=x*2;y",
                     silent = false,
                     storeHistory = true,

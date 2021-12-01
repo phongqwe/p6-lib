@@ -86,9 +86,13 @@ class IOPubListener constructor(
             msgIdentity.endsWith(IOPub.Status.msgType.text()) -> IOPub.Status.msgType
 
             msgIdentity.endsWith(IOPub.Error.getMsgType2().text()) -> IOPub.Error.getMsgType2()
+
             // TODO add more msg type here
 
-            else -> MsgType.NOT_RECOGNIZE
+            else -> {
+                println("msg type not recog: $msgIdentity")
+                MsgType.NOT_RECOGNIZE
+            }
         }
         return msgType
     }

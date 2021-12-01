@@ -9,63 +9,71 @@ import java.util.*
 import javax.inject.Qualifier
 
 object Shell{
+    object Execute{
+        object Request : MsgDefinitionEncapsulation{
 
-    object ExecuteRequest : MsgDefinitionEncapsulation{
+            val msgType = MsgType.Shell_execute_request
 
-        val msgType = MsgType.Shell_execute_request
+            data class Content(
+                val code: String,
+                val silent: Boolean,
+                @SerializedName("store_history")
+                val storeHistory: Boolean,
+                @SerializedName("user_expressions")
+                val userExpressions: Map<String, String>,
+                @SerializedName("allow_stdin")
+                val allowStdin: Boolean,
+                @SerializedName("stop_on_error")
+                val stopOnError: Boolean,
+            ): MsgContent
 
-        data class Content(
-            val code: String,
-            val silent: Boolean,
-            @SerializedName("store_history")
-            val storeHistory: Boolean,
-            @SerializedName("user_expressions")
-            val userExpressions: Map<String, String>,
-            @SerializedName("allow_stdin")
-            val allowStdin: Boolean,
-            @SerializedName("stop_on_error")
-            val stopOnError: Boolean,
-        ): MsgContent
+            class MetaData : MsgMetaData {}
 
-        class MetaData : MsgMetaData {}
-
-        override fun getMsgType2(): MsgType {
-            return this.msgType
+            override fun getMsgType2(): MsgType {
+                return this.msgType
+            }
         }
-    }
 
-    object ExecuteReply:MsgDefinitionEncapsulation{
+        object Reply:MsgDefinitionEncapsulation{
 
-        val msgType = MsgType.Shell_execute_reply
+            val msgType = MsgType.Shell_execute_reply
 
-        data class Content(
-            val status: MsgStatus,
-            @SerializedName("execution_count")
-            val executionCount: Int,
-            @SerializedName("user_expressions")
-            val userExpressions: Map<String, Any>,
-            val payload: List<Map<String, Any>>,
-        ) : MsgContent
+            class Content(
+                status: MsgStatus,
+                @SerializedName("execution_count")
+                val executionCount: Int,
+                @SerializedName("user_expressions")
+                val userExpressions: Map<String, Any>,
+                val payload: List<Map<String, Any>>,
+                traceback: List<String>,
+                ename:String,
+                evalue:String
+            ) : MsgContent, CommonReplyContent(status,traceback, ename, evalue)
 
-        // TODO this is extract from the an actually received message, not from the document
-        data class MetaData(
-            @SerializedName("started")
-            val startedTime: Date,
-            @SerializedName("dependencies_met")
-            val dependenciesMet: Boolean,
-            val engine: String,
-            val status: MsgStatus,
-        ) : MsgMetaData
+            // TODO this is extract from the an actually received message, not from the document
+            data class MetaData(
+                @SerializedName("started")
+                val startedTime: Date,
+                @SerializedName("dependencies_met")
+                val dependenciesMet: Boolean,
+                val engine: String,
+                val status: MsgStatus,
+            ) : MsgMetaData
 
-        override fun getMsgType2(): MsgType {
-            return this.msgType
+            override fun getMsgType2(): MsgType {
+                return this.msgType
+            }
         }
     }
 
     object KernelInfo{
+
         object Request:MsgDefinitionEncapsulation{
+
             val msgType = MsgType.Shell_kernel_info_request
+
             class Content : MsgContent
+
             class MetaData: MsgMetaData
 
             override fun getMsgType2(): MsgType {
@@ -73,11 +81,11 @@ object Shell{
             }
         }
         object Reply:MsgDefinitionEncapsulation{
-            
+
             val msgType = MsgType.Shell_kernel_info_reply
 
-            data class Content(
-                val status:MsgStatus,
+            class Content(
+                status:MsgStatus,
                 @SerializedName("protocol_version")
                 val protocolVersion:String,
                 val implementation:String,
@@ -88,8 +96,11 @@ object Shell{
                 val banner:String,
                 val debugger:Boolean,
                 @SerializedName("help_links")
-                val helpLinks:List<HelpLink>
-            ) : MsgContent
+                val helpLinks:List<HelpLink>,
+                traceback: List<String>,
+                ename:String,
+                evalue:String
+            ) : MsgContent,CommonReplyContent(status,traceback, ename, evalue)
 
             class MetaData: MsgMetaData
 
@@ -117,4 +128,11 @@ object Shell{
             }
         }
     }
+
+    sealed class CommonReplyContent(
+        val status: MsgStatus,
+        val traceback: List<String>,
+        val ename:String,
+        val evalue:String
+    )
 }

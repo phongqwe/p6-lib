@@ -24,8 +24,8 @@ internal class IOPubListenerTest : TestOnJupyter() {
     val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
-        msgType = Shell.ExecuteRequest.msgType,
-        msgContent = Shell.ExecuteRequest.Content(
+        msgType = Shell.Execute.Request.msgType,
+        msgContent = Shell.Execute.Request.Content(
             code = "x=1+1*2;y=x*2;y",
             silent = false,
             storeHistory = true,
@@ -39,8 +39,8 @@ internal class IOPubListenerTest : TestOnJupyter() {
     val errMsg: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
-        msgType = Shell.ExecuteRequest.msgType,
-        msgContent = Shell.ExecuteRequest.Content(
+        msgType = Shell.Execute.Request.msgType,
+        msgContent = Shell.Execute.Request.Content(
             code = "x=1+1/*2;y=x*2;y",
             silent = false,
             storeHistory = true,

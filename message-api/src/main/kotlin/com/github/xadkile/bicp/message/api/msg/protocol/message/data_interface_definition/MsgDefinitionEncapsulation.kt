@@ -10,8 +10,8 @@ interface MsgDefinitionEncapsulation {
     fun getMsgType2(): MsgType
 }
 
-fun MsgDefinitionEncapsulation.handler(handlerFunction:suspend  (
-    msg: JPRawMessage, listener: MsgListener
-) -> Unit): MsgHandler {
+fun MsgDefinitionEncapsulation.handler(
+    handlerFunction:suspend  (msg: JPRawMessage, listener: MsgListener) -> Unit)
+: MsgHandler {
     return MsgHandlers.withUUID(getMsgType2(), handlerFunction)
 }
