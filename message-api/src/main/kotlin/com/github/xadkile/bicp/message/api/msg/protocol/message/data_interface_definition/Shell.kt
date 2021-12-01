@@ -10,45 +10,48 @@ import javax.inject.Qualifier
 
 object Shell{
 
-    object Execute {
+    object ExecuteRequest {
 
         val msgType = MsgType.Shell_execute_request
 
-        object Request{
-            data class Content(
-                val code: String,
-                val silent: Boolean,
-                @SerializedName("store_history")
-                val storeHistory: Boolean,
-                @SerializedName("user_expressions")
-                val userExpressions: Map<String, String>,
-                @SerializedName("allow_stdin")
-                val allowStdin: Boolean,
-                @SerializedName("stop_on_error")
-                val stopOnError: Boolean,
-            ): MsgContent
-            class MetaData : MsgMetaData {}
-        }
+        data class Content(
+            val code: String,
+            val silent: Boolean,
+            @SerializedName("store_history")
+            val storeHistory: Boolean,
+            @SerializedName("user_expressions")
+            val userExpressions: Map<String, String>,
+            @SerializedName("allow_stdin")
+            val allowStdin: Boolean,
+            @SerializedName("stop_on_error")
+            val stopOnError: Boolean,
+        ): MsgContent
 
-        object Reply{
-            data class Content(
-                val status: MsgStatus,
-                @SerializedName("execution_count")
-                val executionCount: Int,
-                @SerializedName("user_expressions")
-                val userExpressions: Map<String, Any>,
-                val payload: List<Map<String, Any>>,
-            ) : MsgContent
+        class MetaData : MsgMetaData {}
+    }
 
-            data class MetaData(
-                @SerializedName("started")
-                val startedTime: Date,
-                @SerializedName("dependencies_met")
-                val dependencyMet: Boolean,
-                val engine: String,
-                val status: MsgStatus,
-            ) : MsgMetaData
-        }
+    object ExecuteReply{
+
+        val msgType = MsgType.Shell_execute_reply
+
+        data class Content(
+            val status: MsgStatus,
+            @SerializedName("execution_count")
+            val executionCount: Int,
+            @SerializedName("user_expressions")
+            val userExpressions: Map<String, Any>,
+            val payload: List<Map<String, Any>>,
+        ) : MsgContent
+
+        // TODO this is extract from the an actually received message, not from the document
+        data class MetaData(
+            @SerializedName("started")
+            val startedTime: Date,
+            @SerializedName("dependencies_met")
+            val dependenciesMet: Boolean,
+            val engine: String,
+            val status: MsgStatus,
+        ) : MsgMetaData
     }
 
     object KernelInfo{

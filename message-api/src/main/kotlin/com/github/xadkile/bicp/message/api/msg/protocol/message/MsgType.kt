@@ -61,6 +61,15 @@ enum class MsgType {
             return "status"
         }
     },
+
+    @SerializedName("error")
+    IOPub_error{
+        override fun text(): String {
+            return "error"
+        }
+    },
+
+
     NOT_RECOGNIZE {
         override fun text(): String {
             return "NOT_RECOGNIZE"

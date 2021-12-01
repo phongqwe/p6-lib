@@ -1,12 +1,9 @@
 package com.github.xadkile.bicp.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnly
-import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelIsDownException
 import com.github.xadkile.bicp.message.api.msg.listener.HandlerContainerImp
 import com.github.xadkile.bicp.message.api.msg.listener.IOPubListener
-import com.github.xadkile.bicp.message.api.msg.listener.MsgListener
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToSendMsgException
@@ -39,8 +36,8 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     val message: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
-        msgType = Shell.Execute.msgType,
-        msgContent = Shell.Execute.Request.Content(
+        msgType = Shell.ExecuteRequest.msgType,
+        msgContent = Shell.ExecuteRequest.Content(
             code = "x=1+1*2;y=x*2;y",
             silent = false,
             storeHistory = true,

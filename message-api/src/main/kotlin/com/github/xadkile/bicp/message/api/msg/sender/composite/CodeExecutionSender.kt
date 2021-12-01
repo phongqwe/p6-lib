@@ -68,6 +68,23 @@ class CodeExecutionSender(
             }
         )
 
+        ioPubListener.addHandler(
+            MsgHandlers.withUUID(IOPub.Status.msgType) { m, l ->
+                val msg: JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = m.toModel()
+                if (msg.parentHeader == message.header) {
+                    if (msg.content.executionState == IOPub.Status.ExecutionState.idle) {
+                        println("Reach idle state-> stop")
+                        // TODO consider keeping or not keeping this marker handler. Does it solve any problem?
+                        l.stop()
+                    } else if (msg.content.executionState == IOPub.Status.ExecutionState.busy) {
+                        println("Reach busy -> start computing")
+                        // TODO consider keeping or not keeping this marker handler. Does it solve any problem?
+                    }
+                }
+            }
+        )
+
+
         // ph: sending the computing request
         coroutineScope {
             // ph: start the listener on a separated coroutine.

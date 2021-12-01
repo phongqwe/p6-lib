@@ -8,6 +8,14 @@ import com.google.gson.annotations.SerializedName
 import javax.inject.Qualifier
 
 object IOPub {
+
+    object Error {
+        val msgType = MsgType.IOPub_error
+//        data class Content():MsgContent {
+//
+//        }
+    }
+
     object Status{
         val msgType = MsgType.IOPub_status
 

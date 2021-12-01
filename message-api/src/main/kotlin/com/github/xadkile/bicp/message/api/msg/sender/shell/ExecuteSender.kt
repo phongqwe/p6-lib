@@ -4,16 +4,15 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.kernel_context.*
-import com.github.xadkile.bicp.message.api.connection.util.HaveKernelContext
 import com.github.xadkile.bicp.message.api.msg.protocol.message.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.message.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.PCSender
 import kotlinx.coroutines.*
 
-typealias ExecuteReply = JPMessage<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>
+typealias ExecuteReply = JPMessage<Shell.ExecuteReply.MetaData, Shell.ExecuteReply.Content>
 
-typealias ExecuteRequest = JPMessage<Shell.Execute.Request.MetaData, Shell.Execute.Request.Content>
+typealias ExecuteRequest = JPMessage<Shell.ExecuteRequest.MetaData, Shell.ExecuteRequest.Content>
 
 class ExecuteSender internal constructor(
     private val kernelContext: KernelContextReadOnlyConv,
@@ -34,7 +33,7 @@ class ExecuteSender internal constructor(
                 kernelContext.getConvHeartBeatService().unwrap(),
                 kernelContext.zContext())
             val rt: Result<ExecuteReply, Exception> =
-                pcSender.send<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
+                pcSender.send<Shell.ExecuteReply.MetaData, Shell.ExecuteReply.Content>(message)
             rt
         }
 
