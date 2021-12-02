@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName
 
 object IOPub {
 
-    object Error : MsgDefinitionEncapsulation {
+    object ExecuteError : MsgDefinitionEncapsulation {
         val msgType = MsgType.IOPub_error
 
         class Content(
@@ -84,5 +84,30 @@ object IOPub {
         override fun getMsgType2(): MsgType {
             return msgType
         }
+    }
+
+    object Stream {
+        // TODO later
+    }
+
+    object UpdateDisplayData{
+        // TODO later
+    }
+
+    object CodeInput{
+        // TODO later
+    }
+
+    object ClearOutput{
+        // TODO later
+    }
+
+    object DebugEvent{
+        // TODO later
+    }
+
+    object Comm{
+        // comm_open, comm_close, comm_msg
+        // TODO later
     }
 }

@@ -49,10 +49,10 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             )
 
             listener.addHandler(
-                IOPub.Error.handler { msg, listener ->
+                IOPub.ExecuteError.handler { msg, listener ->
                     errHandlerWasTrigger +=1
                     println(msg)
-                    val jpMsg: JPMessage<IOPub.Error.MetaData, IOPub.Error.Content> = msg.toModel()
+                    val jpMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
                     println(jpMsg)
                 }
             )

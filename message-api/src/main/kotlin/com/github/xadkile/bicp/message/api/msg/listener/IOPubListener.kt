@@ -22,7 +22,6 @@ class IOPubListener constructor(
     private val parseExceptionHandler: suspend (exception: Exception, listener: IOPubListener) -> Unit,
     private val parallelHandler: Boolean,
     private val handlerContainer: MsgHandlerContainer,
-    private val ignoreKernelRunningStatus:Boolean=false
 ) : MsgListener {
 
     constructor(
@@ -85,7 +84,7 @@ class IOPubListener constructor(
 
             msgIdentity.endsWith(IOPub.Status.msgType.text()) -> IOPub.Status.msgType
 
-            msgIdentity.endsWith(IOPub.Error.getMsgType2().text()) -> IOPub.Error.getMsgType2()
+            msgIdentity.endsWith(IOPub.ExecuteError.getMsgType2().text()) -> IOPub.ExecuteError.getMsgType2()
 
             // TODO add more msg type here
 

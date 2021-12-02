@@ -71,7 +71,7 @@ class CodeExecutionSender(
         )
 
         ioPubListener.addHandler(
-            IOPub.Error.handler { msg, listener ->
+            IOPub.ExecuteError.handler { msg, listener ->
                 println(msg)
             }
         )

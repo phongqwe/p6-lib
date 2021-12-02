@@ -49,7 +49,6 @@ object Shell{
                 evalue:String
             ) : MsgContent, CommonReplyContent(status,traceback, ename, evalue)
 
-            // TODO this is extract from the an actually received message, not from the document
             data class MetaData(
                 @SerializedName("started")
                 val startedTime: Date,
@@ -126,5 +125,26 @@ object Shell{
                 return msgType
             }
         }
+    }
+
+    object Introspection{
+        // TODO later
+    }
+
+    object Completion{
+        // TODO later
+    }
+
+    object History{
+        // TODO later
+    }
+
+    object CommInfo{
+        // TODO later
+    }
+
+    object Comm{
+        // comm_open, comm_close,comm_msg
+        // TODO later
     }
 }
