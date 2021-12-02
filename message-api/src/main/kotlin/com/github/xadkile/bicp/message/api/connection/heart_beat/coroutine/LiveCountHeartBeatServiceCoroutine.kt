@@ -21,7 +21,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
     liveCount: Int = 3,
     pollTimeout: Long = 1000,
     cScope: CoroutineScope,
-    cDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    cDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : AbstractLiveCountHeartBeatServiceCoroutine(zContext, liveCount, pollTimeout, cScope, cDispatcher) {
 
     private val convService = HeartBeatServiceConvImp(this)

@@ -12,27 +12,109 @@ import kotlin.system.measureTimeMillis
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
 
+    val limit = 1000
+
+    fun longOperation(label: String, limit: Int = 1000) {
+        var x: Long = 0L
+        while (x < limit) {
+            println("$label $x")
+            ++x
+        }
+    }
+
+    /**
+     * suspend function and coroutine. I must not mix-up these two concept.
+     * Coroutines are a block of code that can be run asynchronously.
+     * suspending functions are function that can block/pause/suspend coroutines.
+     *
+     * Most coroutine builders (launch, async) run things in a suspend functions.
+     * So when creating a suspend function, I should ask the question: is the logic require waiting.
+     *
+     * I don't really need to write suspend function in order to use coroutine.
+     *
+     * - Coroutine deal with asynchronous code (code runs in parallel)
+     *
+     * - suspending function deal with waiting code.
+     *
+     * Most of the time, coroutine is invoke asynchronously because it involves waiting code. But they (coroutines) do not necessarily serve only such purpose.
+     *
+     * Since suspending function is for waiting/blocking code. It is best that they are used within coroutine so that they don't block the UI thread.
+     * =====
+     *  the point of suspending function is: they can literally block (suspend) coroutines. The rule of suspending function is that they must be called within other suspending function.
+     *
+     *  This is because suspending function use some kind of compiler code generation in the background to generate continuation-passing code.
+     *
+     *  Why should data, business logic layer expose suspend function to handle waiting logic ?
+     *      Answer:
+     *          - I most likely want to run my waiting logic inside coroutine. In order to block the coroutine, I must use suspending function
+     *          - So that I don't have to use callback and let my code be written in direct style
+     *  ======
+     *  Since suspend function only run inside suspend function, and suspend function always start with coroutine, I must only make something suspend function if I plan to use it inside an inherited coroutine.
+     *  For class that don't use inherited coroutine, but injected coroutine, I can use normal function.
+     *  Rule for injected coroutine scope:
+     *      - for services: inject coroutine scope as object properties
+     *      - for multiple-purpose crap: inject in function parameter. But this is rare. For now this is only used in IOPub listener. This listener is supposed to run both as background services, and one-time object. This is bad, and should not be be exposed to external use.
+     *      TODO write a dedicated service class for this
+     */
     @Test
-    fun z4() {
-
+    fun suspendingFunction()  {
         runBlocking {
-            coroutineScope {
-                launch {
-                    var x: Long = 0L
-                    while (x < 10) {
-                        println("x $x")
-                        ++x
-                    }
-                }
+            // block of runBlocking is a suspending function, so it is legal to call mySusFunc1 here
+            mySusFunc1()
+            launch {
+                // block of launch is a suspending function, so it is legal to call mySusFunc1 here
+                mySusFunc1()
+            }
+        }
+    }
 
-                launch {
-                    var x: Long = 0L
-                    while (x < 10) {
-                        println("y $x")
-                        ++x
+    @Test
+    fun suspendingFunction2(){
+        val o  = measureTimeMillis {
+            runBlocking {
+                coroutineScope {
+                    launch(Dispatchers.Default) {
+                        // launch block is a suspending function, so it is legal to call mySusFunc1 here
+                        mySusFunc1()
+                    }
+                    launch(Dispatchers.Default) {
+                        // this function is a normal function, I can also call it here, does not need to be a suspending function
+                        myCostlyFunc()
                     }
                 }
             }
+        }
+        println(o)
+    }
+
+    /**
+     * a suspend function that takes a lot of time
+     */
+    suspend fun mySusFunc1() {
+        println("do something that takes a lot of time")
+        BigInteger(1500, Random()).nextProbablePrime()
+    }
+
+    /**
+     * A normal function that takes a lot of time
+     */
+    fun myCostlyFunc(){
+        println("do something that takes a lot of time")
+        BigInteger(1500, Random()).nextProbablePrime()
+    }
+
+    /**
+     * Just a demo, avoid using this, as I have to manually cancel the scope job, which is not nice at all
+     */
+    @Test
+    fun myOwnScope() {
+        val myScope = CoroutineScope(Dispatchers.Default + Job() + CoroutineName("myCoroutine_name"))
+        myScope.launch {
+            longOperation("x")
+        }
+
+        myScope.launch {
+            longOperation("y")
         }
     }
 
@@ -41,8 +123,9 @@ class Bench : TestOnJupyter() {
         runBlocking {
             val time = measureTimeMillis {
                 val one = async {
-                println("last")
-                    doSomethingUsefulOne() }
+                    println("last")
+                    doSomethingUsefulOne()
+                }
                 val two = async { doSomethingUsefulTwo() }
                 launch(Dispatchers.Default) {
                     println("Second")
@@ -59,12 +142,25 @@ class Bench : TestOnJupyter() {
      * launch{..} are queued and executed in their order of appearance.
      * for coroutineScope{..} the direct codes are always run BEFORE any direct launch
      * for runBlocking{..} the direct code are always run AFTER any direct launch
-     * to have true non-blocking behavior, see z32
+     *
+     * in order to launch{...} non blocking code, i must provide a dispatcher (Dispatchers.Default, Dispatcher.IO)
+     * First, let's clear the following definition:
+     *  - context
+     *  - scope
+     *  - dispatcher ([CoroutineDispatcher]): implements CoroutineContext
+     *
+     * Every coroutine builder (launch, async) + scope function (coroutineScope, withContext) provides:
+     *  - their own scope + their own job instances.
+     *  - they all wait for all the coroutines inside their block to complete before completing themselves.
+     *
+     * Every coroutine context has a Job instance representing itself. This Job is the same as the one return by "launch"
+     *
      */
     @Test
-    fun z3() {
+    fun coroutineScopeEg() {
         runBlocking {
-            launch { println("first in runBlocking") }
+
+            val j: Job = launch { println("first in runBlocking") }
             coroutineScope {
                 // how to make this non-blocking: specify a dispatcher such as Dispatchers.Default. If i dont, it will use the dispatcher of runBlocking because it inherit it.
                 launch(Dispatchers.Default) {
@@ -92,72 +188,21 @@ class Bench : TestOnJupyter() {
     }
 
 
-    /**
-     * So suspending function is like a delay(). It can block (suspend) a coroutine's operation in the middle, but not the thread underneath, so that the underlying thread can freely go on launching other coroutine or do other things.
-     * A suspending function ensures that calling it does not block the underlying function.
-     * It actually not directly related to creating any coroutine.
-     * I must be aware that: suspending function does not have a coroutine scope, or a context, or a dispatcher inherently sticked to it. It's sole purpose is the ability block the caller coroutine.
-     */
-     suspend fun doSomethingUsefulOne(dispatcher: CoroutineDispatcher=Dispatchers.Default): BigInteger {
-        return withContext(dispatcher){
+    suspend fun doSomethingUsefulOne(dispatcher: CoroutineDispatcher = Dispatchers.Default): BigInteger {
+        return withContext(dispatcher) {
             println("in doSomethingUsefulOne")
-//        return BigInteger(1500, Random()).nextProbablePrime()
-            var x: Long = 0L
-            while (x < 4000_000_000) {
-                x++
-            }
-             BigInteger.valueOf(x)
-        }
+            BigInteger(1500, Random()).nextProbablePrime()
 
-    }
-
-     suspend fun doSomethingUsefulTwo(dispatcher: CoroutineDispatcher=Dispatchers.Default): BigInteger {
-//        return BigInteger(1500, Random()).nextProbablePrime()
-         return withContext(dispatcher){
-             println("in doSomethingUsefulTwo")
-             var x: Long = 0L
-             while (x < 4000_000_000) {
-                 x++
-             }
-              BigInteger.valueOf(x)
-         }
-    }
-
-    fun heavyWorkLoad(): Long {
-        var x: Long = 0L
-        while (x < 4000_000_000) {
-            x++
-        }
-        return x
-    }
-
-    suspend fun heavyWorkLoadSus(): String {
-        return coroutineScope {
-            withContext(Dispatchers.Default) {
-                var x: Long = 0L
-                while (x < 4000_000_000) {
-                    x++
-                }
-                "Sus"
-            }
         }
     }
 
-    suspend fun heavyWorkLoadBareSus(): String {
-        var x: Long = 0L
-        while (x < 4000_000_000) {
-            x++
+    suspend fun doSomethingUsefulTwo(dispatcher: CoroutineDispatcher = Dispatchers.Default): BigInteger {
+        return withContext(dispatcher) {
+            BigInteger(1500, Random()).nextProbablePrime()
         }
-        return "Bare sus"
     }
 
-    @Test
-    fun z2() {
-
-
-    }
-
-//    @Test
+    //    @Test
     fun zmqExample() {
         val weatherServer = thread(true) {
             ZContext().use { context ->

@@ -12,7 +12,6 @@
         <module>isp-ide</module>
         <module>message-api</module>
         <module>common</module>
-        <module>ide-features</module>
         <module>dummy_process</module>
     </modules>
 

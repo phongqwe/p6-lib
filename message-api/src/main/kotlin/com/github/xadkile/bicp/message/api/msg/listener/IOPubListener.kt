@@ -39,7 +39,7 @@ class IOPubListener constructor(
     /**
      * this will start this listener on a coroutine that runs concurrently.
      */
-    override suspend fun start(
+    override fun start(
         externalScope: CoroutineScope,
         dispatcher: CoroutineDispatcher,
     ): Result<Unit, Exception> {

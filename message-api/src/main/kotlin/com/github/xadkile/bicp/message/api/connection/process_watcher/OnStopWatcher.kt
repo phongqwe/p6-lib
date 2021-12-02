@@ -14,7 +14,7 @@ import kotlinx.coroutines.*
  */
 class OnStopWatcher(
     private var onStopListener: OnStopEventProcessListener = OnStopEventProcessListener.nothing,
-    private var onErrListener: OnErrEventProcessListener = OnErrEventProcessListener.nothing,
+//    private var onErrListener: OnErrEventProcessListener = OnErrEventProcessListener.nothing,
     private val cScope: CoroutineScope,
     private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : CoroutineWatcher() {

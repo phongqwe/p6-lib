@@ -10,11 +10,12 @@ import kotlinx.coroutines.*
  * A process watcher that run on a separated thread
  */
 sealed class CoroutineWatcher : ProcessWatcher {
+
     protected var job: Job? = null
 
-    protected fun skeleton(process: Process, insert:()->Unit): Result<Unit, Exception>{
+    protected fun skeleton(process: Process, block:()->Unit): Result<Unit, Exception>{
         if (this.isWatching().not() && process.isAlive) {
-            insert()
+            block()
             return Ok(Unit)
         } else {
             if (this.isWatching()) return Err(ProcessWatcherIllegalStateException("Process watcher is already running"))

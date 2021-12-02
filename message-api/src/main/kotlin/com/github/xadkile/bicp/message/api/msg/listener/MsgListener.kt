@@ -17,7 +17,7 @@ interface MsgListener : MsgHandlerContainer, AutoCloseable, HaveKernelContext, S
     /**
      * A listener may outlive the scope in which it is launch, so inject a scope in the start function
      */
-    suspend fun start(
+    fun start(
         externalScope: CoroutineScope,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Result<Unit, Exception>

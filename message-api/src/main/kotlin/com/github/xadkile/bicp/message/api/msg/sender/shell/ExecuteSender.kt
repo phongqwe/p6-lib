@@ -36,5 +36,18 @@ class ExecuteSender internal constructor(
                 pcSender.send<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
             rt
         }
+// // the withContext above is equivalent to this
+//        return coroutineScope {
+//            async(dispatcher) {
+//                val pcSender = PCSender<ExecuteRequest, ExecuteReply>(
+//                    kernelContext.getSocketProvider().unwrap().shellSocket(),
+//                    kernelContext.getMsgEncoder().unwrap(),
+//                    kernelContext.getConvHeartBeatService().unwrap(),
+//                    kernelContext.zContext())
+//                val rt: Result<ExecuteReply, Exception> =
+//                    pcSender.send<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
+//                rt
+//            }.await()
+//        }
     }
 }
