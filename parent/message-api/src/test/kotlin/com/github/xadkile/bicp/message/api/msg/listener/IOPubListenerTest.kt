@@ -128,7 +128,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
         Sleeper.waitUntil { listener.isRunning() }
         // rmd: send message
 
-        kernelContext.getSenderProvider().unwrap().getExecuteRequestSender().also {
+        kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
             it.send(okMsg, Dispatchers.Default)
         }
         delay(1000)
@@ -166,7 +166,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
             assertTrue(listener.isRunning(), "listener should be running")
             // rmd: send message
 
-            kernelContext.getSenderProvider().unwrap().getExecuteRequestSender().also {
+            kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
                 it.send(okMsg, Dispatchers.Default)
             }
             delay(1000)

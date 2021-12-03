@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.connection.kernel_context
+package com.github.xadkile.bicp.message.api.connection.kernel_context.context_object
 
 import org.zeromq.SocketType
 import org.zeromq.ZContext

@@ -3,6 +3,7 @@ package com.github.xadkile.bicp.message.api.connection.kernel_context
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
 import com.github.xadkile.bicp.message.api.channel.ChannelInfo
+import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator

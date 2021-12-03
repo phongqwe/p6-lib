@@ -12,9 +12,7 @@
     <artifactId>parent</artifactId>
 
     <modules>
-        <module>isp-ide</module>
         <module>message-api</module>
-        <module>dummy_process</module>
     </modules>
 
     <properties>

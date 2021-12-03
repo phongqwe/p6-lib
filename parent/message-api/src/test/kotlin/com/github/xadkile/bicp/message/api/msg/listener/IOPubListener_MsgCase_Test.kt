@@ -58,7 +58,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             )
 
             listener.start(this, Dispatchers.Default)
-            val sr = kernelContext.getSenderProvider().unwrap().getExecuteRequestSender().send(errMsg)
+            val sr = kernelContext.getSenderProvider().unwrap().executeRequestSender().send(errMsg)
             listener.stop()
             Thread.sleep(1000)
             assertEquals(1,errHandlerWasTrigger, "error handler should be triggered exactly once")
@@ -107,7 +107,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             listener.start(this, Dispatchers.Default)
 
             // rmd: send message
-            kernelContext.getSenderProvider().unwrap().getExecuteRequestSender().also {
+            kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
                 it.send(okMsg, Dispatchers.Default)
             }
             delay(1000)

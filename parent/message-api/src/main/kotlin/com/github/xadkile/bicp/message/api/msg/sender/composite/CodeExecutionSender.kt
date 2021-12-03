@@ -5,6 +5,7 @@ import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelConte
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelIsDownException
 import com.github.xadkile.bicp.message.api.exception.UnknownException
 import com.github.xadkile.bicp.message.api.msg.listener.IOPubListener
+import com.github.xadkile.bicp.message.api.msg.listener.MsgListener
 import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgStatus
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
@@ -25,7 +26,7 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
 class CodeExecutionSender(
     val kernelContext: KernelContextReadOnlyConv,
     val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>>,
-    val ioPubListener: IOPubListener,
+    val ioPubListener: MsgListener,
 ) : MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>> {
 
     override suspend fun send(
@@ -181,7 +182,7 @@ class CodeExecutionSender(
         fun transit(
             rt: Result<*, *>?,
             kernelContext: KernelContextReadOnlyConv,
-            ioPubListener: IOPubListener,
+            ioPubListener: MsgListener,
         ): SendingState {
 
             return this.transit(

@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.connection.kernel_context
+package com.github.xadkile.bicp.message.api.connection.kernel_context.context_object
 
 /**
  * Provide user name, encryption key, and session id. These are for making message

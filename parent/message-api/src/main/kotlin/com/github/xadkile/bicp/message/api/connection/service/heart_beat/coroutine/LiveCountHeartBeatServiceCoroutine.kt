@@ -3,7 +3,7 @@ package com.github.xadkile.bicp.message.api.connection.service.heart_beat.corout
 import com.github.michaelbull.result.Ok
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceConvImp
-import com.github.xadkile.bicp.message.api.connection.kernel_context.SocketProvider
+import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.SocketProvider
 import kotlinx.coroutines.*
 import org.zeromq.ZContext
 import org.zeromq.ZMQ

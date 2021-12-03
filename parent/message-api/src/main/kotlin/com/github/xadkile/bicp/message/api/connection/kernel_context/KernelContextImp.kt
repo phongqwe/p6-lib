@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.*
+import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.coroutine.LiveCountHeartBeatServiceCoroutine
 //import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceUpdater
@@ -38,7 +39,7 @@ class KernelContextImp @Inject internal constructor(
     private var msgIdGenerator: MsgIdGenerator? = null
     private var msgCounter: MsgCounter? = null
     private var senderProvider: SenderProvider? = null
-    private var socketProvider:SocketProvider? = null
+    private var socketProvider: SocketProvider? = null
     private var hbService: HeartBeatService? = null
 
     private var onBeforeStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing

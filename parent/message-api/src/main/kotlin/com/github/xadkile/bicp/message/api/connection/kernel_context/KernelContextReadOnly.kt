@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.Result
+import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
