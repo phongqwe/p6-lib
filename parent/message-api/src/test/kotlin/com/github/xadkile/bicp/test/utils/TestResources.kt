@@ -8,7 +8,7 @@ import java.nio.file.Paths
 
 class TestResources {
     companion object{
-        fun ipythonConfigForTest(): KernelConfig {
+        fun kernelConfigForTest(): KernelConfig {
             val resource: URL? = javaClass.classLoader.getResource("jupyterConfig.json")
             if (resource == null) {
                 throw Exception("missing jupyterConfig.json")
@@ -19,7 +19,7 @@ class TestResources {
             }
         }
 
-        fun defaultIPythonProcessCmd():List<String> = this.ipythonConfigForTest().makeCompleteLaunchCmmd()
+        fun defaultIPythonProcessCmd():List<String> = this.kernelConfigForTest().makeCompleteLaunchCmmd()
         fun dummyProcessCmd(count:Int) = listOf("java","-jar","dummy_process.jar",count.toString())
     }
 }

@@ -4,6 +4,7 @@ import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelConfig
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextImp
 import com.github.xadkile.bicp.test.utils.TestResources
+import kotlinx.coroutines.GlobalScope
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -24,8 +25,8 @@ internal class KernelContextImpTest {
     @BeforeEach
     fun beforeEach(){
         this.zContext = ZContext()
-        ipythonConfig = TestResources.ipythonConfigForTest()
-        pm = KernelContextImp(ipythonConfig,this.zContext)
+        ipythonConfig = TestResources.kernelConfigForTest()
+        pm = KernelContextImp(ipythonConfig,this.zContext, GlobalScope)
     }
 
     @AfterEach

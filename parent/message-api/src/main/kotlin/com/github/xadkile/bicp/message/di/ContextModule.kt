@@ -18,6 +18,7 @@ interface ContextModule {
 
     @Binds
     fun backboneObjProvider(provider:KernelContextImp): KernelContextReadOnly
+
     companion object {
         @Provides
         @Singleton

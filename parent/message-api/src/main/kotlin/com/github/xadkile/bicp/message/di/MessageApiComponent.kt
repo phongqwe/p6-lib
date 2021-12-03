@@ -1,9 +1,12 @@
 package com.github.xadkile.bicp.message.di
 
+import com.github.xadkile.bicp.message.api.connection.kernel_context.ApplicationCScope
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelConfig
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContext
 import dagger.BindsInstance
 import dagger.Component
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import org.zeromq.ZContext
 import javax.inject.Singleton
 
@@ -19,6 +22,12 @@ interface MessageApiComponent {
         fun build():MessageApiComponent
 
         @BindsInstance
-        fun ipythonConfig(config: KernelConfig):Builder
+        fun kernelConfig(config: KernelConfig):Builder
+
+        @BindsInstance
+        fun applicationCoroutineScope( @ApplicationCScope scope:CoroutineScope):Builder
+
+        @BindsInstance
+        fun networkServiceCoroutineDispatcher(dispatcher:CoroutineDispatcher):Builder
     }
 }

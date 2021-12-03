@@ -9,8 +9,7 @@ import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgCounterImp
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator
 import com.github.xadkile.bicp.message.api.msg.protocol.other.RandomMsgIdGenerator
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.*
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
 import org.zeromq.ZContext
 import java.io.InputStream
@@ -26,12 +25,17 @@ import javax.inject.Singleton
  */
 @Singleton
 class KernelContextImp @Inject internal constructor(
-    val ipythonConfig: KernelConfig, val zcontext: ZContext,
+    private val ipythonConfig: KernelConfig,
+    private val zcontext: ZContext,
+    @ApplicationCScope
+    private val cScope: CoroutineScope,
+    private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : KernelContext {
 
     private val launchCmd: List<String> = this.ipythonConfig.makeCompleteLaunchCmmd()
     private var process: Process? = null
-    private var connectionFileContent: com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent? = null
+    private var connectionFileContent: com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent? =
+        null
     private var connectionFilePath: Path? = null
     private var session: Session? = null
     private var channelProvider: ChannelProvider? = null
@@ -53,10 +57,11 @@ class KernelContextImp @Inject internal constructor(
     }
 
     /**
-     * This method returns when:
+     * This method guarantee that
      * - ipython process is up
      * - connection file is written to disk
      * - heart beat service is running + zmq is live (heart beat is ok)
+     * TODO pass coroutine scope to here to start services with them.
      */
     @OptIn(DelicateCoroutinesApi::class)
     override fun startKernel(): Result<Unit, Exception> {
@@ -71,15 +76,16 @@ class KernelContextImp @Inject internal constructor(
 
                 // rmd: read connection file
                 this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
-                Sleeper.threadSleepUntil(50){Files.exists(this.connectionFilePath!!)}
+                Sleeper.threadSleepUntil(50) { Files.exists(this.connectionFilePath!!) }
 
                 this.connectionFileContent =
-                    com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent.fromJsonFile(ipythonConfig.getConnectionFilePath()).unwrap()
+                    com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent.fromJsonFile(
+                        ipythonConfig.getConnectionFilePath()).unwrap()
 
                 // rmd: create resources, careful with the order of resource initiation,
                 // some must be initialized first
                 this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
-                this.socketProvider = SocketProviderImp(this.channelProvider!!,this.zcontext)
+                this.socketProvider = SocketProviderImp(this.channelProvider!!, this.zcontext)
                 this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
                 this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
                 this.msgCounter = MsgCounterImp()
@@ -89,20 +95,21 @@ class KernelContextImp @Inject internal constructor(
                 this.hbService = LiveCountHeartBeatServiceCoroutine(
                     socketProvider = this.socketProvider!!,
                     zContext = this.zcontext,
-                    cScope = GlobalScope,
+                    cScope = cScope,
+                    cDispatcher = this.networkServiceDispatcher
                 )
 
                 // x: senderProvider depend on heart beat service,
                 // x: so it must be initialized after hb service is created
                 this.senderProvider =
-                    SenderProviderImp( this.conv())
+                    SenderProviderImp(this.conv())
 
                 // ph: start services
                 this.hbService!!.start()
 
                 // rmd: wait until heart beat service is live
-                Sleeper.threadSleepUntil(50){this.hbService?.isServiceRunning() == true}
-                Sleeper.threadSleepUntil(50){this.hbService?.isHBAlive() == true}
+                Sleeper.threadSleepUntil(50) { this.hbService?.isServiceRunning() == true }
+                Sleeper.threadSleepUntil(50) { this.hbService?.isHBAlive() == true }
                 this.onProcessStartListener.run(this)
                 return Ok(Unit)
             } catch (e: Exception) {
@@ -110,6 +117,7 @@ class KernelContextImp @Inject internal constructor(
             }
         }
     }
+
     override fun stopKernel(): Result<Unit, Exception> {
         if (this.isNotRunning()) {
             return Ok(Unit)
@@ -119,7 +127,7 @@ class KernelContextImp @Inject internal constructor(
                 this.onBeforeStopListener.run(this)
                 this.process?.destroy()
                 // rmd: polling until the process is completely dead
-                Sleeper.threadSleepUntil(50){this.process?.isAlive == false}
+                Sleeper.threadSleepUntil(50) { this.process?.isAlive == false }
                 this.process = null
                 this.onAfterStopListener.run(this)
             }
@@ -132,9 +140,9 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getSocketProvider(): Result<SocketProvider, Exception> {
-        if(this.isRunning()){
+        if (this.isRunning()) {
             return Ok(this.socketProvider!!)
-        }else{
+        } else {
             return Err(ipythonIsDownErr)
         }
     }
@@ -146,7 +154,7 @@ class KernelContextImp @Inject internal constructor(
             // x: delete connection file
             Files.delete(cpath)
             // rmd: wait until file is deleted completely
-            Sleeper.threadSleepUntil(50){ !Files.exists(cpath) }
+            Sleeper.threadSleepUntil(50) { !Files.exists(cpath) }
             this.connectionFilePath = null
         }
         // x: destroy other resources
@@ -223,10 +231,10 @@ class KernelContextImp @Inject internal constructor(
         return this.checkRunningAndGet { this.msgIdGenerator!! }
     }
 
-    private fun<T> checkRunningAndGet(that:()->T):Result<T,Exception>{
-        if(this.isRunning()){
+    private fun <T> checkRunningAndGet(that: () -> T): Result<T, Exception> {
+        if (this.isRunning()) {
             return Ok(that())
-        }else{
+        } else {
             return Err(ipythonIsDownErr)
         }
     }

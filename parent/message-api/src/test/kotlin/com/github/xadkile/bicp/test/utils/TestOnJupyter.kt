@@ -3,6 +3,7 @@ package com.github.xadkile.bicp.test.utils
 import com.github.xadkile.bicp.message.api.connection.kernel_context.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -23,8 +24,8 @@ abstract class TestOnJupyter {
     @BeforeAll
     open fun beforeAll(){
         this.zcontext = ZContext()
-        this.ipythonConfig = TestResources.ipythonConfigForTest()
-        this.kernelContext= KernelContextImp(this.ipythonConfig,zcontext)
+        this.ipythonConfig = TestResources.kernelConfigForTest()
+        this.kernelContext= KernelContextImp(this.ipythonConfig,zcontext,GlobalScope,Dispatchers.IO)
         this.iPythonContextConv = this.kernelContext.conv()
         mainThreadSurrogate= newSingleThreadContext("Test Thread")
         Dispatchers.setMain(mainThreadSurrogate)
