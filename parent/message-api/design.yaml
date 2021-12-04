@@ -23,6 +23,15 @@ message-api:
       - Justification of this design:
           - Aside from services that are in charge of watching system events, This responsibility does not belong to other services, and making them aware of such services internally will lead to injecting a whole lot of uncessary thing into them, bloating the services up, and violate separation of concern/single responsibility principle.
           - So the safe way to make them (the non-system-event services) aware of and be able to react to events is to let the event-watcher services trigger the non-wacher services.
+    Service and coroutine:
+      inherited coroutine vs injected coroutine:
+        - pick injected coroutine
+        - services by their nature, run in their own forever loop. If I use inheritted coroutine scope, I have to run something like this:
+            coroutineScope{
+                launch(Dispatchers.Default){ service.start() }
+            }
+            Because the service run forever, the job containning it will not return, and this prevent coroutineScope from returns.
+
 
   Exceptions propagating, handling:
     - Exceptions should be returned as Result<> object instead of throwing directly.

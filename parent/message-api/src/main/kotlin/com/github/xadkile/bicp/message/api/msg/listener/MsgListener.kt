@@ -12,7 +12,7 @@ import java.lang.Exception
  * Listen for in-coming message.
  * Dispatch message to the appropriate handlers.
  */
-interface MsgListener : MsgHandlerContainer{
+internal sealed interface MsgListener : MsgHandlerContainer{
 
     /**
      * A listener may outlive the scope in which it is launch, so inject a scope in the start function.
