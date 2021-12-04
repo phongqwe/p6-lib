@@ -32,7 +32,6 @@ interface SenderProvider {
     fun codeExecutionSender(
         defaultHandler: suspend (msg: JPRawMessage, listener: MsgListener) -> Unit,
         parseExceptionHandler: suspend (exception: Exception, listener: IOPubListener) -> Unit,
-        parallelHandler: Boolean,
     ): MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>>
 
     /**

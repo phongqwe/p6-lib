@@ -24,6 +24,7 @@ class HandlerContainerImp: MsgHandlerContainer {
         return this.map.values.any{handlerList -> handlerList.contains(handler)}
     }
 
+    // TODO this method is not thread-safe, this is shared state. I must take measure to ensure that this is thread safe...
     override fun removeHandler(handlerId: String) {
         var key: MsgType?=null
         for((k,v) in this.map){
@@ -42,6 +43,7 @@ class HandlerContainerImp: MsgHandlerContainer {
         }
     }
 
+    // TODO this method is not thread-safe, this is shared state. I must take measure to ensure that this is thread safe...
     override fun removeHandler( handler: MsgHandler) {
         val msgType = handler.msgType()
         val newList = this.getHandlers(msgType).filter { it != handler || it.id() != handler.id() }

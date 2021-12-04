@@ -3,6 +3,7 @@ package com.github.xadkile.bicp.message.api.connection.service.process_watcher
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
+import com.github.xadkile.bicp.message.api.connection.service.process_watcher.exception.ProcessWatcherIllegalStateException
 import com.github.xadkile.bicp.message.api.exception.UnknownException
 import kotlinx.coroutines.*
 

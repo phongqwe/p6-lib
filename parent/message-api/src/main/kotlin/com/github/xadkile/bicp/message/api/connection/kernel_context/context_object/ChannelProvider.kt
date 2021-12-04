@@ -11,7 +11,7 @@ interface ChannelProvider {
     fun controlChannel(): ChannelInfo
     fun heartbeatChannel(): ChannelInfo
 
-    fun ioPUBAddress():String
+    fun ioPubAddress():String
     fun heartBeatAddress():String
     fun controlAddress():String
     fun shellAddress():String

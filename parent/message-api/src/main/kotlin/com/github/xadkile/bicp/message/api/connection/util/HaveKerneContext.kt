@@ -3,7 +3,7 @@ package com.github.xadkile.bicp.message.api.connection.util
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnly
-import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelIsDownException
+import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
 
 /**
  * a utility interface providing a shortcut function to check for kernel running status

@@ -23,7 +23,7 @@ internal class SocketProviderImp(
 
     override fun ioPubSocket(): ZMQ.Socket {
         val ioPubSocket: ZMQ.Socket = this.zContext.createSocket(SocketType.SUB)
-        ioPubSocket.connect(this.channelProvider.ioPUBAddress())
+        ioPubSocket.connect(this.channelProvider.ioPubAddress())
         ioPubSocket.subscribe("")
         return ioPubSocket
     }

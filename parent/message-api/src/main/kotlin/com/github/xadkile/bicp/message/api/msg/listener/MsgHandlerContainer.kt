@@ -7,6 +7,12 @@ import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
  */
 interface MsgHandlerContainer {
     fun addHandler(handler: MsgHandler)
+    fun addHandlers(handlers:List<MsgHandler>){
+        for (handler in handlers){
+            this.addHandler(handler)
+        }
+    }
+
     fun getHandlers(msgType: MsgType): List<MsgHandler>
 
     fun containHandler(id: String): Boolean
@@ -14,6 +20,12 @@ interface MsgHandlerContainer {
 
     fun removeHandler(handlerId: String)
     fun removeHandler(handler: MsgHandler)
+    fun removeHandlers(handlers: List<MsgHandler>){
+        for(handler in handlers){
+            this.removeHandler(handler)
+        }
+    }
+
 
     fun allHandlers():List<MsgHandler>
 

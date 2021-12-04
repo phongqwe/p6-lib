@@ -12,7 +12,7 @@ import org.zeromq.ZContext
 import org.zeromq.ZMQ
 
 /**
- * encapsulate parsing (P) and type conversion (C) of output
+ * encapsulate: parsing (P) and type conversion (C) of output
  */
 internal class PCSender<I: JPMessage<*, *>,O: JPMessage<*, *>> internal constructor(
     val socket: ZMQ.Socket,
@@ -23,12 +23,14 @@ internal class PCSender<I: JPMessage<*, *>,O: JPMessage<*, *>> internal construc
 
     inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent>
             send(message: I): Result<O, Exception> {
-        val out: Result<JPRawMessage, Exception> =
-            ZMQMsgSender.sendJPMsg(message, socket, msgEncoder, hbService, zContext)
-        val rt: Result<O, Exception> = out.map { msg ->
-            val parsedOutput: JPMessage<*, *> = msg.toModel<META,CONTENT>()
-            parsedOutput as O
+        return socket.use {
+            val out: Result<JPRawMessage, Exception> =
+                ZMQMsgSender.sendJPMsg(message, socket, msgEncoder, hbService, zContext)
+            val rt: Result<O, Exception> = out.map { msg ->
+                val parsedOutput: JPMessage<*, *> = msg.toModel<META,CONTENT>()
+                parsedOutput as O
+            }
+            rt
         }
-        return rt
     }
 }

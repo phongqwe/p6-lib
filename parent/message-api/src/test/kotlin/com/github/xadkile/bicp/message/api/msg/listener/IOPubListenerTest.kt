@@ -1,5 +1,6 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
+import com.github.michaelbull.result.get
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
+import java.util.concurrent.atomic.AtomicInteger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IOPubListenerTest : TestOnJupyter() {
@@ -57,6 +59,83 @@ internal class IOPubListenerTest : TestOnJupyter() {
     }
 
     /**
+     * Both Listener should be able to catch ALL pub response message from iopub channel
+     */
+    @Test
+    fun completenessTest_MultiListeners() = runBlocking {
+
+        kernelContext.startKernel()
+
+        val handlerWasTriggered = AtomicInteger(0)
+        val handlerWasTriggered2 = AtomicInteger(0)
+
+        // rmd: settup listener, handler
+        val listener1 = IOPubListener(
+            kernelContext = kernelContext, parallelHandler = true
+        )
+
+        listener1.addHandler(
+            MsgHandlers.withUUID(
+                MsgType.IOPub_execute_result,
+                handlerFunction = { msg: JPRawMessage, l: MsgListener ->
+                    val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
+                    println("Listener1 ${md.content.executionCount}")
+                    handlerWasTriggered.incrementAndGet()
+                },
+            )
+        )
+
+        listener1.start(this, Dispatchers.Default)
+
+        val listener2 = IOPubListener(
+            kernelContext = kernelContext, parallelHandler = true
+        )
+
+        listener2.addHandler(
+            MsgHandlers.withUUID(
+                MsgType.IOPub_execute_result,
+                handlerFunction = { msg: JPRawMessage, l: MsgListener ->
+                    val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
+                    println("Listener2 ${md.content.executionCount}")
+                    handlerWasTriggered2.incrementAndGet()
+                },
+            )
+        )
+
+        listener2.start(this, Dispatchers.Default)
+
+        Sleeper.waitUntil { listener1.isRunning() }
+        Sleeper.waitUntil { listener2.isRunning() }
+
+        assertTrue(listener1.isRunning(), "listener should be running")
+        // rmd: send message
+        val limit = 1000
+        for (x in 0 until limit) {
+            val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
+                sessionId = "session_id",
+                username = "user_name",
+                msgType = Shell.Execute.Request.msgType,
+                msgContent = Shell.Execute.Request.Content(
+                    code = "x=1+1*2;y=x*2;y",
+                    silent = false,
+                    storeHistory = true,
+                    userExpressions = mapOf(),
+                    allowStdin = false,
+                    stopOnError = true
+                ),
+                kernelContext.getMsgIdGenerator().get()?.next() ?: "zzZ"
+            )
+            val sender= kernelContext.getSenderProvider().unwrap().executeRequestSender()
+            sender.send(okMsg, Dispatchers.Default)
+        }
+        listener1.stop()
+        listener2.stop()
+
+        assertEquals(limit, handlerWasTriggered.get(), "Listener 1 should have receive $limit messages")
+        assertEquals(limit, handlerWasTriggered2.get(), "listener 2 should have receive $limit messages")
+    }
+
+    /**
      * Test sending malformed message
      */
     @Test
@@ -72,11 +151,12 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
         // p: create a mock kernel context
         mockkStatic("com.github.michaelbull.result.UnwrapKt")
+        mockkStatic("com.github.michaelbull.result.GetKt")
         val mockContext: KernelContextReadOnlyConv = mockk<KernelContextReadOnlyConv>().also {
             every { it.getSocketProvider().unwrap().ioPubSocket() } returns subSocket
             every { it.isRunning() } returns true
             every { it.isNotRunning() } returns false
-            every { it.getConvHeartBeatService().unwrap().isHBAlive() } returns true
+            every { it.getConvHeartBeatService().get()?.isHBAlive() } returns true
         }
 
         var exceptionHandlerTriggerCount = 0

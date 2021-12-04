@@ -60,9 +60,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             listener.start(this, Dispatchers.Default)
             val sr = kernelContext.getSenderProvider().unwrap().executeRequestSender().send(errMsg)
             listener.stop()
-            Thread.sleep(1000)
             assertEquals(1,errHandlerWasTrigger, "error handler should be triggered exactly once")
-
         }
     }
 

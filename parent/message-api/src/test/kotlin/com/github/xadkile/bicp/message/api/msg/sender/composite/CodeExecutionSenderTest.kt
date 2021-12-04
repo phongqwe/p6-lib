@@ -1,36 +1,62 @@
 package com.github.xadkile.bicp.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelIsDownException
+import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.github.xadkile.bicp.message.api.msg.listener.HandlerContainerImp
 import com.github.xadkile.bicp.message.api.msg.listener.IOPubListener
+import com.github.xadkile.bicp.message.api.msg.listener.exception.IOPubListenerNotRunningException
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToSendMsgException
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteSender
+import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
-import java.lang.IllegalStateException
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.system.measureTimeMillis
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class CodeExecutionSenderTest : TestOnJupyter() {
 
+    lateinit var ioPubService: IOPubListenerServiceImpl
 
     @AfterEach
     fun ae() {
+        ioPubService.stop()
         kernelContext.stopKernel()
+    }
+
+    @BeforeEach
+    fun beforeEach() {
+        kernelContext.startKernel()
+        ioPubService = IOPubListenerServiceImpl(
+            IOPubListener(
+                kernelContext = kernelContext.conv(),
+                defaultHandler = { msg, l ->
+                    println(msg)
+                },
+                parseExceptionHandler = { e, l ->
+                    println(e)
+                },
+                parallelHandler = true,
+                handlerContainer = HandlerContainerImp()
+            ),
+            cScope = GlobalScope
+        )
+        ioPubService.start()
     }
 
     val message: ExecuteRequest = ExecuteRequest.autoCreate(
@@ -38,7 +64,14 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         username = "user_name",
         msgType = Shell.Execute.Request.msgType,
         msgContent = Shell.Execute.Request.Content(
-            code = "x=1+1*2;y=x*2;y",
+            code ="""
+                x=0
+                y=0
+                for k in range(1000):
+                    x=k+1
+                    y=x*2
+                y
+            """.trimIndent(),
             silent = false,
             storeHistory = true,
             userExpressions = mapOf(),
@@ -48,29 +81,60 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         "msg_id_abc_123"
     )
 
+    /**
+     * See if it is feasible to bombard kernel with many request at the same time
+     */
+    @Test
+    fun stressTest() {
+        val okCount = AtomicInteger(0)
+        // ph: send 1000 messages
+        val msgCount = 1000
+        runBlocking {
+            val time = measureTimeMillis {
+
+                for (x in 0 until msgCount) {
+                    val message: ExecuteRequest = ExecuteRequest.autoCreate(
+                        sessionId = "session_id",
+                        username = "user_name",
+                        msgType = Shell.Execute.Request.msgType,
+                        msgContent = Shell.Execute.Request.Content(
+                            code = "x=1+1*2;y=x*2;y",
+                            silent = false,
+                            storeHistory = true,
+                            userExpressions = mapOf(),
+                            allowStdin = false,
+                            stopOnError = true
+                        ),
+                        kernelContext.getMsgIdGenerator().unwrap().next()
+                    )
+
+                    val sender = CodeExecutionSender(
+                        kernelContext = kernelContext.conv(),
+                        executeSender = ExecuteSender(kernelContext.conv()),
+                        ioPubListenerService = ioPubService
+                    )
+
+                    val o = sender.send(message, Dispatchers.IO)
+                    assertTrue(o is Ok, o.toString())
+                    okCount.incrementAndGet()
+                }
+            }
+            println("Sending $msgCount messages take ${time / 1000} seconds")
+        }
+        assertEquals(msgCount, okCount.get())
+    }
+
     @Test
     fun send_Ok() {
         runBlocking {
-            kernelContext.startKernel()
-            kernelContext.getHeartBeatService().unwrap().start()
-
             val sender = CodeExecutionSender(
                 kernelContext = kernelContext.conv(),
                 executeSender = ExecuteSender(kernelContext.conv()),
-                ioPubListener = IOPubListener(
-                    kernelContext = kernelContext.conv(),
-                    defaultHandler = { msg, l ->
-                        println(msg)
-                    },
-                    parseExceptionHandler = { e, l ->
-                        println(e)
-                    },
-                    parallelHandler = true,
-                    handlerContainer = HandlerContainerImp()
-                )
+                ioPubListenerService = ioPubService
             )
             val o = sender.send(message, Dispatchers.Default)
-            assertTrue(o is Ok, o.toString())
+            kotlin.test.assertTrue(o is Ok, o.toString())
+            println(o.value.content)
         }
     }
 
@@ -81,9 +145,8 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     fun send_fail() {
         runBlocking {
             kernelContext.startKernel()
-            kernelContext.getHeartBeatService().unwrap().start()
 
-            // p: mockk is horribly slow here
+            // ph: mockk is horribly slow here
             val mockSender = object : MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> {
                 override suspend fun send(
                     message: ExecuteRequest,
@@ -93,42 +156,33 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 }
             }
 
-            val sender = CodeExecutionSender(kernelContext.conv(), mockSender, IOPubListener(kernelContext))
+            val sender = CodeExecutionSender(kernelContext.conv(), mockSender, ioPubService)
             val o = sender.send(message, Dispatchers.Default)
-            assertTrue(o is Err, o.toString())
-            assertTrue(o.unwrapError() is UnableToSendMsgException)
-            assertEquals(message, (o.unwrapError() as UnableToSendMsgException).msg)
+            kotlin.test.assertTrue(o is Err, o.toString())
+            kotlin.test.assertTrue(o.unwrapError() is UnableToSendMsgException)
+            kotlin.test.assertEquals(message, (o.unwrapError() as UnableToSendMsgException).msg)
         }
     }
 
-    /**
-     * should return [KernelIsDownException]
-     */
     @Test
     fun send_kernelNotRunning() = runBlocking {
         kernelContext.stopKernel()
         val sender =
-            CodeExecutionSender(kernelContext.conv(), ExecuteSender(kernelContext.conv()), IOPubListener(kernelContext))
+            CodeExecutionSender(kernelContext.conv(), ExecuteSender(kernelContext.conv()), ioPubService)
         val o = sender.send(message)
-        assertTrue(o is Err)
-        assertTrue((o.unwrapError()) is KernelIsDownException)
+        kotlin.test.assertTrue(o is Err)
+        kotlin.test.assertTrue((o.unwrapError()) is KernelIsDownException,"should return the correct exception")
     }
 
-    /**
-     * should return whatever exception that the listener returns on its start function
-     */
     @Test
-    fun send_unableToStartListener() = runBlocking {
+    fun send_listenerServiceIsDown() = runBlocking {
         kernelContext.startKernel()
-        val mockListener = mockk<IOPubListener>().also {
-            coEvery { it.start(any(), any()) } returns Err(IllegalStateException())
-            every { it.addHandler(any()) } returns Unit
-            coEvery { it.stop() } returns Unit
-            every{it.isRunning()} returns false
+        val mockListener = mockk<IOPubListenerService>().also {
+            every { it.isRunning() } returns false
         }
         val sender = CodeExecutionSender(kernelContext.conv(), ExecuteSender(kernelContext.conv()), mockListener)
         val o = sender.send(message)
-        assertTrue(o is Err)
-        assertTrue((o.unwrapError()) is IllegalStateException)
+        kotlin.test.assertTrue(o is Err)
+        kotlin.test.assertTrue((o.unwrapError()) is IOPubListenerNotRunningException,"should return the correct exception")
     }
 }

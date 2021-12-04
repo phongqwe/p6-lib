@@ -2,11 +2,11 @@ package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.*
+import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.other.Sleeper
-import com.github.xadkile.bicp.message.api.system.SystemEvent
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
@@ -16,7 +16,7 @@ import org.zeromq.ZMsg
  * [defaultHandler] to handle msg type that don't have a specific handler.
  * [parseExceptionHandler] to handle exception of unable to parse zmq message.
  */
-class IOPubListener constructor(
+internal class IOPubListener constructor(
     private val kernelContext: KernelContextReadOnlyConv,
     private val defaultHandler: suspend (msg: JPRawMessage, listener: MsgListener) -> Unit,
     private val parseExceptionHandler: suspend (exception: Exception, listener: IOPubListener) -> Unit,
@@ -35,7 +35,7 @@ class IOPubListener constructor(
     )
 
     private var job: Job? = null
-
+    private var serviceLoopRunning = false
     /**
      * this will start this listener on a coroutine that runs concurrently.
      */
@@ -43,18 +43,25 @@ class IOPubListener constructor(
         externalScope: CoroutineScope,
         dispatcher: CoroutineDispatcher,
     ): Result<Unit, Exception> {
+
+        if(this.isRunning()){
+            return Ok(Unit)
+        }
+
         if (this.kernelContext.isNotRunning()) {
             return Err(KernelIsDownException.occurAt(this))
         }
-        job = externalScope.launch(dispatcher) {
-            kernelContext.getSocketProvider().unwrap().ioPubSocket().use {
-                // add default handler
-                addHandler(MsgHandlers.withUUID(MsgType.NOT_RECOGNIZE, defaultHandler))
 
+        val socket:ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
+        // add default handler
+        addHandler(MsgHandlers.withUUID(MsgType.NOT_RECOGNIZE, defaultHandler))
+        job = externalScope.launch(dispatcher) {
+            socket.use {
                 // p: start the service loop
                 // ph: when the kernel is down, this service simply does not do anything. Just hang there.
                 while (isActive) {
-                    if (kernelContext.getConvHeartBeatService().unwrap().isHBAlive()) {
+                    serviceLoopRunning = true
+                    if (kernelContext.getConvHeartBeatService().get()?.isHBAlive() ?: false) {
                         val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
                         if (msg != null) {
                             val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
@@ -73,7 +80,7 @@ class IOPubListener constructor(
                 }
             }
         }
-        Sleeper.waitUntil { job?.isActive == true}
+        Sleeper.waitUntil { this.isRunning()}
         return Ok(Unit)
     }
 
@@ -89,21 +96,21 @@ class IOPubListener constructor(
             // TODO add more msg type here
 
             else -> {
-                println("msg type not recog: $msgIdentity")
                 MsgType.NOT_RECOGNIZE
             }
         }
         return msgType
     }
 
-
-    override suspend fun stop() {
-        job?.cancelAndJoin()
+    override fun stop() {
+        job?.cancel()
         this.job = null
+        this.serviceLoopRunning=false
+        Sleeper.waitUntil { (this.job?.isActive ?: false) == false }
     }
 
     override fun isRunning(): Boolean {
-        return this.job?.isActive == true
+        return this.job?.isActive == true && this.serviceLoopRunning
     }
 
     private suspend fun dispatch(msgType: MsgType, msg: JPRawMessage, dispatcher: CoroutineDispatcher) {
@@ -141,7 +148,7 @@ class IOPubListener constructor(
     }
 
     override fun removeHandler(handler: MsgHandler) {
-        this.removeHandler(handler)
+        this.handlerContainer.removeHandler(handler)
     }
 
     override fun allHandlers(): List<MsgHandler> {
@@ -154,11 +161,5 @@ class IOPubListener constructor(
 
     override fun isNotEmpty(): Boolean {
         return this.handlerContainer.isNotEmpty()
-    }
-
-    override fun close() {
-        runBlocking {
-            stop()
-        }
     }
 }

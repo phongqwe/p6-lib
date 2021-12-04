@@ -8,7 +8,6 @@ import com.github.xadkile.bicp.message.api.msg.listener.MsgHandlerContainer
 import com.github.xadkile.bicp.message.api.msg.listener.MsgListener
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
-import com.github.xadkile.bicp.message.api.msg.sender.composite.CodeExecutionSender
 import com.github.xadkile.bicp.message.api.msg.sender.composite.ExecuteResult
 import com.github.xadkile.bicp.message.api.msg.sender.shell.*
 
@@ -27,13 +26,8 @@ class SenderProviderImp internal constructor(
     override fun codeExecutionSender(
         defaultHandler: suspend (msg: JPRawMessage, listener: MsgListener) -> Unit,
         parseExceptionHandler: suspend (exception: Exception, listener: IOPubListener) -> Unit,
-        parallelHandler: Boolean,
     ): MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>> {
-        return CodeExecutionSender(
-            kernelContext,
-            this.executeRequestSender(),
-            this.ioPubListener(defaultHandler, parseExceptionHandler, parallelHandler)
-        )
+        TODO()
     }
 
     override fun ioPubListener(

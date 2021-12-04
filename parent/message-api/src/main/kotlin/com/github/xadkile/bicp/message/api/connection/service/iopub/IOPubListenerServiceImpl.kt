@@ -1,17 +1,17 @@
 package com.github.xadkile.bicp.message.api.connection.service.iopub
 
-import com.github.xadkile.bicp.message.api.connection.service.ServiceState
 import com.github.xadkile.bicp.message.api.msg.listener.MsgHandler
 import com.github.xadkile.bicp.message.api.msg.listener.MsgListener
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class IOPubListenerServiceImpl(
-    private val ioPubListener:MsgListener,
-    private val cScope:CoroutineScope,
-    private val cDispatcher: CoroutineDispatcher
+    private val ioPubListener: MsgListener,
+    private val cScope: CoroutineScope,
+    private val cDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : IOPubListenerService {
 
     override fun addHandler(handler: MsgHandler) {
@@ -58,12 +58,10 @@ class IOPubListenerServiceImpl(
     }
 
     override fun stop() {
-        this.cScope.launch {
-            ioPubListener.stop()
-        }
+        ioPubListener.stop()
     }
 
-    override fun isRunning():Boolean {
+    override fun isRunning(): Boolean {
         return this.ioPubListener.isRunning()
     }
 }

@@ -36,7 +36,7 @@ interface KernelContextReadOnlyConv : KernelContextReadOnly {
     }
 
     fun getIOPubAddress():Result<String,Exception>{
-        return this.getChannelProvider().map { it.ioPUBAddress() }
+        return this.getChannelProvider().map { it.ioPubAddress() }
     }
 
     fun getControlChannel():Result<ChannelInfo,Exception>{
@@ -46,7 +46,6 @@ interface KernelContextReadOnlyConv : KernelContextReadOnly {
     fun getControlAddress():Result<String,Exception>{
         return this.getChannelProvider().map { it.controlAddress() }
     }
-
 
     fun original(): KernelContextReadOnly
 

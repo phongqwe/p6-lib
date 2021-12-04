@@ -2,6 +2,8 @@ package com.github.xadkile.bicp.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.*
+import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelContextIllegalStateException
+import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.coroutine.LiveCountHeartBeatServiceCoroutine
 //import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceUpdater

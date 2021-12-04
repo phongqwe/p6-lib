@@ -14,7 +14,7 @@ object Sleeper {
      * continuous waiting until [isTrue] return true
      */
     fun waitUntil(isTrue: () -> Boolean){
-        while(isTrue()==false){}
+        while(isTrue().not()){}
     }
 
     fun waitAsLongAs(isTrue: () -> Boolean){

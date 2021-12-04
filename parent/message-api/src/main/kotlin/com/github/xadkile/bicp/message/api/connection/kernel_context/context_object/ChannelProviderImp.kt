@@ -34,7 +34,7 @@ class ChannelProviderImp internal constructor(private val connectFile: com.githu
         return this.hb
     }
 
-    override fun ioPUBAddress(): String {
+    override fun ioPubAddress(): String {
         return this.ioPub.makeAddress()
     }
 

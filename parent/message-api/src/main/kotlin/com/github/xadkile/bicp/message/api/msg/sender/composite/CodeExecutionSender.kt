@@ -2,10 +2,12 @@ package com.github.xadkile.bicp.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelIsDownException
+import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.bicp.message.api.exception.UnknownException
-import com.github.xadkile.bicp.message.api.msg.listener.IOPubListener
-import com.github.xadkile.bicp.message.api.msg.listener.MsgListener
+import com.github.xadkile.bicp.message.api.msg.listener.exception.ExecutionErrException
+import com.github.xadkile.bicp.message.api.msg.listener.MsgHandler
+import com.github.xadkile.bicp.message.api.msg.listener.exception.IOPubListenerNotRunningException
 import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgStatus
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
@@ -14,11 +16,10 @@ import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToSendMsgException
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
-import com.github.xadkile.bicp.message.api.other.Sleeper
 import kotlinx.coroutines.*
 
-
 typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>
+
 
 /**
  * Send an piece of code to be executed in the kernel. Return the result of the computation itself.
@@ -26,9 +27,16 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
 class CodeExecutionSender(
     val kernelContext: KernelContextReadOnlyConv,
     val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>>,
-    val ioPubListener: MsgListener,
+    val ioPubListenerService: IOPubListenerServiceReadOnly,
 ) : MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>> {
 
+    /**
+     * This works like this:
+     * - add handlers to ioPub listener service catch incoming message
+     * - send message
+     * - wait for listener service to return result
+     * - remove handlers from listener service
+     */
     override suspend fun send(
         message: ExecuteRequest,
         dispatcher: CoroutineDispatcher,
@@ -38,86 +46,60 @@ class CodeExecutionSender(
             return Err(KernelIsDownException.occurAt(this))
         }
 
+        if (ioPubListenerService.isRunning().not()) {
+            return Err(IOPubListenerNotRunningException.occurAt(this))
+        }
+
         var rt: Result<ExecuteResult, Exception>? = null
         var state = SendingState.Start
-
-        // p: config listener - catch execute_result message
-        ioPubListener.addHandler(
+        val handlers: List<MsgHandler> = listOf(
+            // ph: config listener - catch execute_result message
             IOPub.ExecuteResult.handler { msg, listener ->
                 val receivedMsg: ExecuteResult = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
                     rt = Ok(receivedMsg)
-                    listener.stop()
-                    state = state.transit(rt, kernelContext, ioPubListener)
+                    state = state.transit(rt, kernelContext)
                 }
-            }
-        )
-
-
-        // ph: config listener - catch status messages, "busy", "idle"
-        ioPubListener.addHandler(
-            IOPub.Status.handler { msg, listener ->
-                val jpMsg: JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = msg.toModel()
-                if (jpMsg.parentHeader == message.header) {
-                    if (jpMsg.content.executionState == IOPub.Status.ExecutionState.idle) {
-                        println("Reach idle state-> stop")
-                        // TODO consider keeping or not keeping this marker handler. Does it solve any problem?
-                        listener.stop()
-                    } else if (jpMsg.content.executionState == IOPub.Status.ExecutionState.busy) {
-                        println("Reach busy -> start computing")
-                        // TODO consider keeping or not keeping this marker handler. Does it solve any problem?
-                    }
-                }
-            }
-        )
-
-        ioPubListener.addHandler(
+            },
+            // ph: execution err handler
             IOPub.ExecuteError.handler { msg, listener ->
-                println(msg)
+                val receivedMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
+                if (receivedMsg.parentHeader == message.header) {
+                    rt = Err(ExecutionErrException(receivedMsg.content))
+                    state = state.transit(rt, kernelContext)
+                }
             }
         )
-
+        ioPubListenerService.addHandlers(handlers)
 
         // ph: sending the computing request
-        coroutineScope {
-            // ph: start the listener on a separated coroutine.
-            val startRs: Result<Unit, Exception> = ioPubListener.start(this, dispatcher)
-
-            // ph: only send the message if the ioPubListener was started successfully
-            if (startRs is Ok) {
-                // rmd: wait until ioPubListener to go online
-                Sleeper.waitUntil { ioPubListener.isRunning() }
-                launch(dispatcher) {
-                    val sendStatus = executeSender.send(message, dispatcher)
-                    if (sendStatus is Ok) {
-                        val msgIsOk: Boolean = sendStatus.get()!!.content.status == MsgStatus.ok
-                        if (msgIsOk.not()) {
-                            rt = Err(UnableToSendMsgException(message))
-                            ioPubListener.stop()
-                            state = state.transit(rt, kernelContext, ioPubListener)
-                        }
-                    } else {
-                        rt = Err(sendStatus.unwrapError())
-                        ioPubListener.stop()
-                        state = state.transit(rt, kernelContext, ioPubListener)
-                    }
+        withContext(dispatcher) {
+            val sendStatus = executeSender.send(message, dispatcher)
+            if (sendStatus is Ok) {
+                val msgIsOk: Boolean = sendStatus.get()!!.content.status == MsgStatus.ok
+                if (msgIsOk.not()) {
+                    rt = Err(UnableToSendMsgException(message))
+                    state = state.transit(rt, kernelContext)
                 }
             } else {
-                rt = Err(startRs.unwrapError())
-                ioPubListener.stop()
-                state = state.transit(rt, kernelContext, ioPubListener)
+                rt = Err(sendStatus.unwrapError())
+                state = state.transit(rt, kernelContext)
             }
         }
 
-        // ph: this ensure that this sender will wait until state reach terminal states: Done, KernelDown,ListenerDown
+        // ph: this ensure that this sender will wait until state reach terminal states: Done
         while (state != SendingState.Done) {
-            state = state.transit(rt, kernelContext, ioPubListener)
+            state = state.transit(rt, kernelContext)
         }
-        ioPubListener.stop()
-        state = state.transit(rt, kernelContext, ioPubListener)
+
+        ioPubListenerService.removeHandlers(handlers)
 
         if (state == SendingState.Done) {
-            return rt!!
+            if (rt != null) {
+                return rt!!
+            } else {
+                return Err(KernelIsDownException("Kernel is killed before result is returned"))
+            }
         } else {
             return Err(UnknownException.occurAt(this))
         }
@@ -126,30 +108,25 @@ class CodeExecutionSender(
     /**
      * state of the sending action
      */
-    internal enum class SendingState {
+    private enum class SendingState {
         Start {
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
-                listenerIsRunning: Boolean,
             ): SendingState {
-                return Working.transit(hasResult, kernelIsRunning, listenerIsRunning)
+                return Working.transit(hasResult, kernelIsRunning)
             }
         },
         Working {
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
-                listenerIsRunning: Boolean,
             ): SendingState {
 
                 if (hasResult) {
                     return Done
                 }
                 if (kernelIsRunning == false) {
-                    return Done
-                }
-                if (listenerIsRunning == false) {
                     return Done
                 }
                 return this
@@ -159,7 +136,6 @@ class CodeExecutionSender(
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
-                listenerIsRunning: Boolean,
             ): SendingState {
                 return this
             }
@@ -173,7 +149,6 @@ class CodeExecutionSender(
         abstract fun transit(
             hasResult: Boolean,
             kernelIsRunning: Boolean,
-            listenerIsRunning: Boolean,
         ): SendingState
 
         /**
@@ -182,13 +157,12 @@ class CodeExecutionSender(
         fun transit(
             rt: Result<*, *>?,
             kernelContext: KernelContextReadOnlyConv,
-            ioPubListener: MsgListener,
         ): SendingState {
 
             return this.transit(
                 hasResult = rt != null,
                 kernelIsRunning = kernelContext.getConvHeartBeatService().get()?.isHBAlive() ?: false,
-                listenerIsRunning = ioPubListener.isRunning())
+            )
         }
     }
 }

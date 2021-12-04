@@ -6,11 +6,21 @@ import org.junit.jupiter.api.TestInstance
 import org.zeromq.*
 import java.math.BigInteger
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.system.measureTimeMillis
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
+
+    @Test
+    fun zasdwqe(){
+        val listener1Res = AtomicInteger(0)
+        for(x in 0 until 10){
+            listener1Res.incrementAndGet()
+        }
+        println(listener1Res.get())
+    }
 
     val limit = 1000
 

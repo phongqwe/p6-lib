@@ -12,18 +12,24 @@ import java.lang.Exception
  * Listen for in-coming message.
  * Dispatch message to the appropriate handlers.
  */
-interface MsgListener : MsgHandlerContainer, AutoCloseable {
+interface MsgListener : MsgHandlerContainer{
 
     /**
-     * A listener may outlive the scope in which it is launch, so inject a scope in the start function
+     * A listener may outlive the scope in which it is launch, so inject a scope in the start function.
+     * This function must guarantee that when it returns the MsgListener is ready to handle incoming message, and no more waiting is needed.
+     * Calling start() on an already started listener has no effect.
      */
     fun start(
         externalScope: CoroutineScope,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Result<Unit, Exception>
 
-    suspend fun stop()
+
+    /**
+     * stop this listener.
+     * Calling stop on an already stop listener has no effect.
+     */
+    fun stop()
 
     fun isRunning(): Boolean
 }
-
