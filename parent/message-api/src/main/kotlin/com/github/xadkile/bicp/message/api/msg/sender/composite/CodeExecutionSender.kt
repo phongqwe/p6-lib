@@ -54,7 +54,7 @@ class CodeExecutionSender(
         var state = SendingState.Start
         val handlers: List<MsgHandler> = listOf(
             // ph: config listener - catch execute_result message
-            IOPub.ExecuteResult.handler { msg, listener ->
+            IOPub.ExecuteResult.handler { msg ->
                 val receivedMsg: ExecuteResult = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
                     rt = Ok(receivedMsg)
@@ -62,7 +62,7 @@ class CodeExecutionSender(
                 }
             },
             // ph: execution err handler
-            IOPub.ExecuteError.handler { msg, listener ->
+            IOPub.ExecuteError.handler { msg ->
                 val receivedMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
                     rt = Err(ExecutionErrException(receivedMsg.content))

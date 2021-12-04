@@ -77,7 +77,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
         listener1.addHandler(
             MsgHandlers.withUUID(
                 MsgType.IOPub_execute_result,
-                handlerFunction = { msg: JPRawMessage, l: MsgListener ->
+                handlerFunction = { msg: JPRawMessage ->
                     val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
                     println("Listener1 ${md.content.executionCount}")
                     handlerWasTriggered.incrementAndGet()
@@ -94,7 +94,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
         listener2.addHandler(
             MsgHandlers.withUUID(
                 MsgType.IOPub_execute_result,
-                handlerFunction = { msg: JPRawMessage, l: MsgListener ->
+                handlerFunction = { msg: JPRawMessage ->
                     val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
                     println("Listener2 ${md.content.executionCount}")
                     handlerWasTriggered2.incrementAndGet()
@@ -163,10 +163,9 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
         val listener = IOPubListener(
             mockContext,
-            { m, l -> },
-            { e, l ->
+            { m-> },
+            { e->
                 exceptionHandlerTriggerCount++
-                l.stop()
             }, false, HandlerContainerImp())
 
         listener.start(this, Dispatchers.Default)
@@ -177,6 +176,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
         // p: wait for the msg to be handled by listener
         delay(1000)
+        listener.stop()
         assertEquals(1, exceptionHandlerTriggerCount, "Exception handler should be triggered exactly once")
     }
 
@@ -191,14 +191,13 @@ internal class IOPubListenerTest : TestOnJupyter() {
         var handlerTriggeredCount = 0
         val listener = IOPubListener(
             kernelContext,
-            defaultHandler = { msg, l ->
+            defaultHandler = { msg ->
                 defaultHandlerTriggeredCount++
-                l.stop()
             }
         ).also {
             it.addHandler(MsgHandlers.withUUID(
                 msgType = MsgType.Control_shutdown_reply,
-                handlerFunction = { m, l ->
+                handlerFunction = { m ->
                     handlerTriggeredCount++
                 },
             ))
@@ -212,6 +211,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
             it.send(okMsg, Dispatchers.Default)
         }
         delay(1000)
+        listener.stop()
         assertEquals(1, defaultHandlerTriggeredCount, "default handler should be triggered exactly once")
         assertEquals(0, handlerTriggeredCount, "incorrect handler should not triggered")
     }
@@ -231,7 +231,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
             listener.addHandler(MsgHandlers.withUUID(
                 MsgType.IOPub_execute_result,
-                handlerFunction = { msg: JPRawMessage, l: MsgListener ->
+                handlerFunction = { msg: JPRawMessage ->
                     val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
                     println(md)
                     handlerWasTriggered += 1

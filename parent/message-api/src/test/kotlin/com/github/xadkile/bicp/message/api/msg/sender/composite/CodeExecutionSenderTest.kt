@@ -45,10 +45,10 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         ioPubService = IOPubListenerServiceImpl(
             IOPubListener(
                 kernelContext = kernelContext.conv(),
-                defaultHandler = { msg, l ->
+                defaultHandler = { msg ->
                     println(msg)
                 },
-                parseExceptionHandler = { e, l ->
+                parseExceptionHandler = { e ->
                     println(e)
                 },
                 parallelHandler = true,

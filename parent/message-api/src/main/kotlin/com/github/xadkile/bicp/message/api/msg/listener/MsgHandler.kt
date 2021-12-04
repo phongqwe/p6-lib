@@ -13,7 +13,7 @@ interface MsgHandler {
      * A handler may need to interact with other suspend function, so this function is a suspend function.
      * This function may be long running, and I want to run it inside a coroutine ??????
      */
-    suspend fun handle(msg: JPRawMessage, listener: MsgListener)
+    suspend fun handle(msg: JPRawMessage)
 
     /**
      * unique id

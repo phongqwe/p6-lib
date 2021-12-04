@@ -18,16 +18,16 @@ import org.zeromq.ZMsg
  */
 internal class IOPubListener constructor(
     private val kernelContext: KernelContextReadOnlyConv,
-    private val defaultHandler: suspend (msg: JPRawMessage, listener: MsgListener) -> Unit,
-    private val parseExceptionHandler: suspend (exception: Exception, listener: IOPubListener) -> Unit,
+    private val defaultHandler: suspend (msg: JPRawMessage) -> Unit,
+    private val parseExceptionHandler: suspend (exception: Exception) -> Unit,
     private val parallelHandler: Boolean,
     private val handlerContainer: MsgHandlerContainer,
 ) : MsgListener {
 
     constructor(
         kernelContext: KernelContext,
-        defaultHandler: suspend (msg: JPRawMessage, listener: MsgListener) -> Unit = { _, _ -> /*do nothing*/ },
-        parseExceptionHandler: suspend (exception: Exception, listener: IOPubListener) -> Unit = { _, _ -> /*do nothing*/ },
+        defaultHandler: suspend (msg: JPRawMessage) -> Unit = { /*do nothing*/ },
+        parseExceptionHandler: suspend (exception: Exception) -> Unit = {  /*do nothing*/ },
         parallelHandler: Boolean = true,
         handlerContainer: MsgHandlerContainer = HandlerContainerImp(),
     ) : this(
@@ -72,7 +72,7 @@ internal class IOPubListener constructor(
                                     dispatch(msgType, rawMsg, dispatcher)
                                 }
                                 else -> {
-                                    parseExceptionHandler(parseResult.unwrapError(), this@IOPubListener)
+                                    parseExceptionHandler(parseResult.unwrapError())
                                 }
                             }
                         }
@@ -117,12 +117,12 @@ internal class IOPubListener constructor(
         if (parallelHandler) {
             supervisorScope {
                 handlerContainer.getHandlers(msgType).forEach {
-                    launch(dispatcher) { it.handle(msg, this@IOPubListener) }
+                    launch(dispatcher) { it.handle(msg) }
                 }
             }
         } else {
             handlerContainer.getHandlers(msgType).forEach {
-                it.handle(msg, this)
+                it.handle(msg)
             }
         }
     }
