@@ -24,14 +24,14 @@ class SenderProviderImp internal constructor(
     }
 
     override fun codeExecutionSender(
-        defaultHandler: suspend (msg: JPRawMessage) -> Unit,
+        defaultHandler:  (msg: JPRawMessage) -> Unit,
         parseExceptionHandler: suspend (exception: Exception) -> Unit,
     ): MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>> {
         TODO()
     }
 
     override fun ioPubListener(
-        defaultHandler: suspend (msg: JPRawMessage) -> Unit,
+        defaultHandler: (msg: JPRawMessage) -> Unit,
         parseExceptionHandler: suspend (exception: Exception) -> Unit,
     ): MsgListener {
         return IOPubListener(kernelContext,

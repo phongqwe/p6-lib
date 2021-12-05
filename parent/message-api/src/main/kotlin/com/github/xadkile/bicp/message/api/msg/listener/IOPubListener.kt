@@ -19,14 +19,14 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class IOPubListener constructor(
     private val kernelContext: KernelContextReadOnlyConv,
-    private val defaultHandler: suspend (msg: JPRawMessage) -> Unit,
+    private val defaultHandler: (msg: JPRawMessage) -> Unit,
     private val parseExceptionHandler: suspend (exception: Exception) -> Unit,
     private val handlerContainer: MsgHandlerContainer,
 ) : MsgListener {
 
     constructor(
         kernelContext: KernelContext,
-        defaultHandler: suspend (msg: JPRawMessage) -> Unit = { /*do nothing*/ },
+        defaultHandler: (msg: JPRawMessage) -> Unit = { /*do nothing*/ },
         parseExceptionHandler: suspend (exception: Exception) -> Unit = {  /*do nothing*/ },
         handlerContainer: MsgHandlerContainer = HandlerContainerImp(),
     ) : this(
@@ -67,7 +67,7 @@ class IOPubListener constructor(
                                 is Ok -> {
                                     val rawMsg: JPRawMessage = parseResult.unwrap()
                                     val msgType: MsgType = extractMsgType(rawMsg.identities)
-                                    dispatch(msgType, rawMsg, dispatcher, externalScope)
+                                    dispatch(msgType, rawMsg)
                                 }
                                 else -> {
                                     parseExceptionHandler(parseResult.unwrapError())
@@ -111,22 +111,12 @@ class IOPubListener constructor(
         return this.job?.isActive == true
     }
 
-    /**
-     * if I launch handler in the same scope as the service, they will block the completion of the service scope
-     * The service scope is forever, so it is acceptable. But should it?
-     * Service scope should only bear the burden of the service. notthing more
-     * handler is created by sender. So, it should depend on the sender scope.
-     *
-     */
-    private suspend fun dispatch(
+    private fun dispatch(
         msgType: MsgType,
         msg: JPRawMessage,
-        dispatcher: CoroutineDispatcher,
-        scope: CoroutineScope,
     ) {
-        handlerContainer.getHandlers(msgType).forEach {
-            scope.launch(dispatcher) { it.handle(msg) }
-//            it.handle(msg)
+        getHandlers(msgType).forEach {
+            it.handle(msg)
         }
     }
 

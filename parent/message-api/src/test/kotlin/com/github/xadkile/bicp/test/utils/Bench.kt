@@ -94,14 +94,16 @@ class Bench : TestOnJupyter() {
                     mySusFunc1()
                 }
                 println(time)
-                println("Done j1")
+                println("Blocked by mySusFunc1")
             }
+            // x: the creation of coroutine (launch, async) is NOT block by other coroutine
             val j2 = launch(Dispatchers.Default) {
                 println("This is not block by the completion of j1")
             }
-            println("also not blocked by j1, and j2")
+            println("not blocked by j1, and j2")
         }
-
+        // x: The completion a coroutine scope is blocked by all coroutines (launch,async) within it.
+        // x: A coroutine scope will only complete, when all the coroutine (launch, async) within it are completed.
         println("This is blocked by the completion of runBlocking")
     }
 

@@ -30,7 +30,7 @@ interface SenderProvider {
      * composite sender
      */
     fun codeExecutionSender(
-        defaultHandler: suspend (msg: JPRawMessage) -> Unit,
+        defaultHandler: (msg: JPRawMessage) -> Unit,
         parseExceptionHandler: suspend (exception: Exception) -> Unit,
     ): MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>>
 
@@ -38,7 +38,7 @@ interface SenderProvider {
      * iopub listener
      */
     fun ioPubListener(
-        defaultHandler: suspend (msg: JPRawMessage) -> Unit,
+        defaultHandler: (msg: JPRawMessage) -> Unit,
         parseExceptionHandler: suspend (exception: Exception) -> Unit,
     ): MsgListener
 }

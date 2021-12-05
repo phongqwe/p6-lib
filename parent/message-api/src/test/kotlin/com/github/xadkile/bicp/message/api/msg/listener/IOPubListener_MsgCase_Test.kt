@@ -98,7 +98,6 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                         val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
                         println(md)
                         handlerWasTriggered += 1
-                        listener.stop()
                     },
                 )
             )
@@ -109,7 +108,8 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
                 it.send(okMsg, Dispatchers.Default)
             }
-            delay(1000)
+
+            listener.stop()
         }
     }
 }

@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IOPubListenerTest : TestOnJupyter() {
 
-    fun okMesg():ExecuteRequest{
+    fun okMesg(): ExecuteRequest {
         val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
             sessionId = "session_id",
             username = "user_name",
@@ -226,25 +226,24 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
             kernelContext.startKernel()
 
-            for(x in 0 until 200){
-                var handlerWasTriggered = AtomicInteger(0)
+            for (x in 0 until 200) {
+                val handlerWasTriggered = AtomicInteger(0)
                 // rmd: setup listener, handler
                 val listener = IOPubListener(
                     kernelContext = kernelContext
                 )
 
                 listener.addHandler(
-                    MsgHandlers.withUUID(
-                        MsgType.IOPub_execute_result,
-                        handlerFunction = { msg: JPRawMessage ->
+                    MsgHandlers.withUUID(MsgType.IOPub_execute_result) { msg: JPRawMessage ->
+                        launch(Dispatchers.Default){
                             val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
                             println(md)
                             handlerWasTriggered.incrementAndGet()
-                        },
-                    )
+                        }
+                    }
                 )
 
-                listener.start(this, Dispatchers.Default)
+                listener.start(GlobalScope, Dispatchers.Default)
 
                 assertTrue(listener.isRunning(), "listener should be running")
                 // rmd: send message
