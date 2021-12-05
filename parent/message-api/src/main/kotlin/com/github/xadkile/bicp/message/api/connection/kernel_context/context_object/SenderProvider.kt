@@ -25,19 +25,9 @@ interface SenderProvider {
     fun kernelInfoSender(): MsgSender<KernelInfoInput, Result<KernelInfoOutput, Exception>>
 
     /**
-     * composite sender
+     * composite code execution sender
      */
-    fun codeExecutionSender(
-        defaultHandler: (msg: JPRawMessage) -> Unit,
-        parseExceptionHandler: suspend (exception: Exception) -> Unit,
-    ): MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>>
+    fun codeExecutionSender(): MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>>
 
-    /**
-     * iopub listener
-     */
-    fun ioPubListener(
-        defaultHandler: (msg: JPRawMessage) -> Unit,
-        parseExceptionHandler: suspend (exception: Exception) -> Unit,
-    ): IOPubListenerService
 }
 

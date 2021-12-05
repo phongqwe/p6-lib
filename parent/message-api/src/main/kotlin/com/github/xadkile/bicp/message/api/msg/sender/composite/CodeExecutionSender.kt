@@ -23,12 +23,15 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
 
 /**
  * Send an piece of code to be executed in the kernel. Return the result of the computation itself.
+ * 1. I need kernelContext to ensure that if the kernel is shutdown while the code is executing, I can return the correct error
+ * 2. I need the IO pub service so that I can get the result
  */
 class CodeExecutionSender internal constructor(
     val kernelContext: KernelContextReadOnlyConv,
-    val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>>,
-    val ioPubListenerService: IOPubListenerServiceReadOnly,
+//    val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>>,
+//    val ioPubListenerService: IOPubListenerServiceReadOnly,
 ) : MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>> {
+
 
     /**
      * This works like this:
@@ -46,6 +49,20 @@ class CodeExecutionSender internal constructor(
             return Err(KernelIsDownException.occurAt(this))
         }
 
+        val hasIoPubService = kernelContext.getIOPubListenerService()
+        val hasSenderProvider = kernelContext.getSenderProvider()
+
+        if (hasIoPubService is Err) {
+            return Err(hasIoPubService.unwrapError())
+        }
+
+        if (hasSenderProvider is Err) {
+            return Err(hasSenderProvider.unwrapError())
+        }
+
+        val ioPubListenerService: IOPubListenerServiceReadOnly = hasIoPubService.unwrap()
+        val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> =
+            hasSenderProvider.unwrap().executeRequestSender()
         if (ioPubListenerService.isNotRunning()) {
             return Err(IOPubListenerNotRunningException.occurAt(this))
         }

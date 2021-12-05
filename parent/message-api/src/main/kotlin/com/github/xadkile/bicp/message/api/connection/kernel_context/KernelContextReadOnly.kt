@@ -45,12 +45,17 @@ interface KernelContextReadOnly {
     fun conv():KernelContextReadOnlyConv
 
     /**
-     * A running context guarantees that all context-related objects and services are up, running, not null
+     * kernel process and all context-related objects are on and safe to get
      */
     fun isKernelRunning():Boolean
 
+    /**
+     * all context-related services are running
+     */
     fun isServiceRunning():Boolean
-
+    /**
+     * A running context guarantees that all context-related objects and services are up, running, not null
+     */
     fun isAllRunning():Boolean
 
     /**

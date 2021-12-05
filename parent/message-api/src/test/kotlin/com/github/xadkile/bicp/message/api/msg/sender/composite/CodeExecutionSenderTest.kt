@@ -1,6 +1,9 @@
 package com.github.xadkile.bicp.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContext
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
+import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.SenderProvider
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.HandlerContainerImp
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
@@ -14,6 +17,7 @@ import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteSender
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -107,8 +111,6 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
 
                     val sender = CodeExecutionSender(
                         kernelContext = kernelContext.conv(),
-                        executeSender = ExecuteSender(kernelContext.conv()),
-                        ioPubListenerService = ioPubService
                     )
 
                     val o = sender.send(message, Dispatchers.IO)
@@ -124,11 +126,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun send_Ok() {
         runBlocking {
-            val sender = CodeExecutionSender(
-                kernelContext = kernelContext.conv(),
-                executeSender = ExecuteSender(kernelContext.conv()),
-                ioPubListenerService = ioPubService
-            )
+            val sender = CodeExecutionSender(kernelContext.conv())
             val o = sender.send(message, Dispatchers.Default)
             kotlin.test.assertTrue(o is Ok, o.toString())
             println(o.value.content)
@@ -153,7 +151,14 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 }
             }
 
-            val sender = CodeExecutionSender(kernelContext.conv(), mockSender, ioPubService)
+            val mockSenderProvider = mockk<SenderProvider>().also {
+                every{it.executeRequestSender()} returns mockSender
+            }
+            val mockContext = spyk(kernelContext.conv()).also {
+                every{it.getSenderProvider()} returns Ok(mockSenderProvider)
+            }
+
+            val sender = CodeExecutionSender(mockContext)
             val o = sender.send(message, Dispatchers.Default)
             kotlin.test.assertTrue(o is Err, o.toString())
             kotlin.test.assertTrue(o.unwrapError() is UnableToSendMsgException)
@@ -164,8 +169,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun send_kernelNotRunning() = runBlocking {
         kernelContext.stopKernel()
-        val sender =
-            CodeExecutionSender(kernelContext.conv(), ExecuteSender(kernelContext.conv()), ioPubService)
+        val sender = CodeExecutionSender(kernelContext.conv())
         val o = sender.send(message)
         kotlin.test.assertTrue(o is Err)
         kotlin.test.assertTrue((o.unwrapError()) is KernelIsDownException,"should return the correct exception")
@@ -178,7 +182,12 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             every { it.isRunning() } returns false
             every { it.isNotRunning() } returns true
         }
-        val sender = CodeExecutionSender(kernelContext.conv(), ExecuteSender(kernelContext.conv()), mockListener)
+
+        val mockContext:KernelContextReadOnlyConv = spyk(kernelContext.conv()).also {
+            every {it.getIOPubListenerService()} returns Ok(mockListener)
+        }
+
+        val sender = CodeExecutionSender(mockContext)
         val o = sender.send(message)
         kotlin.test.assertTrue(o is Err)
         kotlin.test.assertTrue((o.unwrapError()) is IOPubListenerNotRunningException,"should return the correct exception")

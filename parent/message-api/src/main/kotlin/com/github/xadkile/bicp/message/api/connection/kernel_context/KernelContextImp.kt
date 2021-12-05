@@ -77,6 +77,7 @@ class KernelContextImp @Inject internal constructor(
             val processBuilder = ProcessBuilder(launchCmd)
             try {
                 this.process = processBuilder.inheritIO().start()
+
                 // rmd: wait for process to come live
                 Sleeper.threadSleepUntil(50) { this.process?.isAlive == true }
 
