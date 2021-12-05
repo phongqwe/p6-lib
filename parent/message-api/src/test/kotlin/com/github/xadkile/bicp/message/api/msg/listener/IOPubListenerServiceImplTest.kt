@@ -4,7 +4,7 @@ import com.github.michaelbull.result.get
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.service.iopub.HandlerContainerImp
-import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandlers
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
@@ -26,7 +26,7 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class IOPubListenerTest : TestOnJupyter() {
+internal class IOPubListenerServiceImplTest : TestOnJupyter() {
 
     fun okMesg(): ExecuteRequest {
         val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
@@ -78,7 +78,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
         val handlerWasTriggered2 = AtomicInteger(0)
 
         // rmd: settup listener, handler
-        val listener1 = IOPubListenerService(
+        val listener1 = IOPubListenerServiceImpl(
             kernelContext = kernelContext,
             externalScope = GlobalScope,
             dispatcher = Dispatchers.Default
@@ -97,7 +97,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
         listener1.start()
 
-        val listener2 = IOPubListenerService(
+        val listener2 = IOPubListenerServiceImpl(
             kernelContext = kernelContext,
             externalScope = GlobalScope,
             dispatcher = Dispatchers.Default
@@ -173,7 +173,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
         var exceptionHandlerTriggerCount = 0
 
-        val listener = IOPubListenerService(
+        val listener = IOPubListenerServiceImpl(
             mockContext,
             { m -> },
             { e ->
@@ -204,7 +204,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
         kernelContext.startKernel()
         var defaultHandlerTriggeredCount = 0
         var handlerTriggeredCount = 0
-        val listener = IOPubListenerService(
+        val listener = IOPubListenerServiceImpl(
             kernelContext,
             defaultHandler = { msg ->
                 defaultHandlerTriggeredCount++
@@ -241,7 +241,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
             for (x in 0 until 200) {
                 val handlerWasTriggered = AtomicInteger(0)
                 // rmd: setup listener, handler
-                val listener = IOPubListenerService(
+                val listener = IOPubListenerServiceImpl(
                     kernelContext = kernelContext,
                     externalScope = GlobalScope,
                     dispatcher = Dispatchers.Default

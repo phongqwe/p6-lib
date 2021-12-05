@@ -1,7 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection.kernel_context.context_object
 
 import com.github.michaelbull.result.Result
-import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.composite.ExecuteResult
@@ -38,6 +38,6 @@ interface SenderProvider {
     fun ioPubListener(
         defaultHandler: (msg: JPRawMessage) -> Unit,
         parseExceptionHandler: suspend (exception: Exception) -> Unit,
-    ): MsgListenerService
+    ): IOPubListenerService
 }
 

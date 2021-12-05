@@ -3,7 +3,7 @@ package com.github.xadkile.bicp.message.api.msg.sender.composite
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.HandlerContainerImp
-import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
@@ -27,7 +27,7 @@ import kotlin.system.measureTimeMillis
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class CodeExecutionSenderTest : TestOnJupyter() {
 
-    lateinit var ioPubService: IOPubListenerService
+    lateinit var ioPubService: IOPubListenerServiceImpl
 
     @AfterEach
     fun ae() {
@@ -40,7 +40,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @BeforeEach
     fun beforeEach() {
         kernelContext.startKernel()
-        ioPubService = IOPubListenerService(
+        ioPubService = IOPubListenerServiceImpl(
                 kernelContext = kernelContext.conv(),
                 defaultHandler = { msg ->
                     println(msg)
@@ -174,7 +174,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun send_listenerServiceIsDown() = runBlocking {
         kernelContext.startKernel()
-        val mockListener = mockk<IOPubListenerService>().also {
+        val mockListener = mockk<IOPubListenerServiceImpl>().also {
             every { it.isRunning() } returns false
         }
         val sender = CodeExecutionSender(kernelContext.conv(), ExecuteSender(kernelContext.conv()), mockListener)

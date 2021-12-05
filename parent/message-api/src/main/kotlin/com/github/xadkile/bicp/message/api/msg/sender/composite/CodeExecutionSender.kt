@@ -4,7 +4,8 @@ import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
 import com.github.xadkile.bicp.message.api.exception.UnknownException
-import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.ExecutionErrException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandler
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
@@ -27,7 +28,7 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
 class CodeExecutionSender(
     val kernelContext: KernelContextReadOnlyConv,
     val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>>,
-    val ioPubListenerService: IOPubListenerService,
+    val ioPubListenerService: IOPubListenerServiceReadOnly,
 ) : MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>> {
 
     /**

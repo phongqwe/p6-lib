@@ -1,7 +1,7 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandlers
 import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
@@ -46,7 +46,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 "msg_id_abc_123_err"
             )
             var errHandlerWasTrigger = 0
-            val listener = IOPubListenerService(
+            val listener = IOPubListenerServiceImpl(
                 kernelContext = kernelContext,
                 externalScope = GlobalScope,
                 dispatcher = Dispatchers.Default
@@ -92,7 +92,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             var handlerWasTriggered = 0
 
             // rmd: settup listener, handler
-            val listener = IOPubListenerService(
+            val listener = IOPubListenerServiceImpl(
                 kernelContext = kernelContext,
                 externalScope = GlobalScope,
                 dispatcher = Dispatchers.Default

@@ -4,7 +4,7 @@ import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 
 /**
- * For use with [MsgListenerService].
+ * For use with [IOPubListenerService].
  * Hold code that reacts on certain occasion
  */
 interface MsgHandler {
