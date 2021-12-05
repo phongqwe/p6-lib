@@ -6,6 +6,8 @@ import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.K
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.coroutine.LiveCountHeartBeatServiceCoroutine
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
 //import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceUpdater
 import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgCounterImp
@@ -46,7 +48,9 @@ class KernelContextImp @Inject internal constructor(
     private var msgCounter: MsgCounter? = null
     private var senderProvider: SenderProvider? = null
     private var socketProvider: SocketProvider? = null
+
     private var hbService: HeartBeatService? = null
+    private var ioPubService: IOPubListenerService? = null
 
     private var onBeforeStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
     private var onAfterStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
@@ -67,7 +71,7 @@ class KernelContextImp @Inject internal constructor(
      */
     @OptIn(DelicateCoroutinesApi::class)
     override fun startKernel(): Result<Unit, Exception> {
-        if (this.isRunning()) {
+        if (this.isKernelRunning()) {
             return Ok(Unit)
         } else {
             val processBuilder = ProcessBuilder(launchCmd)
@@ -103,15 +107,17 @@ class KernelContextImp @Inject internal constructor(
 
                 // x: senderProvider depend on heart beat service,
                 // x: so it must be initialized after hb service is created
-                this.senderProvider =
-                    SenderProviderImp(this.conv())
+                this.senderProvider = SenderProviderImp(this.conv())
+
+                this.ioPubService = IOPubListenerServiceImpl(
+                    kernelContext = this,
+                    externalScope = cScope,
+                    dispatcher = this.networkServiceDispatcher
+                )
 
                 // ph: start services
-                this.hbService!!.start()
+                this.startServices()
 
-                // rmd: wait until heart beat service is live
-                Sleeper.threadSleepUntil(50) { this.hbService?.isServiceRunning() == true }
-                Sleeper.threadSleepUntil(50) { this.hbService?.isHBAlive() == true }
                 this.onProcessStartListener.run(this)
                 return Ok(Unit)
             } catch (e: Exception) {
@@ -120,8 +126,17 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    override fun stopKernel(): Result<Unit, Exception> {
-        if (this.isNotRunning()) {
+    private fun startServices(){
+        this.hbService!!.start()
+        this.ioPubService!!.start()
+
+        // rmd: wait until heart beat service is live
+        Sleeper.threadSleepUntil(50) { this.hbService?.isServiceRunning() == true }
+        Sleeper.threadSleepUntil(50) { this.hbService?.isHBAlive() == true }
+    }
+
+    override suspend fun stopKernel(): Result<Unit, Exception> {
+        if (this.isKernelNotRunning()) {
             return Ok(Unit)
         }
         try {
@@ -142,14 +157,14 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getSocketProvider(): Result<SocketProvider, Exception> {
-        if (this.isRunning()) {
+        if (this.isKernelRunning()) {
             return Ok(this.socketProvider!!)
         } else {
             return Err(ipythonIsDownErr)
         }
     }
 
-    private fun destroyResource() {
+    private suspend fun destroyResource() {
         val cpath = this.connectionFilePath
 
         if (cpath != null) {
@@ -171,10 +186,14 @@ class KernelContextImp @Inject internal constructor(
         this.hbService?.stop()
         this.hbService = null
         this.socketProvider = null
+
+        // x: stop iopub service
+        this.ioPubService?.stop()
+        this.ioPubService=null
     }
 
     override fun getIPythonProcess(): Result<Process, Exception> {
-        if (this.isRunning()) {
+        if (this.isKernelRunning()) {
             return Ok(this.process!!)
         } else {
             return Err(ipythonIsDownErr)
@@ -189,8 +208,8 @@ class KernelContextImp @Inject internal constructor(
         return this.getIPythonProcess().map { it.outputStream }
     }
 
-    override fun restartIPython(): Result<Unit, Exception> {
-        if (this.isRunning()) {
+    override suspend fun restartKernel(): Result<Unit, Exception> {
+        if (this.isKernelRunning()) {
             val rt = this.stopKernel()
                 .andThen {
                     this.startKernel()
@@ -202,7 +221,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getConnectionFileContent(): Result<com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent, Exception> {
-        if (this.isRunning()) {
+        if (this.isKernelRunning()) {
             return Ok(this.connectionFileContent!!)
         } else {
             return Err(ipythonIsDownErr)
@@ -210,7 +229,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getSession(): Result<Session, Exception> {
-        if (this.isRunning()) {
+        if (this.isKernelRunning()) {
             return Ok(this.session!!)
         } else {
             return Err(ipythonIsDownErr)
@@ -234,24 +253,34 @@ class KernelContextImp @Inject internal constructor(
     }
 
     private fun <T> checkRunningAndGet(that: () -> T): Result<T, Exception> {
-        if (this.isRunning()) {
+        if (this.isKernelRunning()) {
             return Ok(that())
         } else {
             return Err(ipythonIsDownErr)
         }
     }
 
-    override fun isRunning(): Boolean {
-        val rt = this.getStatuses().all { it }
+    override fun isKernelRunning(): Boolean {
+        val rt = this.getCoreStatus().all { it }
         return rt
     }
 
-    override fun isNotRunning(): Boolean {
-        val rt = this.getStatuses().all { !it }
+    override fun isServiceRunning(): Boolean {
+        val hbRunning = this.hbService?.isServiceRunning() ?: false
+        val ioPubRunning = this.ioPubService?.isRunning() ?: false
+        return hbRunning && ioPubRunning
+    }
+
+    override fun isAllRunning(): Boolean {
+        return isServiceRunning() && isKernelRunning()
+    }
+
+    override fun isKernelNotRunning(): Boolean {
+        val rt = this.getCoreStatus().all { !it }
         return rt
     }
 
-    private fun getStatuses(): List<Boolean> {
+    private fun getCoreStatus(): List<Boolean> {
         val isProcessLive = this.process?.isAlive ?: false
         val isFileWritten = this.connectionFilePath?.let { Files.exists(it) } ?: false
         val connectionFileIsRead = this.connectionFileContent != null
@@ -260,14 +289,16 @@ class KernelContextImp @Inject internal constructor(
         val isMsgEncodeOk = this.msgEncoder != null
         val isMsgCounterOk = this.msgCounter != null
         val isSenderProviderOk = this.senderProvider != null
-        val isHBServiceRunning = this.hbService?.isServiceRunning() ?: false
+//        val isHBServiceRunning = this.hbService?.isServiceRunning() ?: false
 
         val rt = listOf(
-            isProcessLive, isFileWritten, isHBServiceRunning, connectionFileIsRead,
-            isSessonOk, isChannelProviderOk, isMsgEncodeOk, isMsgCounterOk, isSenderProviderOk
+            isProcessLive, isFileWritten, connectionFileIsRead,
+            isSessonOk, isChannelProviderOk, isMsgEncodeOk, isMsgCounterOk, isSenderProviderOk, /*isHBServiceRunning*/
         )
         return rt
     }
+
+
 
     override fun setOnBeforeProcessStopListener(listener: OnIPythonContextEvent) {
         this.onBeforeStopListener = listener
@@ -293,8 +324,12 @@ class KernelContextImp @Inject internal constructor(
         this.onProcessStartListener = OnIPythonContextEvent.Nothing
     }
 
+    override fun getIOPubListenerService(): Result<IOPubListenerService,Exception> {
+        return this.checkRunningAndGet { this.ioPubService!! }
+    }
+
     override fun getHeartBeatService(): Result<HeartBeatService, Exception> {
-        if (this.isRunning()) {
+        if (this.isKernelRunning()) {
             return Ok(this.hbService!!)
         } else {
             return Err(ipythonIsDownErr)

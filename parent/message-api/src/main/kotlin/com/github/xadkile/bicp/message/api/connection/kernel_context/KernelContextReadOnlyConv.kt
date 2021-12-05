@@ -6,10 +6,24 @@ import com.github.xadkile.bicp.message.api.channel.ChannelInfo
 import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceConv
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
 
 interface KernelContextReadOnlyConv : KernelContextReadOnly {
+
+    override fun isServiceRunning(): Boolean {
+        return original().isServiceRunning()
+    }
+
+    override fun isAllRunning(): Boolean {
+        return original().isAllRunning()
+    }
+
+    override fun getIOPubListenerService(): Result<IOPubListenerServiceReadOnly, Exception> {
+        return this.original().getIOPubListenerService()
+    }
 
     fun getHeartBeatChannel(): Result<ChannelInfo, Exception> {
         return this.getChannelProvider().map { it.heartbeatChannel() }
@@ -85,12 +99,12 @@ interface KernelContextReadOnlyConv : KernelContextReadOnly {
         return this.original().zContext()
     }
 
-    override fun isRunning(): Boolean {
-        return this.original().isRunning()
+    override fun isKernelRunning(): Boolean {
+        return this.original().isKernelRunning()
     }
 
-    override fun isNotRunning(): Boolean {
-        return this.original().isNotRunning()
+    override fun isKernelNotRunning(): Boolean {
+        return this.original().isKernelNotRunning()
     }
 }
 

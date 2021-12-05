@@ -16,7 +16,7 @@ import org.zeromq.ZMsg
  * [defaultHandler] to handle msg type that don't have a specific handler.
  * [parseExceptionHandler] to handle exception of unable to parse zmq message.
  */
-class IOPubListenerServiceImpl constructor(
+class IOPubListenerServiceImpl internal constructor(
     private val kernelContext: KernelContextReadOnlyConv,
     private val defaultHandler: (msg: JPRawMessage) -> Unit,
     private val parseExceptionHandler: suspend (exception: Exception) -> Unit,
@@ -25,7 +25,7 @@ class IOPubListenerServiceImpl constructor(
     private val dispatcher: CoroutineDispatcher,
 ) : IOPubListenerService {
 
-    constructor(
+    internal constructor(
         kernelContext: KernelContext,
         defaultHandler: (msg: JPRawMessage) -> Unit = { /*do nothing*/ },
         parseExceptionHandler: suspend (exception: Exception) -> Unit = {  /*do nothing*/ },
@@ -47,7 +47,7 @@ class IOPubListenerServiceImpl constructor(
             return Ok(Unit)
         }
 
-        if (this.kernelContext.isNotRunning()) {
+        if (this.kernelContext.isKernelNotRunning()) {
             return Err(KernelIsDownException.occurAt(this))
         }
 

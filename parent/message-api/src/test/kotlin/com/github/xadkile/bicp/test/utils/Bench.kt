@@ -15,27 +15,29 @@ import kotlin.system.measureTimeMillis
 class S1 {
     var i = true
     var x = 0
-    suspend fun start(){
-        while(i){
+    suspend fun start() {
+        while (i) {
             delay(500)
             x++
         }
     }
-    fun isRunning():Boolean{
-        return x>3
+
+    fun isRunning(): Boolean {
+        return x > 3
     }
-    fun cancel(){
-        i=false
+
+    fun cancel() {
+        i = false
     }
 }
 
 class S2 {
     var x = 0
-    var job:Job? = null
+    var job: Job? = null
 
-    fun start(scope:CoroutineScope):Boolean{
+    fun start(scope: CoroutineScope): Boolean {
         this.job = scope.launch(Dispatchers.Default) {
-            while(isActive){
+            while (isActive) {
                 delay(100)
                 x++
             }
@@ -46,28 +48,59 @@ class S2 {
         }
         return true
     }
-    fun cancel(){
+
+    fun cancel() {
         this.job?.cancel()
     }
-    fun isRunning():Boolean{
-        return x>3 && (this.job?.isActive ?:false)
+
+    fun isRunning(): Boolean {
+        return x > 3 && (this.job?.isActive ?: false)
     }
 }
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
 
+
+    suspend fun fs() {
+        withContext(Dispatchers.Default) {
+            var x = 0
+            while (x < 10) {
+                delay(300)
+                x++
+                println(x)
+            }
+        }
+    }
+
+    @Test
+    fun withContextEg() {
+        runBlocking {
+            fs()
+            launch(Dispatchers.Default) {
+                println("blocked by fs too")
+            }
+            println("block by fs")
+        }
+    }
+
     /**
      * Each suspend function call is completed before moving to the next
      */
     @Test
-    fun coroutineScopeExample2(){
+    fun coroutineScopeExample2() {
         runBlocking {
             coroutineScope {
                 mySusFunc1()
                 println("block by mySusFunc1")
                 mySusFunc1()
                 println("2nd time block")
+            }
+
+            coroutineScope {
+                launch(Dispatchers.Default) {
+                    println("coroutineScope2: blocked by coroutine scope 1")
+                }
             }
         }
     }
@@ -77,7 +110,7 @@ class Bench : TestOnJupyter() {
      * Each suspend function call is completed before moving to the next
      */
     @Test
-    fun runBlockingExample2(){
+    fun runBlockingExample2() {
         runBlocking {
             mySusFunc1()
             println("block by mySusFunc1")
@@ -87,7 +120,7 @@ class Bench : TestOnJupyter() {
     }
 
     @Test
-    fun runBlockingExample(){
+    fun runBlockingExample() {
         runBlocking {
             val j1 = launch(Dispatchers.Default) {
                 val time = measureTimeMillis {
@@ -108,9 +141,10 @@ class Bench : TestOnJupyter() {
     }
 
     @Test
-    fun coroutineScopeEggg(){
+    fun coroutineScopeEggg() {
+
         runBlocking {
-            supervisorScope {
+            coroutineScope {
                 val j1 = launch(Dispatchers.Default) {
                     val time = measureTimeMillis {
                         mySusFunc1()
@@ -121,11 +155,14 @@ class Bench : TestOnJupyter() {
                     println("Done j1")
                 }
                 val j2 = launch(Dispatchers.Default) {
-                    println("This is not block by the completion of j1")
+                    println("This is NOT blocked by the completion of j1")
                 }
-                println("also not block by j1, and j2")
+                println("also not blocked by j1, and j2")
             }
             println("this is blocked by the completion of coroutineScope")
+            launch(Dispatchers.Default) {
+                println("blocked by coroutineScope")
+            }
         }
     }
 
@@ -180,7 +217,7 @@ class Bench : TestOnJupyter() {
      *      - for one-time blocking such as network call or long computation, use inherited coroutine scope
      */
     @Test
-    fun suspendingFunction()  {
+    fun suspendingFunction() {
         runBlocking {
             // block of runBlocking is a suspending function, so it is legal to call mySusFunc1 here
             mySusFunc1()
@@ -192,8 +229,8 @@ class Bench : TestOnJupyter() {
     }
 
     @Test
-    fun suspendingFunction2(){
-        val o  = measureTimeMillis {
+    fun suspendingFunction2() {
+        val o = measureTimeMillis {
             runBlocking {
                 coroutineScope {
                     launch(Dispatchers.Default) {
@@ -221,7 +258,7 @@ class Bench : TestOnJupyter() {
     /**
      * A normal function that takes a lot of time
      */
-    fun myCostlyFunc(){
+    fun myCostlyFunc() {
         println("do something that takes a lot of time")
         BigInteger(1500, Random()).nextProbablePrime()
     }

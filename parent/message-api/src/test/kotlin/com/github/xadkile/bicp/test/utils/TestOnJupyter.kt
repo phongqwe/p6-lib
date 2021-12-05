@@ -1,10 +1,7 @@
 package com.github.xadkile.bicp.test.utils
 
 import com.github.xadkile.bicp.message.api.connection.kernel_context.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.*
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.jupiter.api.AfterAll
@@ -33,7 +30,9 @@ abstract class TestOnJupyter {
 
     @AfterAll
     open fun afterAll(){
-        this.kernelContext.stopKernel()
+        runBlocking {
+            kernelContext.stopKernel()
+        }
         Dispatchers.resetMain()
         mainThreadSurrogate.close()
     }

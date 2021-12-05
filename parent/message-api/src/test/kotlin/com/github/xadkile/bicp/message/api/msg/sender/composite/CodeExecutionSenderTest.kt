@@ -33,8 +33,8 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     fun ae() {
         runBlocking {
             ioPubService.stop()
+            kernelContext.stopKernel()
         }
-        kernelContext.stopKernel()
     }
 
     @BeforeEach
@@ -176,6 +176,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         kernelContext.startKernel()
         val mockListener = mockk<IOPubListenerServiceImpl>().also {
             every { it.isRunning() } returns false
+            every { it.isNotRunning() } returns true
         }
         val sender = CodeExecutionSender(kernelContext.conv(), ExecuteSender(kernelContext.conv()), mockListener)
         val o = sender.send(message)

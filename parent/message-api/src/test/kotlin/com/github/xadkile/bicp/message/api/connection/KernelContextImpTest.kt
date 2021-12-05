@@ -5,6 +5,7 @@ import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelConfi
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextImp
 import com.github.xadkile.bicp.test.utils.TestResources
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -31,7 +32,9 @@ internal class KernelContextImpTest {
 
     @AfterEach
     fun afterAll(){
-        pm.stopKernel()
+        runBlocking {
+            pm.stopKernel()
+        }
     }
 
     @Test
@@ -50,9 +53,11 @@ internal class KernelContextImpTest {
         pm.setOnBeforeProcessStopListener{
             beforeStop = true
         }
-        pm.stopKernel()
-        assertTrue(afterStop)
-        assertTrue(beforeStop)
+        runBlocking {
+            pm.stopKernel()
+            assertTrue(afterStop)
+            assertTrue(beforeStop)
+        }
     }
 
     @Test
@@ -60,7 +65,7 @@ internal class KernelContextImpTest {
         assertTrue(pm.getIPythonProcess() is Err)
         val rs = pm.startKernel()
         assertTrue(rs is Ok)
-        assertTrue(pm.isRunning())
+        assertTrue(pm.isKernelRunning())
         assertTrue(pm.getIPythonProcess() is Ok,pm.getIPythonProcess().toString())
         assertTrue(pm.getIPythonProcess().get()?.isAlive ?: false)
         assertTrue(pm.getConnectionFileContent() is Ok,pm.getConnectionFileContent().toString())
@@ -84,9 +89,11 @@ internal class KernelContextImpTest {
     @Test
     fun stopIPython() {
         pm.startKernel()
-        val rs = pm.stopKernel()
-        assertTrue(rs is Ok)
-        assertTrue(pm.isNotRunning())
+        runBlocking {
+            val rs = pm.stopKernel()
+            assertTrue(rs is Ok)
+        }
+        assertTrue(pm.isKernelNotRunning())
         assertTrue(pm.getIPythonProcess() is Err)
         assertFalse(pm.getIPythonProcess().get()?.isAlive ?: false)
         assertTrue(pm.getConnectionFileContent() is Err)
@@ -100,10 +107,12 @@ internal class KernelContextImpTest {
     @Test
     fun stopIPython_onAlreadyStopped() {
         pm.startKernel()
-        val rs = pm.stopKernel()
-        assertTrue(rs is Ok, rs.toString())
-        val rs2 = pm.stopKernel()
-        assertTrue(rs2 is Ok, rs.toString())
+        runBlocking {
+            val rs = pm.stopKernel()
+            assertTrue(rs is Ok, rs.toString())
+            val rs2 = pm.stopKernel()
+            assertTrue(rs2 is Ok, rs.toString())
+        }
     }
 
     @Test
@@ -111,19 +120,23 @@ internal class KernelContextImpTest {
         pm.startKernel()
         val oldConnectionFile = pm.getConnectionFileContent().get()
         assertNotNull(oldConnectionFile)
-        val rs = pm.restartIPython()
-        val newConnectionFile = pm.getConnectionFileContent().get()
-        assertTrue(rs is Ok)
-        assertNotNull(newConnectionFile)
-        assertNotEquals(oldConnectionFile,newConnectionFile)
+        runBlocking {
+            val rs = pm.restartKernel()
+            val newConnectionFile = pm.getConnectionFileContent().get()
+            assertTrue(rs is Ok)
+            assertNotNull(newConnectionFile)
+            assertNotEquals(oldConnectionFile,newConnectionFile)
+        }
     }
 
     @Test
     fun restartIPython_OnStopped() {
         pm.startKernel()
-        pm.stopKernel()
-        val rs = pm.restartIPython()
-        assertTrue(rs is Err)
-        assertTrue(rs.getError() is IllegalStateException)
+        runBlocking {
+            pm.stopKernel()
+            val rs = pm.restartKernel()
+            assertTrue(rs is Err)
+            assertTrue(rs.getError() is IllegalStateException)
+        }
     }
 }

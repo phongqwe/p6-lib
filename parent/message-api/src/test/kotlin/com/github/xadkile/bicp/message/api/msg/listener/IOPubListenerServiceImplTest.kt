@@ -63,7 +63,9 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
 
     @AfterEach
     fun ae() {
-        kernelContext.stopKernel()
+        runBlocking{
+            kernelContext.stopKernel()
+        }
     }
 
     /**
@@ -166,8 +168,8 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
         mockkStatic("com.github.michaelbull.result.GetKt")
         val mockContext: KernelContextReadOnlyConv = mockk<KernelContextReadOnlyConv>().also {
             every { it.getSocketProvider().unwrap().ioPubSocket() } returns subSocket
-            every { it.isRunning() } returns true
-            every { it.isNotRunning() } returns false
+            every { it.isKernelRunning() } returns true
+            every { it.isKernelNotRunning() } returns false
             every { it.getConvHeartBeatService().get()?.isHBAlive() } returns true
         }
 
@@ -238,37 +240,34 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
 
             kernelContext.startKernel()
 
-            for (x in 0 until 200) {
-                val handlerWasTriggered = AtomicInteger(0)
-                // rmd: setup listener, handler
-                val listener = IOPubListenerServiceImpl(
-                    kernelContext = kernelContext,
-                    externalScope = GlobalScope,
-                    dispatcher = Dispatchers.Default
-                )
+            val handlerWasTriggered = AtomicInteger(0)
+            // rmd: setup listener, handler
+            val listener = IOPubListenerServiceImpl(
+                kernelContext = kernelContext,
+                externalScope = this,
+                dispatcher = Dispatchers.Default
+            )
 
-                listener.addHandler(
-                    MsgHandlers.withUUID(MsgType.IOPub_execute_result) { msg: JPRawMessage ->
-                        launch(Dispatchers.Default){
-                            val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
-                            println(md)
-                            handlerWasTriggered.incrementAndGet()
-                        }
-                    }
-                )
-
-                listener.start()
-
-                assertTrue(listener.isRunning(), "listener should be running")
-                // rmd: send message
-
-                kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
-                    it.send(okMesg(), Dispatchers.Default)
+            listener.addHandler(
+                MsgHandlers.withUUID(MsgType.IOPub_execute_result) { msg: JPRawMessage ->
+                    val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
+                    println(md)
+                    handlerWasTriggered.incrementAndGet()
                 }
-                listener.stop()
-                assertFalse(listener.isRunning(), "listener should be stopped")
-//                assertEquals(1, handlerWasTriggered.get(), "handler should be triggered exactly once")
+            )
+
+            listener.start()
+
+            assertTrue(listener.isRunning(), "listener should be running")
+            // rmd: send message
+
+            kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
+                it.send(okMesg(), Dispatchers.Default)
             }
+            listener.stop()
+            assertFalse(listener.isRunning(), "listener should be stopped")
+            delay(300)
+            assertEquals(1, handlerWasTriggered.get(), "handler should be triggered exactly once")
         }
     }
 }

@@ -15,7 +15,7 @@ interface HaveKernelContext {
      * check if the kernel context is running before return the result of [provider]
      */
     suspend fun <T> checkContextRunningThen(provider:suspend ()->Result<T,Exception>):Result<T,Exception>{
-        if(this.getKernelContext().isNotRunning()){
+        if(this.getKernelContext().isKernelNotRunning()){
             return Err(KernelIsDownException.occurAt(this))
         }else{
             return provider()

@@ -28,7 +28,7 @@ class KernelInfoSender internal constructor(
         message: KernelInfoInput,
         dispatcher: CoroutineDispatcher,
     ): Result<KernelInfoOutput, Exception> {
-        if (kernelContext.isNotRunning()) {
+        if (kernelContext.isKernelNotRunning()) {
             return Err(KernelIsDownException.occurAt(this))
         }
         return withContext(dispatcher) {

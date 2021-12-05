@@ -24,7 +24,9 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
 
     @AfterEach
     fun ae() {
-        kernelContext.stopKernel()
+        runBlocking {
+            kernelContext.stopKernel()
+        }
     }
 
     @Test

@@ -29,7 +29,9 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     @AfterEach
     fun afterEach() {
         hbService.stop()
-        kernelContext.stopKernel()
+        runBlocking {
+            kernelContext.stopKernel()
+        }
     }
 
     @Test

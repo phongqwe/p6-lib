@@ -3,6 +3,8 @@ package com.github.xadkile.bicp.message.api.connection.kernel_context
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
 
@@ -12,6 +14,9 @@ import org.zeromq.ZContext
  * This is for preventing mistakenly changing IPython context state, such as calling start, stop in a sender.
  */
 interface KernelContextReadOnly {
+
+    fun getIOPubListenerService():Result<IOPubListenerServiceReadOnly,Exception>
+
     /**
      * Return content of connection file .
      *
@@ -42,12 +47,16 @@ interface KernelContextReadOnly {
     /**
      * A running context guarantees that all context-related objects and services are up, running, not null
      */
-    fun isRunning():Boolean
+    fun isKernelRunning():Boolean
+
+    fun isServiceRunning():Boolean
+
+    fun isAllRunning():Boolean
 
     /**
      * A stopped context guarantees that all context-related objects and services are stopped and null
      */
-    fun isNotRunning():Boolean
+    fun isKernelNotRunning():Boolean
 
 }
 

@@ -4,7 +4,6 @@ import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
 import com.github.xadkile.bicp.message.api.exception.UnknownException
-import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.ExecutionErrException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandler
@@ -25,7 +24,7 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
 /**
  * Send an piece of code to be executed in the kernel. Return the result of the computation itself.
  */
-class CodeExecutionSender(
+class CodeExecutionSender internal constructor(
     val kernelContext: KernelContextReadOnlyConv,
     val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>>,
     val ioPubListenerService: IOPubListenerServiceReadOnly,
@@ -43,11 +42,11 @@ class CodeExecutionSender(
         dispatcher: CoroutineDispatcher,
     ): Result<ExecuteResult, Exception> {
 
-        if (kernelContext.isNotRunning()) {
+        if (kernelContext.isKernelNotRunning()) {
             return Err(KernelIsDownException.occurAt(this))
         }
 
-        if (ioPubListenerService.isRunning().not()) {
+        if (ioPubListenerService.isNotRunning()) {
             return Err(IOPubListenerNotRunningException.occurAt(this))
         }
 

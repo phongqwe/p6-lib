@@ -24,7 +24,7 @@ class ExecuteSender internal constructor(
         message: ExecuteRequest,
         dispatcher: CoroutineDispatcher,
     ): Result<ExecuteReply, Exception> {
-        if(this.kernelContext.isNotRunning()){
+        if(this.kernelContext.isKernelNotRunning()){
             return Err(KernelIsDownException.occurAt(this))
         }
         return withContext(dispatcher) {

@@ -44,7 +44,7 @@ interface KernelContext : KernelContextReadOnly {
      *
      * It must be guaranteed that connection file is deleted, process is completely killed after calling stop.
      */
-    fun stopKernel(): Result<Unit, Exception>
+    suspend fun stopKernel(): Result<Unit, Exception>
 
     /**
      * Terminate the current process and launch a new IPython Process.
@@ -53,7 +53,7 @@ interface KernelContext : KernelContextReadOnly {
      *
      * This function can only be used on already running manager. Attempt to call it on stopped manager must be prohibited.
      */
-    fun restartIPython(): Result<Unit, Exception>
+    suspend fun restartKernel(): Result<Unit, Exception>
 
     fun getIPythonProcess(): Result<Process, Exception>
 
