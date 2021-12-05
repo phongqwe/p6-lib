@@ -1,8 +1,7 @@
 package com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition
 
-import com.github.xadkile.bicp.message.api.msg.listener.MsgHandler
-import com.github.xadkile.bicp.message.api.msg.listener.MsgHandlers
-import com.github.xadkile.bicp.message.api.msg.listener.MsgListener
+import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandler
+import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandlers
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 

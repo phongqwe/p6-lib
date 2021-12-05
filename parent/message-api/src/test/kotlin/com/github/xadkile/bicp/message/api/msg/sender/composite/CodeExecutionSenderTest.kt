@@ -2,20 +2,16 @@ package com.github.xadkile.bicp.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
+import com.github.xadkile.bicp.message.api.connection.service.iopub.HandlerContainerImp
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
-import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
-import com.github.xadkile.bicp.message.api.msg.listener.HandlerContainerImp
-import com.github.xadkile.bicp.message.api.msg.listener.IOPubListener
-import com.github.xadkile.bicp.message.api.msg.listener.exception.IOPubListenerNotRunningException
+import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToSendMsgException
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteSender
-import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.*
@@ -31,19 +27,20 @@ import kotlin.system.measureTimeMillis
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class CodeExecutionSenderTest : TestOnJupyter() {
 
-    lateinit var ioPubService: IOPubListenerServiceImpl
+    lateinit var ioPubService: IOPubListenerService
 
     @AfterEach
     fun ae() {
-        ioPubService.stop()
+        runBlocking {
+            ioPubService.stop()
+        }
         kernelContext.stopKernel()
     }
 
     @BeforeEach
     fun beforeEach() {
         kernelContext.startKernel()
-        ioPubService = IOPubListenerServiceImpl(
-            IOPubListener(
+        ioPubService = IOPubListenerService(
                 kernelContext = kernelContext.conv(),
                 defaultHandler = { msg ->
                     println(msg)
@@ -51,10 +48,10 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 parseExceptionHandler = { e ->
                     println(e)
                 },
-                handlerContainer = HandlerContainerImp()
-            ),
-            cScope = GlobalScope
-        )
+                handlerContainer = HandlerContainerImp(),
+                externalScope =  GlobalScope,
+                dispatcher = Dispatchers.Default
+            )
         ioPubService.start()
         println(ioPubService.isRunning())
     }

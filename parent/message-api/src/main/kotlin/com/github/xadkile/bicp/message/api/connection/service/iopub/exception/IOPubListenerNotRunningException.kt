@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.msg.listener.exception
+package com.github.xadkile.bicp.message.api.connection.service.iopub.exception
 
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
 

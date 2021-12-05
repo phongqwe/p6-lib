@@ -1,4 +1,4 @@
-package com.github.xadkile.bicp.message.api.msg.listener
+package com.github.xadkile.bicp.message.api.connection.service.iopub
 
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 

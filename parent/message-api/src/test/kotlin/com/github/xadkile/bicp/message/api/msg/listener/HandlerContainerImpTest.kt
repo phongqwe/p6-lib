@@ -1,5 +1,7 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
+import com.github.xadkile.bicp.message.api.connection.service.iopub.HandlerContainerImp
+import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandlers
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import org.junit.jupiter.api.Test
 
@@ -11,7 +13,7 @@ internal class HandlerContainerImpTest {
     val h1 = MsgHandlers.withUUID(msgType = MsgType.IOPub_execute_result)
     val h2 = MsgHandlers.withUUID(msgType = MsgType.Shell_kernel_info_reply)
     val h3 = MsgHandlers.withUUID(msgType = MsgType.Shell_kernel_info_request)
-    val h4 =MsgHandlers.withUUID(msgType = MsgType.IOPub_execute_result)
+    val h4 = MsgHandlers.withUUID(msgType = MsgType.IOPub_execute_result)
     var hContainer = HandlerContainerImp()
 
     @BeforeEach

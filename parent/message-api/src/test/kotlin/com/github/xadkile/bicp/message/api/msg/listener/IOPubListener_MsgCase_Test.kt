@@ -1,6 +1,8 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
 import com.github.michaelbull.result.unwrap
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandlers
 import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
@@ -44,8 +46,10 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 "msg_id_abc_123_err"
             )
             var errHandlerWasTrigger = 0
-            val listener = IOPubListener(
+            val listener = IOPubListenerService(
                 kernelContext = kernelContext,
+                externalScope = GlobalScope,
+                dispatcher = Dispatchers.Default
             )
 
             listener.addHandler(
@@ -57,7 +61,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 }
             )
 
-            listener.start(this, Dispatchers.Default)
+            listener.start()
             val sr = kernelContext.getSenderProvider().unwrap().executeRequestSender().send(errMsg)
             delay(1000)
             listener.stop()
@@ -88,8 +92,10 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             var handlerWasTriggered = 0
 
             // rmd: settup listener, handler
-            val listener = IOPubListener(
+            val listener = IOPubListenerService(
                 kernelContext = kernelContext,
+                externalScope = GlobalScope,
+                dispatcher = Dispatchers.Default
             )
 
             listener.addHandler(MsgHandlers.withUUID(
@@ -102,7 +108,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 )
             )
 
-            listener.start(this, Dispatchers.Default)
+            listener.start()
 
             // rmd: send message
             kernelContext.getSenderProvider().unwrap().executeRequestSender().also {

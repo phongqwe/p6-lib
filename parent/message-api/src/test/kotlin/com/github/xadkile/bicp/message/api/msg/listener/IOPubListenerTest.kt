@@ -3,6 +3,9 @@ package com.github.xadkile.bicp.message.api.msg.listener
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
+import com.github.xadkile.bicp.message.api.connection.service.iopub.HandlerContainerImp
+import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandlers
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
@@ -75,8 +78,10 @@ internal class IOPubListenerTest : TestOnJupyter() {
         val handlerWasTriggered2 = AtomicInteger(0)
 
         // rmd: settup listener, handler
-        val listener1 = IOPubListener(
-            kernelContext = kernelContext
+        val listener1 = IOPubListenerService(
+            kernelContext = kernelContext,
+            externalScope = GlobalScope,
+            dispatcher = Dispatchers.Default
         )
 
         listener1.addHandler(
@@ -90,10 +95,12 @@ internal class IOPubListenerTest : TestOnJupyter() {
             )
         )
 
-        listener1.start(this, Dispatchers.Default)
+        listener1.start()
 
-        val listener2 = IOPubListener(
+        val listener2 = IOPubListenerService(
             kernelContext = kernelContext,
+            externalScope = GlobalScope,
+            dispatcher = Dispatchers.Default
         )
 
         listener2.addHandler(
@@ -107,7 +114,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
             )
         )
 
-        listener2.start(this, Dispatchers.Default)
+        listener2.start()
 
         Sleeper.waitUntil { listener1.isRunning() }
         Sleeper.waitUntil { listener2.isRunning() }
@@ -166,14 +173,17 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
         var exceptionHandlerTriggerCount = 0
 
-        val listener = IOPubListener(
+        val listener = IOPubListenerService(
             mockContext,
             { m -> },
             { e ->
                 exceptionHandlerTriggerCount++
-            }, HandlerContainerImp())
+            }, HandlerContainerImp(),
+            externalScope = GlobalScope,
+            dispatcher = Dispatchers.Default
+        )
 
-        listener.start(this, Dispatchers.Default)
+        listener.start()
 
         Sleeper.waitUntil { listener.isRunning() }
         // p: send a malformed message that cannot be parse by the listener
@@ -194,11 +204,13 @@ internal class IOPubListenerTest : TestOnJupyter() {
         kernelContext.startKernel()
         var defaultHandlerTriggeredCount = 0
         var handlerTriggeredCount = 0
-        val listener = IOPubListener(
+        val listener = IOPubListenerService(
             kernelContext,
             defaultHandler = { msg ->
                 defaultHandlerTriggeredCount++
-            }
+            },
+            externalScope = GlobalScope,
+            dispatcher = Dispatchers.Default
         ).also {
             it.addHandler(MsgHandlers.withUUID(
                 msgType = MsgType.Control_shutdown_reply,
@@ -208,7 +220,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
             ))
         }
 
-        listener.start(this, Dispatchers.Default)
+        listener.start()
         Sleeper.waitUntil { listener.isRunning() }
         // rmd: send message
 
@@ -229,8 +241,10 @@ internal class IOPubListenerTest : TestOnJupyter() {
             for (x in 0 until 200) {
                 val handlerWasTriggered = AtomicInteger(0)
                 // rmd: setup listener, handler
-                val listener = IOPubListener(
-                    kernelContext = kernelContext
+                val listener = IOPubListenerService(
+                    kernelContext = kernelContext,
+                    externalScope = GlobalScope,
+                    dispatcher = Dispatchers.Default
                 )
 
                 listener.addHandler(
@@ -243,7 +257,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
                     }
                 )
 
-                listener.start(GlobalScope, Dispatchers.Default)
+                listener.start()
 
                 assertTrue(listener.isRunning(), "listener should be running")
                 // rmd: send message
