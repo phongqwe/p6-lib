@@ -3,10 +3,7 @@ package com.github.xadkile.bicp.message.api.connection.service.iopub
 import com.github.xadkile.bicp.message.api.msg.listener.MsgHandler
 import com.github.xadkile.bicp.message.api.msg.listener.MsgListener
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class IOPubListenerServiceImpl(
     private val ioPubListener: MsgListener,
@@ -58,7 +55,11 @@ class IOPubListenerServiceImpl(
     }
 
     override fun stop() {
-        ioPubListener.stop()
+        if(this.isRunning()){
+            this.cScope.launch(this.cDispatcher) {
+                ioPubListener.stop()
+            }
+        }
     }
 
     override fun isRunning(): Boolean {

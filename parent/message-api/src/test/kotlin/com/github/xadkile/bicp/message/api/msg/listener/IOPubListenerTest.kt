@@ -19,24 +19,29 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IOPubListenerTest : TestOnJupyter() {
-    val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
-        sessionId = "session_id",
-        username = "user_name",
-        msgType = Shell.Execute.Request.msgType,
-        msgContent = Shell.Execute.Request.Content(
-            code = "x=1+1*2;y=x*2;y",
-            silent = false,
-            storeHistory = true,
-            userExpressions = mapOf(),
-            allowStdin = false,
-            stopOnError = true
-        ),
-        "msg_id_abc_123"
-    )
+
+    fun okMesg():ExecuteRequest{
+        val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
+            sessionId = "session_id",
+            username = "user_name",
+            msgType = Shell.Execute.Request.msgType,
+            msgContent = Shell.Execute.Request.Content(
+                code = "x=1+1*2;y=x*2;y",
+                silent = false,
+                storeHistory = true,
+                userExpressions = mapOf(),
+                allowStdin = false,
+                stopOnError = true
+            ),
+            UUID.randomUUID().toString()
+        )
+        return okMsg
+    }
 
     val errMsg: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",
@@ -71,7 +76,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
         // rmd: settup listener, handler
         val listener1 = IOPubListener(
-            kernelContext = kernelContext, parallelHandler = true
+            kernelContext = kernelContext
         )
 
         listener1.addHandler(
@@ -88,7 +93,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
         listener1.start(this, Dispatchers.Default)
 
         val listener2 = IOPubListener(
-            kernelContext = kernelContext, parallelHandler = true
+            kernelContext = kernelContext,
         )
 
         listener2.addHandler(
@@ -125,7 +130,7 @@ internal class IOPubListenerTest : TestOnJupyter() {
                 ),
                 kernelContext.getMsgIdGenerator().get()?.next() ?: "zzZ"
             )
-            val sender= kernelContext.getSenderProvider().unwrap().executeRequestSender()
+            val sender = kernelContext.getSenderProvider().unwrap().executeRequestSender()
             sender.send(okMsg, Dispatchers.Default)
         }
         listener1.stop()
@@ -163,10 +168,10 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
         val listener = IOPubListener(
             mockContext,
-            { m-> },
-            { e->
+            { m -> },
+            { e ->
                 exceptionHandlerTriggerCount++
-            }, false, HandlerContainerImp())
+            }, HandlerContainerImp())
 
         listener.start(this, Dispatchers.Default)
 
@@ -208,9 +213,8 @@ internal class IOPubListenerTest : TestOnJupyter() {
         // rmd: send message
 
         kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
-            it.send(okMsg, Dispatchers.Default)
+            it.send(okMesg(), Dispatchers.Default)
         }
-        delay(1000)
         listener.stop()
         assertEquals(1, defaultHandlerTriggeredCount, "default handler should be triggered exactly once")
         assertEquals(0, handlerTriggeredCount, "incorrect handler should not triggered")
@@ -222,36 +226,36 @@ internal class IOPubListenerTest : TestOnJupyter() {
 
             kernelContext.startKernel()
 
-            var handlerWasTriggered = 0
+            for(x in 0 until 200){
+                var handlerWasTriggered = AtomicInteger(0)
+                // rmd: setup listener, handler
+                val listener = IOPubListener(
+                    kernelContext = kernelContext
+                )
 
-            // rmd: settup listener, handler
-            val listener = IOPubListener(
-                kernelContext = kernelContext,
-            )
+                listener.addHandler(
+                    MsgHandlers.withUUID(
+                        MsgType.IOPub_execute_result,
+                        handlerFunction = { msg: JPRawMessage ->
+                            val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
+                            println(md)
+                            handlerWasTriggered.incrementAndGet()
+                        },
+                    )
+                )
 
-            listener.addHandler(MsgHandlers.withUUID(
-                MsgType.IOPub_execute_result,
-                handlerFunction = { msg: JPRawMessage ->
-                    val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
-                    println(md)
-                    handlerWasTriggered += 1
-                    listener.stop()
-                },
-            )
-            )
+                listener.start(this, Dispatchers.Default)
 
-            listener.start(this, Dispatchers.Default)
+                assertTrue(listener.isRunning(), "listener should be running")
+                // rmd: send message
 
-            Sleeper.waitUntil { listener.isRunning() }
-            assertTrue(listener.isRunning(), "listener should be running")
-            // rmd: send message
-
-            kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
-                it.send(okMsg, Dispatchers.Default)
+                kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
+                    it.send(okMesg(), Dispatchers.Default)
+                }
+                listener.stop()
+                assertFalse(listener.isRunning(), "listener should be stopped")
+//                assertEquals(1, handlerWasTriggered.get(), "handler should be triggered exactly once")
             }
-            delay(1000)
-            assertFalse(listener.isRunning(), "listener should be stopped")
-            assertEquals(1, handlerWasTriggered, "handler should be triggered exactly once")
         }
     }
 }

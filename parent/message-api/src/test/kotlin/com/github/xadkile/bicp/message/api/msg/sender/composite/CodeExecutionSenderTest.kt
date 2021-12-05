@@ -51,12 +51,12 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 parseExceptionHandler = { e ->
                     println(e)
                 },
-                parallelHandler = true,
                 handlerContainer = HandlerContainerImp()
             ),
             cScope = GlobalScope
         )
         ioPubService.start()
+        println(ioPubService.isRunning())
     }
 
     val message: ExecuteRequest = ExecuteRequest.autoCreate(

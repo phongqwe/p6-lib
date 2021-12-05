@@ -1,5 +1,6 @@
 package com.github.xadkile.bicp.test.utils
 
+import com.github.xadkile.bicp.message.api.other.Sleeper
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -10,16 +11,120 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
 import kotlin.system.measureTimeMillis
 
+
+class S1 {
+    var i = true
+    var x = 0
+    suspend fun start(){
+        while(i){
+            delay(500)
+            x++
+        }
+    }
+    fun isRunning():Boolean{
+        return x>3
+    }
+    fun cancel(){
+        i=false
+    }
+}
+
+class S2 {
+    var x = 0
+    var job:Job? = null
+
+    fun start(scope:CoroutineScope):Boolean{
+        this.job = scope.launch(Dispatchers.Default) {
+            while(isActive){
+                delay(100)
+                x++
+            }
+        }
+        Sleeper.waitUntil {
+            val k = this.isRunning()
+            k
+        }
+        return true
+    }
+    fun cancel(){
+        this.job?.cancel()
+    }
+    fun isRunning():Boolean{
+        return x>3 && (this.job?.isActive ?:false)
+    }
+}
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
 
+    /**
+     * Each suspend function call is completed before moving to the next
+     */
     @Test
-    fun zasdwqe(){
-        val listener1Res = AtomicInteger(0)
-        for(x in 0 until 10){
-            listener1Res.incrementAndGet()
+    fun coroutineScopeExample2(){
+        runBlocking {
+            coroutineScope {
+                mySusFunc1()
+                println("block by mySusFunc1")
+                mySusFunc1()
+                println("2nd time block")
+            }
         }
-        println(listener1Res.get())
+    }
+
+
+    /**
+     * Each suspend function call is completed before moving to the next
+     */
+    @Test
+    fun runBlockingExample2(){
+        runBlocking {
+            mySusFunc1()
+            println("block by mySusFunc1")
+            mySusFunc1()
+            println("2nd time block")
+        }
+    }
+
+    @Test
+    fun runBlockingExample(){
+        runBlocking {
+            val j1 = launch(Dispatchers.Default) {
+                val time = measureTimeMillis {
+                    mySusFunc1()
+                }
+                println(time)
+                println("Done j1")
+            }
+            val j2 = launch(Dispatchers.Default) {
+                println("This is not block by the completion of j1")
+            }
+            println("also not blocked by j1, and j2")
+        }
+
+        println("This is blocked by the completion of runBlocking")
+    }
+
+    @Test
+    fun coroutineScopeEggg(){
+        runBlocking {
+            supervisorScope {
+                val j1 = launch(Dispatchers.Default) {
+                    val time = measureTimeMillis {
+                        mySusFunc1()
+                        mySusFunc1()
+                        mySusFunc1()
+                    }
+                    println(time)
+                    println("Done j1")
+                }
+                val j2 = launch(Dispatchers.Default) {
+                    println("This is not block by the completion of j1")
+                }
+                println("also not block by j1, and j2")
+            }
+            println("this is blocked by the completion of coroutineScope")
+        }
     }
 
     val limit = 1000
@@ -33,11 +138,17 @@ class Bench : TestOnJupyter() {
     }
 
     /**
+     * suspending vs blocking:
+     * suspending = blocking a coroutine, but not the underneath thread
+     * blocking = block the underneath thread.
+     *
+     * A normal function is a blocking function. A suspend function only block a coroutine.
+     * =====
      * suspend function and coroutine. I must not mix-up these two concept.
      * Coroutines are a block of code that can be run asynchronously.
      * suspending functions are function that can block/pause/suspend coroutines.
-     *
-     * Most coroutine builders (launch, async) run things in a suspend functions.
+     * =======
+     * Coroutine builders (launch, async) run things in a suspend functions.
      * So when creating a suspend function, I should ask the question: is the logic require waiting.
      *
      * I don't really need to write suspend function in order to use coroutine.
@@ -50,13 +161,13 @@ class Bench : TestOnJupyter() {
      *
      * Since suspending function is for waiting/blocking code. It is best that they are used within coroutine so that they don't block the UI thread.
      * =====
-     *  the point of suspending function is: they can literally block (suspend) coroutines. The rule of suspending function is that they must be called within other suspending function.
+     *  the point of suspending function is: they can literally block (suspend) coroutines . The rule of suspending function is that they must be called within other suspending function.
      *
      *  This is because suspending function use some kind of compiler code generation in the background to generate continuation-passing code.
      *
      *  Why should data, business logic layer expose suspend function to handle waiting logic ?
      *      Answer:
-     *          - I most likely want to run my waiting logic inside coroutine. In order to block the coroutine, I must use suspending function
+     *          - I want to run my waiting logic inside coroutine so that it only block the coroutine and don't block the underneath thread. In order to block the coroutine, I must use suspending function
      *          - So that I don't have to use callback and let my code be written in direct style
      *  ======
      *  Since suspend function only run inside suspend function, and suspend function always start with coroutine, I must only make something suspend function if I plan to use it inside an inherited coroutine.
@@ -64,7 +175,7 @@ class Bench : TestOnJupyter() {
      *  Rule for injected coroutine scope:
      *      - for services: inject coroutine scope as object properties
      *      - for multiple-purpose crap: inject in function parameter. But this is rare. For now this is only used in IOPub listener. This listener is supposed to run both as background services, and one-time object. This is bad, and should not be be exposed to external use.
-     *      TODO write a dedicated service class for this
+     *      - for one-time blocking such as network call or long computation, use inherited coroutine scope
      */
     @Test
     fun suspendingFunction()  {

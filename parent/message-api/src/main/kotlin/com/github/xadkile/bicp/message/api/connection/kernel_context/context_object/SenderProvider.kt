@@ -40,7 +40,6 @@ interface SenderProvider {
     fun ioPubListener(
         defaultHandler: suspend (msg: JPRawMessage) -> Unit,
         parseExceptionHandler: suspend (exception: Exception) -> Unit,
-        parallelHandler: Boolean,
     ): MsgListener
 }
 

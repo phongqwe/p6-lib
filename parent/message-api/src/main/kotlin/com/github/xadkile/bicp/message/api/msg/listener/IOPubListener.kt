@@ -10,17 +10,17 @@ import com.github.xadkile.bicp.message.api.other.Sleeper
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Listen to pub msg from IOPub channel and dispatch msg to appropriate handlers.
  * [defaultHandler] to handle msg type that don't have a specific handler.
  * [parseExceptionHandler] to handle exception of unable to parse zmq message.
  */
-internal class IOPubListener constructor(
+class IOPubListener constructor(
     private val kernelContext: KernelContextReadOnlyConv,
     private val defaultHandler: suspend (msg: JPRawMessage) -> Unit,
     private val parseExceptionHandler: suspend (exception: Exception) -> Unit,
-    private val parallelHandler: Boolean,
     private val handlerContainer: MsgHandlerContainer,
 ) : MsgListener {
 
@@ -28,14 +28,13 @@ internal class IOPubListener constructor(
         kernelContext: KernelContext,
         defaultHandler: suspend (msg: JPRawMessage) -> Unit = { /*do nothing*/ },
         parseExceptionHandler: suspend (exception: Exception) -> Unit = {  /*do nothing*/ },
-        parallelHandler: Boolean = true,
         handlerContainer: MsgHandlerContainer = HandlerContainerImp(),
     ) : this(
-        kernelContext.conv(), defaultHandler, parseExceptionHandler, parallelHandler, handlerContainer
+        kernelContext.conv(), defaultHandler, parseExceptionHandler, handlerContainer
     )
 
     private var job: Job? = null
-    private var serviceLoopRunning = false
+
     /**
      * this will start this listener on a coroutine that runs concurrently.
      */
@@ -44,7 +43,7 @@ internal class IOPubListener constructor(
         dispatcher: CoroutineDispatcher,
     ): Result<Unit, Exception> {
 
-        if(this.isRunning()){
+        if (this.isRunning()) {
             return Ok(Unit)
         }
 
@@ -52,7 +51,7 @@ internal class IOPubListener constructor(
             return Err(KernelIsDownException.occurAt(this))
         }
 
-        val socket:ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
+        val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
         // add default handler
         addHandler(MsgHandlers.withUUID(MsgType.NOT_RECOGNIZE, defaultHandler))
         job = externalScope.launch(dispatcher) {
@@ -60,8 +59,7 @@ internal class IOPubListener constructor(
                 // p: start the service loop
                 // ph: when the kernel is down, this service simply does not do anything. Just hang there.
                 while (isActive) {
-                    serviceLoopRunning = true
-                    if (kernelContext.getConvHeartBeatService().get()?.isHBAlive() ?: false) {
+                    if (kernelContext.getConvHeartBeatService().get()?.isHBAlive() == true) {
                         val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
                         if (msg != null) {
                             val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
@@ -69,7 +67,7 @@ internal class IOPubListener constructor(
                                 is Ok -> {
                                     val rawMsg: JPRawMessage = parseResult.unwrap()
                                     val msgType: MsgType = extractMsgType(rawMsg.identities)
-                                    dispatch(msgType, rawMsg, dispatcher)
+                                    dispatch(msgType, rawMsg, dispatcher, externalScope)
                                 }
                                 else -> {
                                     parseExceptionHandler(parseResult.unwrapError())
@@ -80,7 +78,7 @@ internal class IOPubListener constructor(
                 }
             }
         }
-        Sleeper.waitUntil { this.isRunning()}
+        Sleeper.waitUntil { this.isRunning() }
         return Ok(Unit)
     }
 
@@ -102,28 +100,33 @@ internal class IOPubListener constructor(
         return msgType
     }
 
-    override fun stop() {
-        job?.cancel()
-        this.job = null
-        this.serviceLoopRunning=false
-        Sleeper.waitUntil { (this.job?.isActive ?: false) == false }
+    override suspend fun stop() {
+        if (this.isRunning()) {
+            job?.cancelAndJoin()
+            this.job = null
+        }
     }
 
     override fun isRunning(): Boolean {
-        return this.job?.isActive == true && this.serviceLoopRunning
+        return this.job?.isActive == true
     }
 
-    private suspend fun dispatch(msgType: MsgType, msg: JPRawMessage, dispatcher: CoroutineDispatcher) {
-        if (parallelHandler) {
-            supervisorScope {
-                handlerContainer.getHandlers(msgType).forEach {
-                    launch(dispatcher) { it.handle(msg) }
-                }
-            }
-        } else {
-            handlerContainer.getHandlers(msgType).forEach {
-                it.handle(msg)
-            }
+    /**
+     * if I launch handler in the same scope as the service, they will block the completion of the service scope
+     * The service scope is forever, so it is acceptable. But should it?
+     * Service scope should only bear the burden of the service. notthing more
+     * handler is created by sender. So, it should depend on the sender scope.
+     *
+     */
+    private suspend fun dispatch(
+        msgType: MsgType,
+        msg: JPRawMessage,
+        dispatcher: CoroutineDispatcher,
+        scope: CoroutineScope,
+    ) {
+        handlerContainer.getHandlers(msgType).forEach {
+            scope.launch(dispatcher) { it.handle(msg) }
+//            it.handle(msg)
         }
     }
 

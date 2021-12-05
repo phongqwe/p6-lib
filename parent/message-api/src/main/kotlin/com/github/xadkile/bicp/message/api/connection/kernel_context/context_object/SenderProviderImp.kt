@@ -33,12 +33,10 @@ class SenderProviderImp internal constructor(
     override fun ioPubListener(
         defaultHandler: suspend (msg: JPRawMessage) -> Unit,
         parseExceptionHandler: suspend (exception: Exception) -> Unit,
-        parallelHandler: Boolean,
     ): MsgListener {
         return IOPubListener(kernelContext,
             defaultHandler,
             parseExceptionHandler,
-            parallelHandler,
             HandlerContainerImp())
     }
 }

@@ -1,14 +1,12 @@
 package com.github.xadkile.bicp.message.api.connection.service
 
+import com.github.xadkile.bicp.message.api.other.RunningState
+
 interface Service :ServiceReadOnly{
     fun start()
     fun stop()
 
 }
 
-interface ServiceReadOnly {
-    fun isRunning(): Boolean
-    fun isNotRunning():Boolean{
-        return !this.isRunning()
-    }
-}
+interface ServiceReadOnly : RunningState
+

@@ -21,7 +21,9 @@
         <karaf.version>4.3.2</karaf.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.version>1.5.31</kotlin.version>
+<!--        <kotlin.version>1.6.0</kotlin.version>-->
         <kotlin.coroutine.version>1.5.2</kotlin.coroutine.version>
+<!--        <kotlin.coroutine.version>1.6.0-RC</kotlin.coroutine.version>-->
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <firebase.version>8.0.1</firebase.version>
         <redis.version>3.6.0</redis.version>
