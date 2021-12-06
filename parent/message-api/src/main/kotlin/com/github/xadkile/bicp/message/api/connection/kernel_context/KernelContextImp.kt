@@ -8,6 +8,7 @@ import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBe
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.coroutine.LiveCountHeartBeatServiceCoroutine
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
+import com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent
 //import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceUpdater
 import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.message.api.msg.protocol.other.MsgCounterImp
@@ -32,14 +33,13 @@ class KernelContextImp @Inject internal constructor(
     private val ipythonConfig: KernelConfig,
     private val zcontext: ZContext,
     @ApplicationCScope
-    private val cScope: CoroutineScope,
+    private val appCScope: CoroutineScope,
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : KernelContext {
 
-    private val launchCmd: List<String> = this.ipythonConfig.makeCompleteLaunchCmmd()
+    // x: Context-related objects
     private var process: Process? = null
-    private var connectionFileContent: com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent? =
-        null
+    private var connectionFileContent: KernelConnectionFileContent? = null
     private var connectionFilePath: Path? = null
     private var session: Session? = null
     private var channelProvider: ChannelProvider? = null
@@ -49,12 +49,14 @@ class KernelContextImp @Inject internal constructor(
     private var senderProvider: SenderProvider? = null
     private var socketProvider: SocketProvider? = null
 
+    // x: Context-related services
     private var hbService: HeartBeatService? = null
     private var ioPubService: IOPubListenerService? = null
 
+    // x: events listeners
     private var onBeforeStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
     private var onAfterStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
-    private var onProcessStartListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
+    private var onKernelStartedListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
 
     private val convenientInterface = KernelContextReadOnlyConvImp(this)
 
@@ -62,19 +64,12 @@ class KernelContextImp @Inject internal constructor(
         private val ipythonIsDownErr = KernelIsDownException("IPython process is not running")
     }
 
-    /**
-     * This method guarantee that
-     * - ipython process is up
-     * - connection file is written to disk
-     * - heart beat service is running + zmq is live (heart beat is ok)
-     * TODO pass coroutine scope to here to start services with them.
-     */
     @OptIn(DelicateCoroutinesApi::class)
     override fun startKernel(): Result<Unit, Exception> {
         if (this.isKernelRunning()) {
             return Ok(Unit)
         } else {
-            val processBuilder = ProcessBuilder(launchCmd)
+            val processBuilder = ProcessBuilder(this.ipythonConfig.makeCompleteLaunchCmmd())
             try {
                 this.process = processBuilder.inheritIO().start()
 
@@ -84,9 +79,8 @@ class KernelContextImp @Inject internal constructor(
                 // rmd: read connection file
                 this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
                 Sleeper.threadSleepUntil(50) { Files.exists(this.connectionFilePath!!) }
-
                 this.connectionFileContent =
-                    com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent.fromJsonFile(
+                    KernelConnectionFileContent.fromJsonFile(
                         ipythonConfig.getConnectionFilePath()).unwrap()
 
                 // rmd: create resources, careful with the order of resource initiation,
@@ -97,29 +91,26 @@ class KernelContextImp @Inject internal constructor(
                 this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
                 this.msgCounter = MsgCounterImp()
                 this.msgIdGenerator = RandomMsgIdGenerator()
+                this.senderProvider = SenderProviderImp(this.conv())
 
                 // rmd: start heart beat service
                 this.hbService = LiveCountHeartBeatServiceCoroutine(
                     socketProvider = this.socketProvider!!,
                     zContext = this.zcontext,
-                    cScope = cScope,
+                    cScope = appCScope,
                     cDispatcher = this.networkServiceDispatcher
                 )
 
-                // x: senderProvider depend on heart beat service,
-                // x: so it must be initialized after hb service is created
-                this.senderProvider = SenderProviderImp(this.conv())
-
                 this.ioPubService = IOPubListenerServiceImpl(
                     kernelContext = this,
-                    externalScope = cScope,
+                    externalScope = appCScope,
                     dispatcher = this.networkServiceDispatcher
                 )
 
                 // ph: start services
                 this.startServices()
 
-                this.onProcessStartListener.run(this)
+                this.onKernelStartedListener.run(this)
                 return Ok(Unit)
             } catch (e: Exception) {
                 return Err(e)
@@ -299,30 +290,28 @@ class KernelContextImp @Inject internal constructor(
         return rt
     }
 
-
-
-    override fun setOnBeforeProcessStopListener(listener: OnIPythonContextEvent) {
+    override fun setOnBeforeStopListener(listener: OnIPythonContextEvent) {
         this.onBeforeStopListener = listener
     }
 
-    override fun removeBeforeOnProcessStopListener() {
+    override fun removeBeforeStopListener() {
         this.onBeforeStopListener = OnIPythonContextEvent.Nothing
     }
 
-    override fun setOnAfterProcessStopListener(listener: OnIPythonContextEvent) {
+    override fun setOnAfterStopListener(listener: OnIPythonContextEvent) {
         this.onAfterStopListener = listener
     }
 
-    override fun removeAfterOnProcessStopListener() {
+    override fun removeAfterStopListener() {
         this.onAfterStopListener = OnIPythonContextEvent.Nothing
     }
 
-    override fun setOnStartProcessListener(listener: OnIPythonContextEvent) {
-        this.onProcessStartListener = listener
+    override fun setKernelStartedListener(listener: OnIPythonContextEvent) {
+        this.onKernelStartedListener = listener
     }
 
     override fun removeOnProcessStartListener() {
-        this.onProcessStartListener = OnIPythonContextEvent.Nothing
+        this.onKernelStartedListener = OnIPythonContextEvent.Nothing
     }
 
     override fun getIOPubListenerService(): Result<IOPubListenerService,Exception> {

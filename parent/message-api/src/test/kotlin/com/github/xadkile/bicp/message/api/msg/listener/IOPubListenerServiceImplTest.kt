@@ -118,9 +118,6 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
 
         listener2.start()
 
-        Sleeper.waitUntil { listener1.isRunning() }
-        Sleeper.waitUntil { listener2.isRunning() }
-
         assertTrue(listener1.isRunning(), "listener should be running")
         // rmd: send message
         val limit = 1000
@@ -187,7 +184,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
 
         listener.start()
 
-        Sleeper.waitUntil { listener.isRunning() }
+//        Sleeper.waitUntil { listener.isRunning() }
         // p: send a malformed message that cannot be parse by the listener
         pubSocket.send("malformed", 0)
 
@@ -223,7 +220,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
         }
 
         listener.start()
-        Sleeper.waitUntil { listener.isRunning() }
+//        Sleeper.waitUntil { listener.isRunning() }
         // rmd: send message
 
         kernelContext.getSenderProvider().unwrap().executeRequestSender().also {

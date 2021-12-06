@@ -70,24 +70,24 @@ interface KernelContext : KernelContextReadOnly {
     /**
      * add a listener that is invoked before a legal/normal stopping of a process
      */
-    fun setOnBeforeProcessStopListener(listener: OnIPythonContextEvent)
+    fun setOnBeforeStopListener(listener: OnIPythonContextEvent)
 
     /**
      * remove the legal/normal on-before-process-stop listener
      */
-    fun removeBeforeOnProcessStopListener()
+    fun removeBeforeStopListener()
 
     /**
      * add a listener that is invoked after a legal/normal stopping of a process
      */
-    fun setOnAfterProcessStopListener(listener: OnIPythonContextEvent)
+    fun setOnAfterStopListener(listener: OnIPythonContextEvent)
 
     /**
      * remove the legal/normal on-after-process-stop listener
      */
-    fun removeAfterOnProcessStopListener()
+    fun removeAfterStopListener()
 
-    fun setOnStartProcessListener(listener: OnIPythonContextEvent)
+    fun setKernelStartedListener(listener: OnIPythonContextEvent)
 
     fun removeOnProcessStartListener()
 }

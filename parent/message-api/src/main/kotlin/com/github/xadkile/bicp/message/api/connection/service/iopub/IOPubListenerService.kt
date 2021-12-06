@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.api.connection.service.iopub
 
 import com.github.michaelbull.result.Result
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import com.github.xadkile.bicp.message.api.other.RunningState
 import java.lang.Exception
 
@@ -8,7 +9,7 @@ import java.lang.Exception
  * Listen for in-coming message.
  * Dispatch message to the appropriate handlers.
  */
-sealed interface IOPubListenerService : IOPubListenerServiceReadOnly{
+interface IOPubListenerService : IOPubListenerServiceReadOnly{
 
     /**
      * A listener may outlive the scope in which it is launch, so inject a scope in the start function.
@@ -29,6 +30,12 @@ sealed interface IOPubListenerService : IOPubListenerServiceReadOnly{
     }
 }
 
-sealed interface IOPubListenerServiceReadOnly : MsgHandlerContainer,RunningState{
-
+interface IOPubListenerServiceReadOnly : MsgHandlerContainer,RunningState{
+    fun addDefaultHandler(handler:MsgHandler){
+        if(handler.msgType() == MsgType.DEFAULT){
+            this.addHandler(handler)
+        }else{
+            throw RuntimeException("only used this method to add default handler")
+        }
+    }
 }

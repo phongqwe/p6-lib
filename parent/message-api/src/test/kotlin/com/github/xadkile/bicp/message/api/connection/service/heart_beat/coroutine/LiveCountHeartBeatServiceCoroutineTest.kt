@@ -1,5 +1,6 @@
 package com.github.xadkile.bicp.message.api.connection.service.heart_beat.coroutine
 
+import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import kotlinx.coroutines.*
@@ -16,6 +17,7 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     @BeforeEach
     fun beforeEach() {
         this.kernelContext.startKernel()
+        val sp = this.kernelContext.getSocketProvider()
         hbService = LiveCountHeartBeatServiceCoroutine(
             zcontext,
             this.kernelContext.getSocketProvider().unwrap(),

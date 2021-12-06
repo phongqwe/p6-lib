@@ -52,12 +52,12 @@ class IOPubListenerServiceImpl internal constructor(
         }
 
         val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
-        // add default handler
-        addHandler(MsgHandlers.withUUID(MsgType.NOT_RECOGNIZE, defaultHandler))
+        // x: add default handler
+        this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
         job = externalScope.launch(dispatcher) {
             socket.use {
-                // p: start the service loop
-                // ph: when the kernel is down, this service simply does not do anything. Just hang there.
+                // x: start the service loop
+                // x: when the kernel is down, this service simply does not do anything. Just hang there.
                 while (isActive) {
                     if (kernelContext.getConvHeartBeatService().get()?.isHBAlive() == true) {
                         val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
@@ -78,7 +78,7 @@ class IOPubListenerServiceImpl internal constructor(
                 }
             }
         }
-        Sleeper.waitUntil { this.isRunning() }
+        Sleeper.threadSleepUntil(10){this.isRunning()}
         return Ok(Unit)
     }
 
@@ -94,7 +94,7 @@ class IOPubListenerServiceImpl internal constructor(
             // TODO add more msg type here
 
             else -> {
-                MsgType.NOT_RECOGNIZE
+                MsgType.DEFAULT
             }
         }
         return msgType

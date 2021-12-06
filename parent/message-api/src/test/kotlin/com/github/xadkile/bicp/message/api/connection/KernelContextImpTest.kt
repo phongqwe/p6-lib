@@ -40,17 +40,17 @@ internal class KernelContextImpTest {
     @Test
     fun testStartAndStopListeners(){
         var start = false
-        pm.setOnStartProcessListener {
+        pm.setKernelStartedListener {
             start = true
         }
         pm.startKernel()
         assertTrue(start)
         var afterStop = false
         var beforeStop = false
-        pm.setOnAfterProcessStopListener {
+        pm.setOnAfterStopListener {
             afterStop = true
         }
-        pm.setOnBeforeProcessStopListener{
+        pm.setOnBeforeStopListener{
             beforeStop = true
         }
         runBlocking {

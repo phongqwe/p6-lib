@@ -9,17 +9,6 @@ object Sleeper {
             Thread.sleep(waitTime)
         }
     }
-
-    /**
-     * continuous waiting until [isTrue] return true
-     */
-    fun waitUntil(isTrue: () -> Boolean){
-        while(isTrue().not()){}
-    }
-
-    fun waitAsLongAs(isTrue: () -> Boolean){
-        while(isTrue()){}
-    }
 }
 
 

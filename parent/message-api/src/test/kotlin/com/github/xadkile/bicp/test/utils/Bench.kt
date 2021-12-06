@@ -42,10 +42,6 @@ class S2 {
                 x++
             }
         }
-        Sleeper.waitUntil {
-            val k = this.isRunning()
-            k
-        }
         return true
     }
 

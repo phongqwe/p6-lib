@@ -84,9 +84,9 @@ enum class MsgType {
     },
 
 
-    NOT_RECOGNIZE {
+    DEFAULT {
         override fun text(): String {
-            return "NOT_RECOGNIZE"
+            return "DEFAULT"
         }
     }
 
