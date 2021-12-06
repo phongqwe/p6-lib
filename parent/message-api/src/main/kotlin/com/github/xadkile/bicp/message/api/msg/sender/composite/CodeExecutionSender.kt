@@ -61,8 +61,8 @@ class CodeExecutionSender internal constructor(
         }
 
         val ioPubListenerService: IOPubListenerServiceReadOnly = hasIoPubService.unwrap()
-        val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> =
-            hasSenderProvider.unwrap().executeRequestSender()
+        val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> = hasSenderProvider.unwrap().executeRequestSender()
+
         if (ioPubListenerService.isNotRunning()) {
             return Err(IOPubListenerNotRunningException.occurAt(this))
         }
@@ -70,7 +70,7 @@ class CodeExecutionSender internal constructor(
         var rt: Result<ExecuteResult, Exception>? = null
         var state = SendingState.Start
         val handlers: List<MsgHandler> = listOf(
-            // ph: config listener - catch execute_result message
+            // x: config listener - catch execute_result message
             IOPub.ExecuteResult.handler { msg ->
                 val receivedMsg: ExecuteResult = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
@@ -78,7 +78,7 @@ class CodeExecutionSender internal constructor(
                     state = state.transit(rt, kernelContext)
                 }
             },
-            // ph: execution err handler
+            // x: execution err handler
             IOPub.ExecuteError.handler { msg ->
                 val receivedMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
@@ -87,9 +87,10 @@ class CodeExecutionSender internal constructor(
                 }
             }
         )
+        // x: add temp handlers to catch the result
         ioPubListenerService.addHandlers(handlers)
 
-        // ph: sending the computing request
+        // x: sending the computing request
         withContext(dispatcher) {
             val sendStatus = executeSender.send(message, dispatcher)
             if (sendStatus is Ok) {
@@ -109,6 +110,7 @@ class CodeExecutionSender internal constructor(
             state = state.transit(rt, kernelContext)
         }
 
+        // x: remove temp handlers from the listener to prevent bug
         ioPubListenerService.removeHandlers(handlers)
 
         if (state == SendingState.Done) {
