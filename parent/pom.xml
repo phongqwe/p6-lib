@@ -13,6 +13,7 @@
 
     <modules>
         <module>message-api</module>
+        <module>file-operation</module>
     </modules>
 
     <properties>

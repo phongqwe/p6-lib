@@ -1,4 +1,6 @@
 message-api:
+  description:
+    contains code to communicate with zmq of ipython
   Principle design:
     IPython context:
       - IPython context handle and manage connections to IPython instances.
@@ -10,6 +12,11 @@ message-api:
           - message sender provider
           - message encoder
           - message id generator
+          - services:
+              - heart beat service:
+                  - ping heart beat channel and receive liveness signal from heart beat channel
+              - iopub listener service:
+                  - listen to publication from iopub channel
     Objects provided by the context must NOT be directly created manually
     Services and system events:
       - Service should only work in ideal condition. They can handle certain edge cases that are within their power, but MUST NOT handle cases related to system events (such as kernel interruption). They must be designed in away so that they are capable of react to system events, but the trigger of such reaction is done externally, in classes that are responsible for handling system-level events.
@@ -26,14 +33,15 @@ message-api:
     Service and coroutine:
       inherited coroutine vs injected coroutine:
         - pick injected coroutine
-        - services by their nature, run in their own forever loop. If I use inheritted coroutine scope, I have to run something like this:
+        - services by their nature, run in their own forever loop. If I use inheritted coroutine scope, I may start then this way:
             coroutineScope{
                 launch(Dispatchers.Default){ service.start() }
             }
-            Because the service run forever, the job containning it will not return, and this prevent coroutineScope from returns.
-
-
+            Because the service run forever, the job containning it will not return, and this prevent coroutineScope from returns and hang the entire app.
+            Therefore, for services that run forever, I have only one approach: injected coroutine scope
   Exceptions propagating, handling:
     - Exceptions should be returned as Result<> object instead of throwing directly.
     - Each type of error should be represent by a unique class of Exception. This choice allows any kind of class of Exception containing any type of data in any structured be returned to exception handlers.
     - It must be defined clearly which layers will handle exceptions. Layers that emmit exception but does not handle them must pass them on in the form of Result<> object.
+    - There are rare cases when directly throwing an exception is justifiable: these are when the exception are not recoverable, are impossible, and the programmers must prevent these exception from happening at all cost. These are exception caused by mis-using classes. So far, there's only one case (adding handler for MsgType.DEFAULT type in MsgHandlerContainer). No code is needed to catch these exception. Just make sure they don't happend.
+

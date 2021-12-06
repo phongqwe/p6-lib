@@ -140,6 +140,7 @@ class KernelContextImp @Inject internal constructor(
                 this.process = null
                 this.onAfterStopListener.run(this)
             }
+            stopServices()
             destroyResource()
             this.onAfterStopListener.run(this)
             return Ok(Unit)
@@ -156,7 +157,14 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    private suspend fun destroyResource() {
+    private suspend fun stopServices(){
+        this.hbService?.stop()
+        this.hbService = null
+        this.ioPubService?.stop()
+        this.ioPubService=null
+    }
+
+    private fun destroyResource() {
         val cpath = this.connectionFilePath
 
         if (cpath != null) {
@@ -175,13 +183,13 @@ class KernelContextImp @Inject internal constructor(
         this.msgCounter = null
         this.senderProvider = null
         // x: stop hb service
-        this.hbService?.stop()
-        this.hbService = null
+//        this.hbService?.stop()
+//        this.hbService = null
         this.socketProvider = null
 
         // x: stop iopub service
-        this.ioPubService?.stop()
-        this.ioPubService=null
+//        this.ioPubService?.stop()
+//        this.ioPubService=null
     }
 
     override fun getIPythonProcess(): Result<Process, Exception> {
