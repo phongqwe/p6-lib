@@ -1,6 +1,8 @@
 package com.github.xadkile.bicp.message.api.connection.service.iopub.exception
 
-import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
+import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
+import com.github.xadkile.bicp.message.api.exception.ExceptionWithInfo
 
-class ExecutionErrException(val content: IOPub.ExecuteError.Content) : Exception(content.toString()) {
+
+class ExecutionErrException(exceptionInfo: ExceptionInfo) : ExceptionWithInfo(exceptionInfo) {
 }

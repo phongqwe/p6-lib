@@ -8,6 +8,7 @@ import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListene
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.ExecutionErrException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandler
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
+import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgStatus
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
@@ -61,7 +62,8 @@ class CodeExecutionSender internal constructor(
         }
 
         val ioPubListenerService: IOPubListenerServiceReadOnly = hasIoPubService.unwrap()
-        val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> = hasSenderProvider.unwrap().executeRequestSender()
+        val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> =
+            hasSenderProvider.unwrap().executeRequestSender()
 
         if (ioPubListenerService.isNotRunning()) {
             return Err(IOPubListenerNotRunningException.occurAt(this))
@@ -82,7 +84,14 @@ class CodeExecutionSender internal constructor(
             IOPub.ExecuteError.handler { msg ->
                 val receivedMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
-                    rt = Err(ExecutionErrException(receivedMsg.content))
+//                    rt = Err(ExecutionErrException(receivedMsg.content))
+//                    rt = Err(ExecutionErrException(ExceptionInfo.occurAt(this).withData(receivedMsg.content)))
+                    rt = Err(ExceptionInfo
+                        .occurAt(this)
+                        .withData(receivedMsg.content)
+                        .toException<ExecutionErrException>())
+
+
                     state = state.transit(rt, kernelContext)
                 }
             }

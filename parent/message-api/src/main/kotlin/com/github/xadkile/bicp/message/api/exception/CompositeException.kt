@@ -1,8 +1,7 @@
 package com.github.xadkile.bicp.message.api.exception
 
-class CompositeException(val exceptions:List<Exception>) : Exception() {
-    constructor(vararg exceptions: Exception):this(exceptions.toList())
-    override fun toString(): String {
-        return this.exceptions.joinToString("\n") { it.toString() }
-    }
+class CompositeException(exceptionInfo: ExceptionInfo) : ExceptionWithInfo(exceptionInfo) {
+    constructor(exceptions: List<Exception>) : this(ExceptionInfo("", "", exceptions, dataStrMaker = {
+        exceptions.joinToString("\n") { it.toString() }
+    }))
 }

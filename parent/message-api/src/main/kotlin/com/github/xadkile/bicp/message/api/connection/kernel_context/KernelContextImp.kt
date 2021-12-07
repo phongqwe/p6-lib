@@ -113,6 +113,7 @@ class KernelContextImp @Inject internal constructor(
                 this.onKernelStartedListener.run(this)
                 return Ok(Unit)
             } catch (e: Exception) {
+                // TODO cleanup if kernel fail to start. Rewind all the previous action
                 return Err(e)
             }
         }

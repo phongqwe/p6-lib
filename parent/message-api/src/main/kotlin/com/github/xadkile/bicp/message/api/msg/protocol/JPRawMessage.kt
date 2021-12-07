@@ -3,6 +3,7 @@ package com.github.xadkile.bicp.message.api.msg.protocol
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
+import com.github.xadkile.bicp.message.api.msg.protocol.exception.InvalidPayloadSizeException
 import com.github.xadkile.bicp.message.api.other.HmacMaker
 import com.google.gson.GsonBuilder
 
