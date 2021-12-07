@@ -5,7 +5,7 @@ package com.github.xadkile.bicp.message.api.exception
  * An exception in which I can specify the location it occurs and the message
  */
 data class ExceptionInfo<D>(
-    val message: String = "",
+    val msg: String = "",
     val loc: String = "",
     val data: D,
     val dataStrMaker: () -> String = { data?.toString() ?: "" },
@@ -17,27 +17,26 @@ data class ExceptionInfo<D>(
         data: D,
         dataStrMaker: () -> String = { data?.toString() ?: "" },
     ) : this(
-        msg, loc::class.java.simpleName, data, dataStrMaker
+        msg, loc::class.java.canonicalName, data, dataStrMaker
     )
 
     override fun toString(): String {
         val dataStr = dataStrMaker()
         return """
-           ${this::class.java.simpleName}:
-                ${if (loc.isNotEmpty()) "* at ${loc}" else ""}
-                ${if (message.isNotEmpty()) "* msg: $message" else ""}
-                ${if (dataStr.isNotEmpty()) "* data: $dataStr" else ""}
+        ${if (msg.isNotEmpty()) "* msg: $msg" else ""}
+        ${if (loc.isNotEmpty()) "* at: ${loc}" else ""}
+        ${if (dataStr.isNotEmpty()) "* data: $dataStr" else ""}
         """
     }
 
     fun occurAt(o: Any): ExceptionInfo<D> {
         return this.copy(
-            loc = o::class.java.simpleName
+            loc = o::class.java.canonicalName
         )
     }
 
     fun withMsg(msg: String): ExceptionInfo<D> {
-        return this.copy(message = msg)
+        return this.copy(msg = msg)
     }
 
     fun withData(data: D): ExceptionInfo<D> {

@@ -21,9 +21,9 @@ class DITest {
 
             val context = component.ipythonContext()
 
-            context.startKernel()
+            context.startAll()
             assertTrue(context.getChannelProvider() is Ok)
-            context.stopKernel()
+            context.stopAll()
         }
     }
 }

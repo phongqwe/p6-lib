@@ -126,7 +126,11 @@ class CodeExecutionSender internal constructor(
             if (rt != null) {
                 return rt!!
             } else {
-                return Err(KernelIsDownException("Kernel is killed before result is returned"))
+                return Err(KernelIsDownException(ExceptionInfo(
+                    msg = "Kernel is killed before result is returned",
+                    loc = this,
+                    data = Unit
+                )))
             }
         } else {
             return Err(UnknownException.occurAt(this))

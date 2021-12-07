@@ -11,7 +11,6 @@ import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
-import com.github.xadkile.bicp.message.api.other.Sleeper
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import io.mockk.every
 import io.mockk.mockk
@@ -64,7 +63,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     @AfterEach
     fun ae() {
         runBlocking{
-            kernelContext.stopKernel()
+            kernelContext.stopAll()
         }
     }
 
@@ -74,7 +73,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     @Test
     fun completenessTest_MultiListeners() = runBlocking {
 
-        kernelContext.startKernel()
+        kernelContext.startAll()
 
         val handlerWasTriggered = AtomicInteger(0)
         val handlerWasTriggered2 = AtomicInteger(0)
@@ -200,7 +199,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     @Test
     fun testTriggeringDefaultHandler() = runBlocking {
 
-        kernelContext.startKernel()
+        kernelContext.startAll()
         var defaultHandlerTriggeredCount = 0
         var handlerTriggeredCount = 0
         val listener = IOPubListenerServiceImpl(
@@ -235,7 +234,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     fun fullLifeCycle() {
         runBlocking {
 
-            kernelContext.startKernel()
+            kernelContext.startAll()
 
             val handlerWasTriggered = AtomicInteger(0)
             // rmd: setup listener, handler

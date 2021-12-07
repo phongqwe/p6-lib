@@ -25,14 +25,14 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
     @AfterEach
     fun ae() {
         runBlocking {
-            kernelContext.stopKernel()
+            kernelContext.stopAll()
         }
     }
 
     @Test
     fun errMsg() {
         runBlocking {
-            kernelContext.startKernel()
+            kernelContext.startAll()
             val errMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
@@ -89,7 +89,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 ),
                 "msg_id_abc_123"
             )
-            kernelContext.startKernel()
+            kernelContext.startAll()
 
             var handlerWasTriggered = 0
 

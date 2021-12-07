@@ -1,10 +1,8 @@
 package com.github.xadkile.bicp.message.api.connection.service.heart_beat.coroutine
 
-import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -13,47 +11,54 @@ import org.junit.jupiter.api.Assertions.assertTrue
 internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     lateinit var hbService: LiveCountHeartBeatServiceCoroutine
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @BeforeEach
     fun beforeEach() {
-        this.kernelContext.startKernel()
-        val sp = this.kernelContext.getSocketProvider()
+        runBlocking {
+            kernelContext.startKernel()
+        }
         hbService = LiveCountHeartBeatServiceCoroutine(
             zcontext,
-            this.kernelContext.getSocketProvider().unwrap(),
-            3,
-            1000,
-            TestCoroutineScope(),
-            mainThreadSurrogate
+            kernelContext.getSocketProvider().unwrap(),
+            liveCount = 3,
+            pollTimeout = 1000,
+            startTimeOut = 5000,
+            cScope = GlobalScope,
+            cDispatcher = Dispatchers.IO
         )
     }
 
-    @AfterEach
-    fun afterEach() {
-        hbService.stop()
-        runBlocking {
-            kernelContext.stopKernel()
+        @AfterEach
+        fun afterEach() {
+            runBlocking {
+                hbService.stop()
+                kernelContext.stopAll()
+            }
+        }
+
+        @Test
+        fun start() {
+            runBlocking {
+                hbService.start()
+                assertTrue(hbService.isServiceRunning())
+            }
+        }
+
+        @Test
+        fun isAlive() = runBlocking {
+            kernelContext.startAll()
+            hbService.start()
+            Thread.sleep(1000)
+            assertTrue(hbService.isHBAlive())
+        }
+
+        @Test
+        fun stop() {
+            runBlocking {
+                hbService.start()
+                delay(1000)
+                hbService.stop()
+                assertFalse(hbService.isServiceRunning())
+            }
         }
     }
 
-    @Test
-    fun start() {
-        hbService.start()
-        assertTrue(hbService.isServiceRunning())
-    }
-
-    @Test
-    fun isAlive() {
-        this.kernelContext.startKernel()
-        hbService.start()
-        Thread.sleep(1000)
-        assertTrue(hbService.isHBAlive())
-    }
-
-    @Test
-    fun stop() {
-        hbService.start()
-        hbService.stop()
-        assertFalse(hbService.isServiceRunning())
-    }
-}

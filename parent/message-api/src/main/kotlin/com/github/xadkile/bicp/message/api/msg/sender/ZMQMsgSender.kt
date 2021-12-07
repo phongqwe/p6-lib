@@ -7,6 +7,7 @@ import com.github.michaelbull.result.andThen
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.MsgEncoder
+import com.github.xadkile.bicp.message.api.connection.service.heart_beat.exception.HBServiceNotRunningException
 import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
@@ -69,8 +70,8 @@ internal class ZMQMsgSender {
                 if (queueOk) {
                     poller.poll(interval)
                     if (poller.pollin(0)) {
-                        return Ok(ZMsg.recvMsg(socket,ZMQ.DONTWAIT))
-                    }else{
+                        return Ok(ZMsg.recvMsg(socket, ZMQ.DONTWAIT))
+                    } else {
                         return Err(ZMQMsgTimeOutException())
                     }
                 } else {
@@ -80,7 +81,11 @@ internal class ZMQMsgSender {
                     )))
                 }
             } else {
-                return Err(HeartBeatService.NotRunningException())
+                return Err(HBServiceNotRunningException(ExceptionInfo(
+                    msg = "ZMQMsgSender can't send msg because hb service is not running",
+                    loc = this,
+                    data = Unit
+                )))
             }
         }
     }

@@ -1,9 +1,13 @@
 package com.github.xadkile.bicp.message.api.connection.service.heart_beat.coroutine
 
-import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceConvImp
 import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.SocketProvider
+import com.github.xadkile.bicp.message.api.connection.service.heart_beat.exception.CantStartHBServiceException
+import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
+import com.github.xadkile.bicp.message.api.exception.TimeOutException
+import com.github.xadkile.bicp.message.api.other.Sleeper
 import kotlinx.coroutines.*
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -20,6 +24,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
     private val socketProvider: SocketProvider,
     liveCount: Int = 3,
     pollTimeout: Long = 1000,
+    val startTimeOut:Long = 5000,
     cScope: CoroutineScope,
     cDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : AbstractLiveCountHeartBeatServiceCoroutine(zContext, liveCount, pollTimeout, cScope, cDispatcher) {
@@ -29,33 +34,61 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
     /**
      * init resources and start service thread
      */
-    override fun start(): Boolean {
-        if (!this.isServiceRunning()) {
-            this.job = cScope.launch(cDispatcher) {
-                val socket = socketProvider.heartBeatSocket()
-                socket.use { sk->
-                    val poller = zContext.createPoller(1)
-                    poller.register(sk, ZMQ.Poller.POLLIN)
-                    poller.use {
-                        while (isActive) {
-                            val isAlive: Boolean = check(poller, sk) is Ok
-                            if (isAlive) {
-                                currentLives = liveCount
-                            } else {
-                                // rmd: only reduce life if there are lives left to prevent underflow of int
-                                if (currentLives > 0) {
-                                    currentLives -= 1
-                                }
+    override suspend fun start(): Result<Unit, Exception> {
+        if (this.isServiceRunning()) {
+            return Ok(Unit)
+        }
+        this.job = cScope.launch(cDispatcher) {
+            val socket = socketProvider.heartBeatSocket()
+            socket.use { sk ->
+                val poller = zContext.createPoller(1)
+                poller.register(sk, ZMQ.Poller.POLLIN)
+                poller.use {
+                    while (isActive) {
+                        val isAlive: Boolean = check(poller, sk) is Ok
+                        if (isAlive) {
+                            currentLives = liveCount
+                        } else {
+                            // rmd: only reduce life if there are lives left to prevent underflow of int
+                            if (currentLives > 0) {
+                                currentLives -= 1
                             }
                         }
                     }
                 }
             }
         }
-        return true
+        val rt = this.waitToLive()
+        return rt
     }
 
     override fun conv(): HeartBeatServiceConv {
         return this.convService
+    }
+
+    private suspend fun waitToLive():Result<Unit, Exception>{
+        val waitRs = Sleeper.delayUntil(50,startTimeOut){this.isRunning()}
+        val rt = waitRs.mapError {
+            CantStartHBServiceException(ExceptionInfo(
+                msg ="Time out when trying to start heart beat service",
+                loc = this,
+                data = "timeout"
+            ))
+        }
+
+        if(rt is Err){
+            return rt
+        }
+
+        val waitRs2 = Sleeper.delayUntil(50,startTimeOut){this.isHBAlive()}
+
+        val rt2 = waitRs2.mapError {
+            CantStartHBServiceException(ExceptionInfo(
+                msg ="Time out when waiting for HB to come live",
+                loc = this,
+                data = "timeout"
+            ))
+        }
+        return rt2
     }
 }

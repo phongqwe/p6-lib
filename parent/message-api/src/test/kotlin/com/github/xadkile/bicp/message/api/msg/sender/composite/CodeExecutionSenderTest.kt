@@ -1,7 +1,6 @@
 package com.github.xadkile.bicp.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContext
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.SenderProvider
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
@@ -13,7 +12,6 @@ import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToSendMsgException
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
-import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteSender
 import com.github.xadkile.bicp.test.utils.TestOnJupyter
 import io.mockk.every
 import io.mockk.mockk
@@ -37,13 +35,13 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     fun ae() {
         runBlocking {
             ioPubService.stop()
-            kernelContext.stopKernel()
+            kernelContext.stopAll()
         }
     }
 
     @BeforeEach
-    fun beforeEach() {
-        kernelContext.startKernel()
+    fun beforeEach() =runBlocking{
+        kernelContext.startAll()
         ioPubService = IOPubListenerServiceImpl(
                 kernelContext = kernelContext.conv(),
                 defaultHandler = { msg ->
@@ -139,7 +137,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun send_fail() {
         runBlocking {
-            kernelContext.startKernel()
+            kernelContext.startAll()
 
             // ph: mockk is horribly slow here
             val mockSender = object : MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> {
@@ -168,7 +166,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
 
     @Test
     fun send_kernelNotRunning() = runBlocking {
-        kernelContext.stopKernel()
+        kernelContext.stopAll()
         val sender = CodeExecutionSender(kernelContext.conv())
         val o = sender.send(message)
         kotlin.test.assertTrue(o is Err)
@@ -177,7 +175,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
 
     @Test
     fun send_listenerServiceIsDown() = runBlocking {
-        kernelContext.startKernel()
+        kernelContext.startAll()
         val mockListener = mockk<IOPubListenerServiceImpl>().also {
             every { it.isRunning() } returns false
             every { it.isNotRunning() } returns true

@@ -15,7 +15,7 @@ import org.zeromq.ZMQ
 internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
     protected val zContext: ZContext,
     protected val liveCount: Int = 3,
-    protected val pollTimeOut: Long = 1000,
+    private val pollTimeOut: Long = 1000,
     protected val cScope: CoroutineScope,
     protected val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : HeartBeatService {
@@ -54,7 +54,7 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
                 if(output != null){
                     return Ok(Unit)
                 }else{
-                    return Err(UnknownException("output of heartbeat channel is null"))
+                    return Err(UnknownException("output of heartbeat zmq channel is null"))
                 }
             } else {
                 return Err(UnknownException("impossible heart beat poller result: more than 1 "))
@@ -67,13 +67,11 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
     /**
      * Stop the service thread and cleaning up resources.
      */
-    override fun stop(): Boolean {
+    override suspend fun stop(): Result<Unit,Exception> {
         // rmd: runBlocking so that all the suspending functions are completed before returning,
         // rmd: guaranteeing that this service is completely stopped when this function returns.
-        runBlocking {
-            job?.cancelAndJoin()
-        }
+        job?.cancelAndJoin()
         this.job = null
-        return true
+        return Ok(Unit)
     }
 }

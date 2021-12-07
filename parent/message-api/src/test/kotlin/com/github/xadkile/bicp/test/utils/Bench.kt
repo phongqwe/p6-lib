@@ -57,7 +57,10 @@ class S2 {
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
 
-
+    @Test
+    fun bench(){
+        println(this::class.java.simpleName)
+    }
     suspend fun fs() {
         withContext(Dispatchers.Default) {
             var x = 0

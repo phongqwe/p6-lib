@@ -3,6 +3,8 @@ package com.github.xadkile.bicp.message.api.connection.service.iopub
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
+import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.CantStartIOPubServiceException
+import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
@@ -41,7 +43,7 @@ class IOPubListenerServiceImpl internal constructor(
     /**
      * this will start this listener on a coroutine that runs concurrently.
      */
-    override fun start(): Result<Unit, Exception> {
+    override suspend fun start(): Result<Unit, Exception> {
 
         if (this.isRunning()) {
             return Ok(Unit)
@@ -78,8 +80,15 @@ class IOPubListenerServiceImpl internal constructor(
                 }
             }
         }
-        Sleeper.threadSleepUntil(10){this.isRunning()}
-        return Ok(Unit)
+        val waitRs = Sleeper.delayUntil(10,50){this.isRunning()}
+        val rt = waitRs.mapError {
+            CantStartIOPubServiceException(ExceptionInfo(
+                msg ="Time out when trying to start IOPub service",
+                loc = this,
+                data = "timeout"
+            ))
+        }
+        return rt
     }
 
     private fun extractMsgType(msgIdentity: String): MsgType {
@@ -100,11 +109,12 @@ class IOPubListenerServiceImpl internal constructor(
         return msgType
     }
 
-    override suspend fun stop() {
+    override suspend fun stop():Result<Unit,Exception> {
         if (this.isRunning()) {
             job?.cancelAndJoin()
             this.job = null
         }
+        return Ok(Unit)
     }
 
     override fun isRunning(): Boolean {

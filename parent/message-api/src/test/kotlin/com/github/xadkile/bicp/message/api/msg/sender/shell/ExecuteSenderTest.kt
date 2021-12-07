@@ -19,7 +19,9 @@ internal class ExecuteSenderTest : TestOnJupyter() {
 
     @BeforeEach
     fun beforeEach() {
-        this.kernelContext.startKernel()
+        runBlocking {
+            kernelContext.startAll()
+        }
     }
 
     val message: ExecuteRequest = ExecuteRequest.autoCreate(
@@ -77,7 +79,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
                 kernelContext.conv()
             )
 
-            val out = sender2.send(malformedCodeMsg,Dispatchers.Default)
+            val out = sender2.send(malformedCodeMsg, Dispatchers.Default)
 
             assertTrue { out is Ok }
             assertEquals(MsgStatus.error, out.unwrap().content.status)
@@ -93,7 +95,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     fun send_fail() {
         runBlocking {
             val sender2 = ExecuteSender(kernelContext.conv())
-            kernelContext.stopKernel()
+            kernelContext.stopAll()
             val out = sender2.send(message, Dispatchers.Default)
             assertTrue(out is Err, out.toString())
             println(out)

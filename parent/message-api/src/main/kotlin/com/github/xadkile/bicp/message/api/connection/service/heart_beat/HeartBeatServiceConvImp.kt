@@ -3,7 +3,7 @@ package com.github.xadkile.bicp.message.api.connection.service.heart_beat
 import com.github.michaelbull.result.Result
 
 class HeartBeatServiceConvImp(private val service: HeartBeatService): HeartBeatServiceConv {
-    override fun start(): Boolean {
+    override suspend fun start(): Result<Unit,Exception> {
         return this.service.start()
     }
 
@@ -15,11 +15,7 @@ class HeartBeatServiceConvImp(private val service: HeartBeatService): HeartBeatS
         return this.service.isServiceRunning()
     }
 
-//    override fun checkHB(): Result<Unit, Exception> {
-//        return this.service.checkHB()
-//    }
-
-    override fun stop(): Boolean {
+    override suspend fun stop(): Result<Unit,Exception> {
         return this.service.stop()
     }
 

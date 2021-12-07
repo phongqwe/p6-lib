@@ -31,7 +31,7 @@ abstract class TestOnJupyter {
     @AfterAll
     open fun afterAll(){
         runBlocking {
-            kernelContext.stopKernel()
+            kernelContext.stopAll()
         }
         Dispatchers.resetMain()
         mainThreadSurrogate.close()

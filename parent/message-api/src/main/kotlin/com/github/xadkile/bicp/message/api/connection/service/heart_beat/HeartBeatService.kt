@@ -1,14 +1,12 @@
 package com.github.xadkile.bicp.message.api.connection.service.heart_beat
 
+import com.github.michaelbull.result.Result
+import com.github.xadkile.bicp.message.api.connection.service.Service
+
 /**
  * A perpetual background service that check the heart beat channel periodically.
  */
-interface HeartBeatService {
-    /**
-     * start this service.
-     * Calling start() on an already started service should do no harm.
-     */
-    fun start():Boolean
+interface HeartBeatService: Service {
 
     /**
      * return the latest liveness status of the heart beat channel
@@ -23,15 +21,13 @@ interface HeartBeatService {
     fun isServiceRunning():Boolean
 
     /**
-     * stop this service.
-     * Calling stop() on an already stopped service should do no harm.
-     */
-    fun stop():Boolean
-
-    /**
      * convert this to a more convenient but more dangerous interface. Use with care and thought
      */
     fun conv(): HeartBeatServiceConv
+
+    override fun isRunning(): Boolean {
+        return isServiceRunning()
+    }
 
     class NotRunningException(override val message:String=""):RuntimeException(message)
     class ZMQIsDeadException(override val message:String=""):Exception(message)

@@ -9,7 +9,7 @@ class UnknownException(val exceptionInfo:ExceptionInfo<*>) : Exception(exception
     }
 
     constructor(msg:String):this(ExceptionInfo(
-        message=msg,
+        msg=msg,
         loc="",
         data =null
     ))

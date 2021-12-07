@@ -2,12 +2,15 @@ package com.github.xadkile.bicp.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.*
-import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelContextIllegalStateException
-import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
+import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.*
+import com.github.xadkile.bicp.message.api.connection.service.Service
+import com.github.xadkile.bicp.message.api.connection.service.exception.ServiceNullException
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.coroutine.LiveCountHeartBeatServiceCoroutine
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
+import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
+import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent
 //import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceUpdater
 import com.github.xadkile.bicp.message.api.other.Sleeper
@@ -54,100 +57,147 @@ class KernelContextImp @Inject internal constructor(
     private var ioPubService: IOPubListenerService? = null
 
     // x: events listeners
-    private var onBeforeStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
-    private var onAfterStopListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
-    private var onKernelStartedListener: OnIPythonContextEvent = OnIPythonContextEvent.Nothing
+    private var onBeforeStopListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
+    private var onAfterStopListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
+    private var onKernelStartedListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
 
     private val convenientInterface = KernelContextReadOnlyConvImp(this)
 
+    private val timeOut = KernelTimeOut(5000, 5000, 5000)
+
     companion object {
-        private val ipythonIsDownErr = KernelIsDownException("IPython process is not running")
+        private val ipythonIsDownErr = KernelIsDownException.occurAt(this)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    override fun startKernel(): Result<Unit, Exception> {
+    override suspend fun startAll(): Result<Unit, Exception> {
+        val kernelRS: Result<Unit, Exception> = this.startKernel()
+        if (kernelRS is Ok) {
+            val serviceRs: Result<Unit, Exception> = this.startServices()
+            return serviceRs
+        } else {
+            return kernelRS
+        }
+    }
+
+    override suspend fun startKernel(): Result<Unit, Exception> {
         if (this.isKernelRunning()) {
             return Ok(Unit)
         } else {
-            val processBuilder = ProcessBuilder(this.ipythonConfig.makeCompleteLaunchCmmd())
-            try {
-                this.process = processBuilder.inheritIO().start()
 
-                // rmd: wait for process to come live
-                Sleeper.threadSleepUntil(50) { this.process?.isAlive == true }
-
-                // rmd: read connection file
-                this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
-                Sleeper.threadSleepUntil(50) { Files.exists(this.connectionFilePath!!) }
-                this.connectionFileContent =
-                    KernelConnectionFileContent.fromJsonFile(
-                        ipythonConfig.getConnectionFilePath()).unwrap()
-
-                // rmd: create resources, careful with the order of resource initiation,
-                // some must be initialized first
-                this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
-                this.socketProvider = SocketProviderImp(this.channelProvider!!, this.zcontext)
-                this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
-                this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
-                this.msgCounter = MsgCounterImp()
-                this.msgIdGenerator = RandomMsgIdGenerator()
-                this.senderProvider = SenderProviderImp(this.conv())
-
-                // rmd: start heart beat service
-                this.hbService = LiveCountHeartBeatServiceCoroutine(
-                    socketProvider = this.socketProvider!!,
-                    zContext = this.zcontext,
-                    cScope = appCScope,
-                    cDispatcher = this.networkServiceDispatcher
-                )
-
-                this.ioPubService = IOPubListenerServiceImpl(
-                    kernelContext = this,
-                    externalScope = appCScope,
-                    dispatcher = this.networkServiceDispatcher
-                )
-
-                // ph: start services
-                this.startServices()
-
-                this.onKernelStartedListener.run(this)
-                return Ok(Unit)
-            } catch (e: Exception) {
-                // TODO cleanup if kernel fail to start. Rewind all the previous action
-                return Err(e)
+            val skrs = this.startKernelProcess()
+            if (skrs is Err) {
+                return Err(skrs.unwrapError())
+            } else {
+                this.process = skrs.unwrap()
             }
-        }
-    }
 
-    private fun startServices(){
-        this.hbService!!.start()
-        this.ioPubService!!.start()
+            this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
+            // x: wait for connection file to be written to disk by the kernel
+            val waitInitProcessRs: Result<Unit, Exception> =
+                Sleeper.delayUntil(50, timeOut.connectionFileWriteTimeout) { Files.exists(this.connectionFilePath!!) }
 
-        // rmd: wait until heart beat service is live
-        Sleeper.threadSleepUntil(50) { this.hbService?.isServiceRunning() == true }
-        Sleeper.threadSleepUntil(50) { this.hbService?.isHBAlive() == true }
-    }
+            if (waitInitProcessRs is Err) {
+                return Err(CantWriteConnectionFile(ExceptionInfo(
+                    msg = "Can't write connection file to disk",
+                    loc = this,
+                    data = this.connectionFilePath.toString()
+                )))
+            }
 
-    override suspend fun stopKernel(): Result<Unit, Exception> {
-        if (this.isKernelNotRunning()) {
+            this.connectionFileContent =
+                KernelConnectionFileContent.fromJsonFile(
+                    ipythonConfig.getConnectionFilePath()).unwrap()
+
+            // rmd: create resources, careful with the order of resource initiation,
+            // some must be initialized first
+            this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
+            this.socketProvider = SocketProviderImp(this.channelProvider!!, this.zcontext)
+            this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
+            this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
+            this.msgCounter = MsgCounterImp()
+            this.msgIdGenerator = RandomMsgIdGenerator()
+            this.senderProvider = SenderProviderImp(this.conv())
+
+            // rmd: create heart beat service
+            this.hbService = LiveCountHeartBeatServiceCoroutine(
+                socketProvider = this.socketProvider!!,
+                zContext = this.zcontext,
+                cScope = appCScope,
+                cDispatcher = this.networkServiceDispatcher
+            )
+
+            this.ioPubService = IOPubListenerServiceImpl(
+                kernelContext = this,
+                externalScope = appCScope,
+                dispatcher = this.networkServiceDispatcher
+            )
+
+            this.onKernelStartedListener.run(this)
             return Ok(Unit)
         }
+    }
+
+    private suspend fun startKernelProcess(): Result<Process, Exception> {
+        val processBuilder = ProcessBuilder(this.ipythonConfig.makeCompleteLaunchCmmd())
         try {
-            if (this.process != null) {
-                this.onBeforeStopListener.run(this)
-                this.process?.destroy()
-                // rmd: polling until the process is completely dead
-                Sleeper.threadSleepUntil(50) { this.process?.isAlive == false }
-                this.process = null
-                this.onAfterStopListener.run(this)
+            val p: Process = processBuilder.inheritIO().start()
+            val waitRs = Sleeper.delayUntil(50, timeOut.processInitTimeOut) { p.isAlive }
+            if (waitRs is Err) {
+                return Err(CantStartProcess(ExceptionInfo(
+                    msg = "Can't start kernel process",
+                    loc = this,
+                    data = "kernel start command: ${this.ipythonConfig.makeCompleteLaunchCmmd().joinToString(" ")}"
+                )))
             }
-            stopServices()
-            destroyResource()
-            this.onAfterStopListener.run(this)
-            return Ok(Unit)
+            return Ok(p)
         } catch (e: Exception) {
+            this.destroyResource()
             return Err(e)
         }
+    }
+
+    override suspend fun startServices(): Result<Unit, Exception> {
+        if (this.isKernelRunning()) {
+            val rt = this.hbService!!.start().andThen {
+                this.ioPubService!!.start()
+            }
+            return rt
+        } else {
+            return Err(KernelIsDownException(ExceptionInfo(
+                msg = "Can't start services because kernel is down",
+                loc = this,
+                data = Unit
+            )))
+        }
+
+    }
+
+    override suspend fun stopAll(): Result<Unit, Exception> {
+        val r: Result<Unit, Exception> = stopServices().andThen {
+            stopKernel()
+        }
+        return r
+    }
+
+    private suspend fun stopKernelProcess(): Result<Unit, Exception> {
+        if (this.process != null) {
+            this.process?.destroy()
+            // x: polling until the process is completely dead
+            val stopRs: Result<Unit, Exception> =
+                Sleeper.delayUntil(50, timeOut.processStopTimeout) { this.process?.isAlive == false }
+            val rs = stopRs.mapError {
+                CantStopKernelProcess(ExceptionInfo(
+                    msg = "Can't stop kernel process",
+                    loc = this,
+                    data = this.process?.pid()
+                ))
+            }
+            if (rs is Err) {
+                return rs
+            }
+            this.process = null
+        }
+        return Ok(Unit)
     }
 
     override fun getSocketProvider(): Result<SocketProvider, Exception> {
@@ -158,21 +208,46 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    private suspend fun stopServices(){
-        this.hbService?.stop()
+    override suspend fun stopServices(): Result<Unit, Exception> {
+        val hbStopRs = this.hbService?.stop() ?: Ok(Unit)
+        if (hbStopRs is Err) {
+            return hbStopRs
+        }
         this.hbService = null
-        this.ioPubService?.stop()
-        this.ioPubService=null
+        val ioPubStopRs = this.ioPubService?.stop() ?: Ok(Unit)
+        if (ioPubStopRs is Err) {
+            return ioPubStopRs
+        }
+        this.ioPubService = null
+        return Ok(Unit)
     }
 
-    private fun destroyResource() {
+    override suspend fun stopKernel(): Result<Unit, Exception> {
+        if (this.isKernelNotRunning()) {
+            return Ok(Unit)
+        }
+        try {
+            this.onBeforeStopListener.run(this)
+            val stopRs: Result<Unit, Exception> = this.stopKernelProcess()
+            if (stopRs is Err) {
+                return stopRs
+            }
+            destroyResource()
+            this.onAfterStopListener.run(this)
+            return Ok(Unit)
+        } catch (e: Exception) {
+            return Err(e)
+        }
+    }
+
+    private suspend fun destroyResource() {
         val cpath = this.connectionFilePath
 
         if (cpath != null) {
             // x: delete connection file
             Files.delete(cpath)
             // rmd: wait until file is deleted completely
-            Sleeper.threadSleepUntil(50) { !Files.exists(cpath) }
+            Sleeper.delayUntil(50) { !Files.exists(cpath) }
             this.connectionFilePath = null
         }
         // x: destroy other resources
@@ -183,17 +258,10 @@ class KernelContextImp @Inject internal constructor(
         this.msgIdGenerator = null
         this.msgCounter = null
         this.senderProvider = null
-        // x: stop hb service
-//        this.hbService?.stop()
-//        this.hbService = null
         this.socketProvider = null
-
-        // x: stop iopub service
-//        this.ioPubService?.stop()
-//        this.ioPubService=null
     }
 
-    override fun getIPythonProcess(): Result<Process, Exception> {
+    override fun getKernelProcess(): Result<Process, Exception> {
         if (this.isKernelRunning()) {
             return Ok(this.process!!)
         } else {
@@ -201,19 +269,19 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    override fun getIPythonInputStream(): Result<InputStream, Exception> {
-        return this.getIPythonProcess().map { it.inputStream }
+    override fun getKernelInputStream(): Result<InputStream, Exception> {
+        return this.getKernelProcess().map { it.inputStream }
     }
 
-    override fun getIPythonOutputStream(): Result<OutputStream, Exception> {
-        return this.getIPythonProcess().map { it.outputStream }
+    override fun getKernelOutputStream(): Result<OutputStream, Exception> {
+        return this.getKernelProcess().map { it.outputStream }
     }
 
     override suspend fun restartKernel(): Result<Unit, Exception> {
         if (this.isKernelRunning()) {
-            val rt = this.stopKernel()
+            val rt = this.stopAll()
                 .andThen {
-                    this.startKernel()
+                    this.startAll()
                 }
             return rt
         } else {
@@ -238,31 +306,37 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getChannelProvider(): Result<ChannelProvider, Exception> {
-        return this.checkRunningAndGet { this.channelProvider!! }
+        return this.checkKernelRunningAndGet { this.channelProvider!! }
     }
 
     override fun getSenderProvider(): Result<SenderProvider, Exception> {
-        return this.checkRunningAndGet { this.senderProvider!! }
+        return this.checkKernelRunningAndGet { this.senderProvider!! }
     }
 
     override fun getMsgEncoder(): Result<MsgEncoder, Exception> {
-        return this.checkRunningAndGet { this.msgEncoder!! }
+        return this.checkKernelRunningAndGet(MsgEncoder::class.simpleName ?: "MsgEncoder") { this.msgEncoder!! }
     }
 
     override fun getMsgIdGenerator(): Result<MsgIdGenerator, Exception> {
-        return this.checkRunningAndGet { this.msgIdGenerator!! }
+        return this.checkKernelRunningAndGet("MsgIdGenerator") { this.msgIdGenerator!! }
     }
 
-    private fun <T> checkRunningAndGet(that: () -> T): Result<T, Exception> {
+    private fun <T> checkKernelRunningAndGet(objectName: String = "", that: () -> T): Result<T, Exception> {
         if (this.isKernelRunning()) {
             return Ok(that())
         } else {
-            return Err(ipythonIsDownErr)
+            return Err(KernelIsDownException(
+                ExceptionInfo(
+                    msg = "Can't get $objectName because kernel is down",
+                    loc = this,
+                    data = objectName
+                )
+            ))
         }
     }
 
     override fun isKernelRunning(): Boolean {
-        val rt = this.getCoreStatus().all { it }
+        val rt = this.getKernelStatus().all { it }
         return rt
     }
 
@@ -277,11 +351,11 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun isKernelNotRunning(): Boolean {
-        val rt = this.getCoreStatus().all { !it }
+        val rt = this.getKernelStatus().all { !it }
         return rt
     }
 
-    private fun getCoreStatus(): List<Boolean> {
+    private fun getKernelStatus(): List<Boolean> {
         val isProcessLive = this.process?.isAlive ?: false
         val isFileWritten = this.connectionFilePath?.let { Files.exists(it) } ?: false
         val connectionFileIsRead = this.connectionFileContent != null
@@ -290,7 +364,6 @@ class KernelContextImp @Inject internal constructor(
         val isMsgEncodeOk = this.msgEncoder != null
         val isMsgCounterOk = this.msgCounter != null
         val isSenderProviderOk = this.senderProvider != null
-//        val isHBServiceRunning = this.hbService?.isServiceRunning() ?: false
 
         val rt = listOf(
             isProcessLive, isFileWritten, connectionFileIsRead,
@@ -299,39 +372,67 @@ class KernelContextImp @Inject internal constructor(
         return rt
     }
 
-    override fun setOnBeforeStopListener(listener: OnIPythonContextEvent) {
+    override fun setOnBeforeStopListener(listener: OnKernelContextEvent) {
         this.onBeforeStopListener = listener
     }
 
     override fun removeBeforeStopListener() {
-        this.onBeforeStopListener = OnIPythonContextEvent.Nothing
+        this.onBeforeStopListener = OnKernelContextEvent.Nothing
     }
 
-    override fun setOnAfterStopListener(listener: OnIPythonContextEvent) {
+    override fun setOnAfterStopListener(listener: OnKernelContextEvent) {
         this.onAfterStopListener = listener
     }
 
     override fun removeAfterStopListener() {
-        this.onAfterStopListener = OnIPythonContextEvent.Nothing
+        this.onAfterStopListener = OnKernelContextEvent.Nothing
     }
 
-    override fun setKernelStartedListener(listener: OnIPythonContextEvent) {
+    override fun setKernelStartedListener(listener: OnKernelContextEvent) {
         this.onKernelStartedListener = listener
     }
 
     override fun removeOnProcessStartListener() {
-        this.onKernelStartedListener = OnIPythonContextEvent.Nothing
+        this.onKernelStartedListener = OnKernelContextEvent.Nothing
     }
 
-    override fun getIOPubListenerService(): Result<IOPubListenerService,Exception> {
-        return this.checkRunningAndGet { this.ioPubService!! }
+    override fun getIOPubListenerService(): Result<IOPubListenerService, Exception> {
+        val z = getService<IOPubListenerService>(this.ioPubService)
+        return z
+//        if (this.ioPubService != null) {
+//            if (this.ioPubService?.isRunning() == true) {
+//                return Ok(this.ioPubService!!)
+//            } else {
+//                return Err(IOPubListenerNotRunningException.occurAt(this))
+//            }
+//        } else {
+//            return Err(ServiceNullException.occurAt(this, IOPubListenerService::class.java.simpleName))
+//        }
     }
 
     override fun getHeartBeatService(): Result<HeartBeatService, Exception> {
-        if (this.isKernelRunning()) {
-            return Ok(this.hbService!!)
+        val z = getService<HeartBeatService>(this.hbService)
+        return z
+//        if (this.hbService != null) {
+//            if (this.hbService?.isServiceRunning() == true) {
+//                return Ok(this.hbService!!)
+//            } else {
+//                return Err(IOPubListenerNotRunningException.occurAt(this))
+//            }
+//        } else {
+//            return Err(ServiceNullException.occurAt(this, HeartBeatService::class.java.simpleName))
+//        }
+    }
+
+    private fun <T> getService(service: Service?): Result<T, Exception> {
+        if (service != null) {
+            if (service?.isRunning() == true) {
+                return Ok(service as T)
+            } else {
+                return Err(IOPubListenerNotRunningException.occurAt(this))
+            }
         } else {
-            return Err(ipythonIsDownErr)
+            return Err(ServiceNullException.occurAt(this,"" ))
         }
     }
 

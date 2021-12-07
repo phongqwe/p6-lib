@@ -8,7 +8,9 @@ interface HeartBeatServiceConv : HeartBeatService {
      * return true if this service is running and the hba is alive
      */
     fun convCheck():Boolean{
-        return this.isServiceRunning() && this.isHBAlive()
+        val c1 = this.isServiceRunning()
+        val c2 = this.isHBAlive()
+        return c1 && c2
     }
 }
 
