@@ -1,6 +1,5 @@
 package com.github.xadkile.bicp.message.api.connection.service.heart_beat
 
-import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.connection.service.Service
 
 /**
@@ -28,8 +27,4 @@ interface HeartBeatService: Service {
     override fun isRunning(): Boolean {
         return isServiceRunning()
     }
-
-    class NotRunningException(override val message:String=""):RuntimeException(message)
-    class ZMQIsDeadException(override val message:String=""):Exception(message)
 }
-

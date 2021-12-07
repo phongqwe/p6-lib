@@ -3,7 +3,9 @@ package com.github.xadkile.bicp.message.api.connection
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelConfig
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextImp
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelTimeOut
 import com.github.xadkile.bicp.test.utils.TestResources
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -28,7 +30,7 @@ internal class KernelContextImpTest {
     fun beforeEach(){
         this.zContext = ZContext()
         ipythonConfig = TestResources.kernelConfigForTest()
-        pm = KernelContextImp(ipythonConfig,this.zContext, GlobalScope)
+        pm = KernelContextImp(ipythonConfig,this.zContext, GlobalScope, Dispatchers.IO, KernelTimeOut())
     }
 
     @AfterEach

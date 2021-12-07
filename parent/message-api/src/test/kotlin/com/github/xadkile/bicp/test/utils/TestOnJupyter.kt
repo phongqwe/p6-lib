@@ -22,7 +22,7 @@ abstract class TestOnJupyter {
     open fun beforeAll(){
         this.zcontext = ZContext()
         this.ipythonConfig = TestResources.kernelConfigForTest()
-        this.kernelContext= KernelContextImp(this.ipythonConfig,zcontext,GlobalScope,Dispatchers.IO)
+        this.kernelContext= KernelContextImp(this.ipythonConfig,zcontext,GlobalScope,Dispatchers.IO,KernelTimeOut())
         this.iPythonContextConv = this.kernelContext.conv()
         mainThreadSurrogate= newSingleThreadContext("Test Thread")
         Dispatchers.setMain(mainThreadSurrogate)

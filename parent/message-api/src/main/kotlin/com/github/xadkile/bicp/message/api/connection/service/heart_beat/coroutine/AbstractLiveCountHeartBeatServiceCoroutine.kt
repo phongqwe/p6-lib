@@ -3,6 +3,7 @@ package com.github.xadkile.bicp.message.api.connection.service.heart_beat.corout
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
+import com.github.xadkile.bicp.message.api.connection.service.heart_beat.exception.HBServiceNotRunningCrashException
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.exception.UnknownException
 import kotlinx.coroutines.*
@@ -25,9 +26,12 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
 
     companion object {
         private val hbServiceNotRunningException =
-            HeartBeatService.NotRunningException("[${this.hashCode()}] is not running")
+            HBServiceNotRunningCrashException("[${this.hashCode()}] is not running")
     }
 
+    /**
+     * Justification for throwing an exception here: the programmer must make sure this function must not be called if the service is not running.
+     */
     override fun isHBAlive(): Boolean {
         if (this.isServiceRunning()) {
             return this.currentLives > 0

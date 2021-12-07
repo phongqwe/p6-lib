@@ -1,6 +1,7 @@
 package com.github.xadkile.bicp.message.di
 
 import com.github.michaelbull.result.Ok
+import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelTimeOut
 import com.github.xadkile.bicp.test.utils.TestResources
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -17,6 +18,7 @@ class DITest {
                 .kernelConfig(TestResources.kernelConfigForTest())
                 .applicationCoroutineScope(GlobalScope)
                 .networkServiceCoroutineDispatcher(Dispatchers.IO)
+                .kernelTimeOut(KernelTimeOut())
                 .build()
 
             val context = component.ipythonContext()

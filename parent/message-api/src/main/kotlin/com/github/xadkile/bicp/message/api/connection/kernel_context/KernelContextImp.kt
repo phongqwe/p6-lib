@@ -38,6 +38,7 @@ class KernelContextImp @Inject internal constructor(
     @ApplicationCScope
     private val appCScope: CoroutineScope,
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val kernelTimeOut: KernelTimeOut
 ) : KernelContext {
 
     // x: Context-related objects
@@ -62,8 +63,6 @@ class KernelContextImp @Inject internal constructor(
     private var onKernelStartedListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
 
     private val convenientInterface = KernelContextReadOnlyConvImp(this)
-
-    private val timeOut = KernelTimeOut(5000, 5000, 5000)
 
     companion object {
         private val ipythonIsDownErr = KernelIsDownException.occurAt(this)
@@ -94,7 +93,7 @@ class KernelContextImp @Inject internal constructor(
             this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
             // x: wait for connection file to be written to disk by the kernel
             val waitInitProcessRs: Result<Unit, Exception> =
-                Sleeper.delayUntil(50, timeOut.connectionFileWriteTimeout) { Files.exists(this.connectionFilePath!!) }
+                Sleeper.delayUntil(50, kernelTimeOut.connectionFileWriteTimeout) { Files.exists(this.connectionFilePath!!) }
 
             if (waitInitProcessRs is Err) {
                 return Err(CantWriteConnectionFile(ExceptionInfo(
@@ -141,7 +140,7 @@ class KernelContextImp @Inject internal constructor(
         val processBuilder = ProcessBuilder(this.ipythonConfig.makeCompleteLaunchCmmd())
         try {
             val p: Process = processBuilder.inheritIO().start()
-            val waitRs = Sleeper.delayUntil(50, timeOut.processInitTimeOut) { p.isAlive }
+            val waitRs = Sleeper.delayUntil(50, kernelTimeOut.processInitTimeOut) { p.isAlive }
             if (waitRs is Err) {
                 return Err(CantStartProcess(ExceptionInfo(
                     msg = "Can't start kernel process",
@@ -184,7 +183,7 @@ class KernelContextImp @Inject internal constructor(
             this.process?.destroy()
             // x: polling until the process is completely dead
             val stopRs: Result<Unit, Exception> =
-                Sleeper.delayUntil(50, timeOut.processStopTimeout) { this.process?.isAlive == false }
+                Sleeper.delayUntil(50, kernelTimeOut.processStopTimeout) { this.process?.isAlive == false }
             val rs = stopRs.mapError {
                 CantStopKernelProcess(ExceptionInfo(
                     msg = "Can't stop kernel process",
