@@ -20,11 +20,12 @@ import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInstance
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.system.measureTimeMillis
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class CodeExecutionSenderTest : TestOnJupyter() {
@@ -126,7 +127,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         runBlocking {
             val sender = CodeExecutionSender(kernelContext.conv())
             val o = sender.send(message, Dispatchers.Default)
-            kotlin.test.assertTrue(o is Ok, o.toString())
+            assertTrue(o is Ok, o.toString())
             println(o.value.content)
         }
     }
@@ -158,9 +159,9 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
 
             val sender = CodeExecutionSender(mockContext)
             val o = sender.send(message, Dispatchers.Default)
-            kotlin.test.assertTrue(o is Err, o.toString())
-            kotlin.test.assertTrue(o.unwrapError() is UnableToSendMsgException)
-            kotlin.test.assertEquals(message, (o.unwrapError() as UnableToSendMsgException).getMsg())
+            assertTrue(o is Err, o.toString())
+            assertTrue(o.unwrapError() is UnableToSendMsgException)
+            assertEquals(message, (o.unwrapError() as UnableToSendMsgException).getMsg())
         }
     }
 
@@ -169,8 +170,8 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         kernelContext.stopAll()
         val sender = CodeExecutionSender(kernelContext.conv())
         val o = sender.send(message)
-        kotlin.test.assertTrue(o is Err)
-        kotlin.test.assertTrue((o.unwrapError()) is KernelIsDownException,"should return the correct exception")
+        assertTrue(o is Err)
+        assertTrue((o.unwrapError()) is KernelIsDownException,"should return the correct exception")
     }
 
     @Test

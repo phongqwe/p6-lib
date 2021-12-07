@@ -92,10 +92,10 @@ class KernelContextImp @Inject internal constructor(
 
             this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
             // x: wait for connection file to be written to disk by the kernel
-            val waitInitProcessRs: Result<Unit, Exception> =
+            val waitConnectionFileWritten: Result<Unit, Exception> =
                 Sleeper.delayUntil(50, kernelTimeOut.connectionFileWriteTimeout) { Files.exists(this.connectionFilePath!!) }
 
-            if (waitInitProcessRs is Err) {
+            if (waitConnectionFileWritten is Err) {
                 return Err(CantWriteConnectionFile(ExceptionInfo(
                     msg = "Can't write connection file to disk",
                     loc = this,
@@ -107,8 +107,9 @@ class KernelContextImp @Inject internal constructor(
                 KernelConnectionFileContent.fromJsonFile(
                     ipythonConfig.getConnectionFilePath()).unwrap()
 
-            // rmd: create resources, careful with the order of resource initiation,
-            // some must be initialized first
+            // x: create resources, careful with the order of resource initiation,
+            // x: some must be initialized first
+            // x: don't use getter here
             this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
             this.socketProvider = SocketProviderImp(this.channelProvider!!, this.zcontext)
             this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
@@ -116,8 +117,6 @@ class KernelContextImp @Inject internal constructor(
             this.msgCounter = MsgCounterImp()
             this.msgIdGenerator = RandomMsgIdGenerator()
             this.senderProvider = SenderProviderImp(this.conv())
-
-            // rmd: create heart beat service
             this.hbService = LiveCountHeartBeatServiceCoroutine(
                 socketProvider = this.socketProvider!!,
                 zContext = this.zcontext,
@@ -130,7 +129,6 @@ class KernelContextImp @Inject internal constructor(
                 externalScope = appCScope,
                 dispatcher = this.networkServiceDispatcher
             )
-
             this.onKernelStartedListener.run(this)
             return Ok(Unit)
         }

@@ -24,11 +24,6 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
     protected var currentLives:Int = 0
     protected var job:Job?=null
 
-    companion object {
-        private val hbServiceNotRunningException =
-            HBServiceNotRunningCrashException("[${this.hashCode()}] is not running")
-    }
-
     /**
      * Justification for throwing an exception here: the programmer must make sure this function must not be called if the service is not running.
      */
@@ -36,7 +31,7 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
         if (this.isServiceRunning()) {
             return this.currentLives > 0
         } else {
-            throw hbServiceNotRunningException
+            throw HBServiceNotRunningCrashException()
         }
     }
 

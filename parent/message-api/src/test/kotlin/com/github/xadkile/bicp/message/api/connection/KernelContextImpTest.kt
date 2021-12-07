@@ -71,7 +71,7 @@ internal class KernelContextImpTest {
     fun startIPython_FromNotStartedYet() =runBlocking{
         assertTrue(pm.getKernelProcess() is Err)
         val rs = pm.startAll()
-        assertTrue(rs is Ok)
+        assertTrue(rs is Ok,rs.toString())
         assertTrue(pm.isKernelRunning())
         assertTrue(pm.getKernelProcess() is Ok,pm.getKernelProcess().toString())
         assertTrue(pm.getKernelProcess().get()?.isAlive ?: false)
@@ -130,7 +130,7 @@ internal class KernelContextImpTest {
         runBlocking {
             val rs = pm.restartKernel()
             val newConnectionFile = pm.getConnectionFileContent().get()
-            assertTrue(rs is Ok)
+            assertTrue(rs is Ok, rs.toString())
             assertNotNull(newConnectionFile)
             assertNotEquals(oldConnectionFile,newConnectionFile)
         }

@@ -3,6 +3,8 @@ package com.github.xadkile.bicp.message.api.connection.service.iopub
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
+import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelServiceDownException
+import com.github.xadkile.bicp.message.api.connection.service.heart_beat.exception.HBServiceNotRunningException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.CantStartIOPubServiceException
 import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
@@ -35,7 +37,7 @@ class IOPubListenerServiceImpl internal constructor(
         externalScope: CoroutineScope,
         dispatcher: CoroutineDispatcher,
     ) : this(
-        kernelContext.conv(), defaultHandler, parseExceptionHandler, handlerContainer,externalScope,dispatcher
+        kernelContext.conv(), defaultHandler, parseExceptionHandler, handlerContainer, externalScope, dispatcher
     )
 
     private var job: Job? = null
@@ -49,8 +51,12 @@ class IOPubListenerServiceImpl internal constructor(
             return Ok(Unit)
         }
 
-        if (this.kernelContext.isKernelNotRunning()) {
+        if(kernelContext.isKernelRunning().not()){
             return Err(KernelIsDownException.occurAt(this))
+        }
+
+        if (kernelContext.getConvHeartBeatService().get()?.isHBAlive() != true) {
+            return Err(HBServiceNotRunningException(ExceptionInfo(loc = this, data = Unit)))
         }
 
         val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
@@ -80,10 +86,10 @@ class IOPubListenerServiceImpl internal constructor(
                 }
             }
         }
-        val waitRs = Sleeper.delayUntil(10,50){this.isRunning()}
+        val waitRs = Sleeper.delayUntil(10, 50) { this.isRunning() }
         val rt = waitRs.mapError {
             CantStartIOPubServiceException(ExceptionInfo(
-                msg ="Time out when trying to start IOPub service",
+                msg = "Time out when trying to start IOPub service",
                 loc = this,
                 data = "timeout"
             ))
@@ -109,7 +115,7 @@ class IOPubListenerServiceImpl internal constructor(
         return msgType
     }
 
-    override suspend fun stop():Result<Unit,Exception> {
+    override suspend fun stop(): Result<Unit, Exception> {
         if (this.isRunning()) {
             job?.cancelAndJoin()
             this.job = null
