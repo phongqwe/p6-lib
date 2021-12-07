@@ -8,7 +8,7 @@ import com.github.xadkile.bicp.message.api.exception.UnknownException
 import kotlinx.coroutines.*
 
 /**
- * A process watcher that run on a separated thread
+ * A process watcher that run on a coroutine
  */
 sealed class CoroutineWatcher : ProcessWatcher {
 

@@ -9,6 +9,4 @@ class CompositeException(val exceptionInfo: ExceptionInfo<List<Exception>>) : Ex
             exceptions.joinToString("\n") { it.toString() }
         }
     ))
-
-
 }
