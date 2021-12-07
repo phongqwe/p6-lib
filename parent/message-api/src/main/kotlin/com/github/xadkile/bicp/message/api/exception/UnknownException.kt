@@ -1,13 +1,17 @@
 package com.github.xadkile.bicp.message.api.exception
 
 
-class UnknownException(exceptionInfo:ExceptionInfo) : ExceptionWithInfo(exceptionInfo){
+class UnknownException(val exceptionInfo:ExceptionInfo<*>) : Exception(exceptionInfo.toString()){
     companion object {
         fun occurAt(o:Any): UnknownException {
-            return UnknownException("occur at ${o.javaClass.simpleName}")
+            return UnknownException(ExceptionInfo("unknow exception",o,null))
         }
     }
 
-    constructor(message:String):this(ExceptionInfo(message,"",null))
+    constructor(msg:String):this(ExceptionInfo(
+        message=msg,
+        loc="",
+        data =null
+    ))
 }
 

@@ -7,6 +7,7 @@ import com.github.michaelbull.result.andThen
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.MsgEncoder
+import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToQueueZMsgException
@@ -73,7 +74,10 @@ internal class ZMQMsgSender {
                         return Err(ZMQMsgTimeOutException())
                     }
                 } else {
-                    return Err(UnableToQueueZMsgException(zmsg))
+                    return Err(UnableToQueueZMsgException(ExceptionInfo(
+                        loc = this,
+                        data = zmsg
+                    )))
                 }
             } else {
                 return Err(HeartBeatService.NotRunningException())

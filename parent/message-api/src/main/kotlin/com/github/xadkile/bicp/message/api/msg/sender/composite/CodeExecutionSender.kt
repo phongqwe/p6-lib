@@ -84,14 +84,11 @@ class CodeExecutionSender internal constructor(
             IOPub.ExecuteError.handler { msg ->
                 val receivedMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
-//                    rt = Err(ExecutionErrException(receivedMsg.content))
-//                    rt = Err(ExecutionErrException(ExceptionInfo.occurAt(this).withData(receivedMsg.content)))
-                    rt = Err(ExceptionInfo
-                        .occurAt(this)
-                        .withData(receivedMsg.content)
-                        .toException<ExecutionErrException>())
-
-
+                    rt = Err(
+                        ExecutionErrException(ExceptionInfo(
+                            loc = this,
+                            data = receivedMsg.content))
+                    )
                     state = state.transit(rt, kernelContext)
                 }
             }
@@ -105,7 +102,10 @@ class CodeExecutionSender internal constructor(
             if (sendStatus is Ok) {
                 val msgIsOk: Boolean = sendStatus.get()!!.content.status == MsgStatus.ok
                 if (msgIsOk.not()) {
-                    rt = Err(UnableToSendMsgException(message))
+                    rt = Err(UnableToSendMsgException(ExceptionInfo(
+                        loc = this@CodeExecutionSender,
+                        data = message
+                    )))
                     state = state.transit(rt, kernelContext)
                 }
             } else {

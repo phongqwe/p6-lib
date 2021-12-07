@@ -1,7 +1,14 @@
 package com.github.xadkile.bicp.message.api.exception
 
-class CompositeException(exceptionInfo: ExceptionInfo) : ExceptionWithInfo(exceptionInfo) {
-    constructor(exceptions: List<Exception>) : this(ExceptionInfo("", "", exceptions, dataStrMaker = {
-        exceptions.joinToString("\n") { it.toString() }
-    }))
+class CompositeException(val exceptionInfo: ExceptionInfo<List<Exception>>) : Exception(exceptionInfo.toString()) {
+    constructor(exceptions: List<Exception>) : this(ExceptionInfo(
+        message = "",
+        loc = "",
+        data = exceptions,
+        dataStrMaker = {
+            exceptions.joinToString("\n") { it.toString() }
+        }
+    ))
+
+
 }

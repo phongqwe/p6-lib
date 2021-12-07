@@ -28,7 +28,7 @@ class JPRawMessage(
          */
         fun fromPayload(payload: List<ByteArray>): Result<JPRawMessage, Exception> {
             if (payload.size < 6) {
-                return Err(InvalidPayloadSizeException(payload.size))
+                return Err(InvalidPayloadSizeException(payload.size,this))
             } else {
                 // find the delimiter's index
                 val delimiterIndexEither = findDelimiterIndex(payload)

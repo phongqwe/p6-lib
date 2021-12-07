@@ -162,7 +162,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             val o = sender.send(message, Dispatchers.Default)
             kotlin.test.assertTrue(o is Err, o.toString())
             kotlin.test.assertTrue(o.unwrapError() is UnableToSendMsgException)
-            kotlin.test.assertEquals(message, (o.unwrapError() as UnableToSendMsgException).msg)
+            kotlin.test.assertEquals(message, (o.unwrapError() as UnableToSendMsgException).getMsg())
         }
     }
 

@@ -1,25 +1,23 @@
 package com.github.xadkile.bicp.message.api.exception
 
-import javax.xml.crypto.Data
-
 
 /**
  * An exception in which I can specify the location it occurs and the message
  */
-data class ExceptionInfo(
+data class ExceptionInfo<D>(
     val message: String = "",
     val loc: String = "",
-    val data: Any? = null,
+    val data: D,
     val dataStrMaker: () -> String = { data?.toString() ?: "" },
 ) {
 
     constructor(
-        message: String = "",
-        loc: Class<*>? = null,
-        data: Any? = null,
+        msg: String="",
+        loc: Any,
+        data: D,
         dataStrMaker: () -> String = { data?.toString() ?: "" },
     ) : this(
-        message, loc?.simpleName ?: "", data, dataStrMaker
+        msg, loc::class.java.simpleName, data, dataStrMaker
     )
 
     override fun toString(): String {
@@ -32,49 +30,22 @@ data class ExceptionInfo(
         """
     }
 
-    fun occurAt(clazz: Class<*>): ExceptionInfo {
+    fun occurAt(o: Any): ExceptionInfo<D> {
         return this.copy(
-            loc = clazz.simpleName
+            loc = o::class.java.simpleName
         )
     }
 
-    fun withMsg(msg: String): ExceptionInfo {
+    fun withMsg(msg: String): ExceptionInfo<D> {
         return this.copy(message = msg)
     }
 
-    fun withData(data: Any?): ExceptionInfo {
+    fun withData(data: D): ExceptionInfo<D> {
         return this.copy(data = data)
     }
 
-    fun withDataStrMaker(dataStrMaker: () -> String): ExceptionInfo {
+    fun withDataStrMaker(dataStrMaker: () -> String): ExceptionInfo<D> {
         return this.copy(dataStrMaker = dataStrMaker)
-    }
-
-    /**
-     * construct exception from this exception info.
-     * The returned exception must have a constructor that accept exactly 1 [ExceptionInfo]
-     */
-    inline fun <reified T : ExceptionWithInfo> toException(): T {
-        val clazz = T::class.java
-        val exConstr = clazz.getConstructor(this.javaClass)
-        return exConstr.newInstance(this)
-    }
-
-    companion object {
-
-        fun occurAt(obj: Any): ExceptionInfo {
-            return occurAt(obj::class.java)
-        }
-
-        fun occurAt(clazz: Class<*>): ExceptionInfo {
-            return ExceptionInfo(
-                loc = clazz.simpleName
-            )
-        }
-
-        fun withMsg(msg: String): ExceptionInfo {
-            return ExceptionInfo(message = msg, loc = "")
-        }
     }
 }
 
