@@ -139,6 +139,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
             val sender = kernelContext.getSenderProvider().unwrap().executeRequestSender()
             sender.send(okMsg, Dispatchers.Default)
         }
+        delay(1000)
         listener1.stop()
         listener2.stop()
 

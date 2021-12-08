@@ -50,7 +50,7 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
             poller.poll(this.pollTimeOut)
             val o = poller.pollin(0)
             if (o) {
-                val output = hbSocket.recv()
+                val output = hbSocket.recv(ZMQ.DONTWAIT)
                 if(output != null){
                     return Ok(Unit)
                 }else{
