@@ -117,18 +117,7 @@ class KernelContextImp @Inject internal constructor(
             this.msgCounter = MsgCounterImp()
             this.msgIdGenerator = RandomMsgIdGenerator()
             this.senderProvider = SenderProviderImp(this.conv())
-            this.hbService = LiveCountHeartBeatServiceCoroutine(
-                socketProvider = this.socketProvider!!,
-                zContext = this.zcontext,
-                cScope = appCScope,
-                cDispatcher = this.networkServiceDispatcher
-            )
 
-            this.ioPubService = IOPubListenerServiceImpl(
-                kernelContext = this,
-                externalScope = appCScope,
-                dispatcher = this.networkServiceDispatcher
-            )
             this.onKernelStartedListener.run(this)
             return Ok(Unit)
         }
@@ -155,10 +144,35 @@ class KernelContextImp @Inject internal constructor(
 
     override suspend fun startServices(): Result<Unit, Exception> {
         if (this.isKernelRunning()) {
-            val rt = this.hbService!!.start().andThen {
-                this.ioPubService!!.start()
+
+            this.hbService = LiveCountHeartBeatServiceCoroutine(
+                socketProvider = this.socketProvider!!,
+                zContext = this.zcontext,
+                cScope = appCScope,
+                cDispatcher = this.networkServiceDispatcher
+            )
+
+            val hbStartRs = this.hbService!!.start()
+            if(hbStartRs is Err){
+                this.hbService?.stop()
+                this.hbService = null
+                return hbStartRs
             }
-            return rt
+
+            this.ioPubService = IOPubListenerServiceImpl(
+                kernelContext = this,
+                externalScope = appCScope,
+                dispatcher = this.networkServiceDispatcher
+            )
+
+            val ioPubStartRs = this.ioPubService!!.start()
+            if(ioPubStartRs is Err){
+                this.ioPubService?.stop()
+                this.ioPubService=null
+                return ioPubStartRs
+            }
+            return Ok(Unit)
+
         } else {
             return Err(KernelIsDownException(ExceptionInfo(
                 msg = "Can't start services because kernel is down",
@@ -166,7 +180,6 @@ class KernelContextImp @Inject internal constructor(
                 data = Unit
             )))
         }
-
     }
 
     override suspend fun stopAll(): Result<Unit, Exception> {
@@ -206,16 +219,18 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override suspend fun stopServices(): Result<Unit, Exception> {
-        val hbStopRs = this.hbService?.stop() ?: Ok(Unit)
-        if (hbStopRs is Err) {
-            return hbStopRs
-        }
-        this.hbService = null
         val ioPubStopRs = this.ioPubService?.stop() ?: Ok(Unit)
         if (ioPubStopRs is Err) {
             return ioPubStopRs
         }
         this.ioPubService = null
+
+        val hbStopRs = this.hbService?.stop() ?: Ok(Unit)
+        if (hbStopRs is Err) {
+            return hbStopRs
+        }
+        this.hbService = null
+
         return Ok(Unit)
     }
 
@@ -394,31 +409,31 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getIOPubListenerService(): Result<IOPubListenerService, Exception> {
-        val z = getService<IOPubListenerService>(this.ioPubService)
-        return z
-//        if (this.ioPubService != null) {
-//            if (this.ioPubService?.isRunning() == true) {
-//                return Ok(this.ioPubService!!)
-//            } else {
-//                return Err(IOPubListenerNotRunningException.occurAt(this))
-//            }
-//        } else {
-//            return Err(ServiceNullException.occurAt(this, IOPubListenerService::class.java.simpleName))
-//        }
+//        val z = getService<IOPubListenerService>(this.ioPubService)
+//        return z
+        if (this.ioPubService != null) {
+            if (this.ioPubService?.isRunning() == true) {
+                return Ok(this.ioPubService!!)
+            } else {
+                return Err(IOPubListenerNotRunningException.occurAt(this))
+            }
+        } else {
+            return Err(ServiceNullException.occurAt(this, IOPubListenerService::class.java.simpleName))
+        }
     }
 
     override fun getHeartBeatService(): Result<HeartBeatService, Exception> {
-        val z = getService<HeartBeatService>(this.hbService)
-        return z
-//        if (this.hbService != null) {
-//            if (this.hbService?.isServiceRunning() == true) {
-//                return Ok(this.hbService!!)
-//            } else {
-//                return Err(IOPubListenerNotRunningException.occurAt(this))
-//            }
-//        } else {
-//            return Err(ServiceNullException.occurAt(this, HeartBeatService::class.java.simpleName))
-//        }
+//        val z = getService<HeartBeatService>(this.hbService)
+//        return z
+        if (this.hbService != null) {
+            if (this.hbService?.isServiceRunning() == true) {
+                return Ok(this.hbService!!)
+            } else {
+                return Err(IOPubListenerNotRunningException.occurAt(this))
+            }
+        } else {
+            return Err(ServiceNullException.occurAt(this, HeartBeatService::class.java.simpleName))
+        }
     }
 
     private fun <T> getService(service: Service?): Result<T, Exception> {

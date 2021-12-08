@@ -1,5 +1,6 @@
 package com.github.xadkile.bicp.message.api.msg.listener
 
+import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
@@ -234,7 +235,8 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     fun fullLifeCycle() {
         runBlocking {
 
-            kernelContext.startAll()
+            val krs = kernelContext.startAll()
+            assertTrue(krs is Ok,krs.toString())
 
             val handlerWasTriggered = AtomicInteger(0)
             // rmd: setup listener, handler
@@ -252,8 +254,8 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
                 }
             )
 
-            listener.start()
-
+            val startRs = listener.start()
+            assertTrue(startRs is Ok, startRs.toString())
             assertTrue(listener.isRunning(), "listener should be running")
             // rmd: send message
 

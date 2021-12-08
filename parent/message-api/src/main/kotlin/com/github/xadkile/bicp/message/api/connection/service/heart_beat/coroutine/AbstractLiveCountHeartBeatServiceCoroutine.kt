@@ -5,6 +5,7 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.exception.HBServiceNotRunningCrashException
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
+import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.exception.UnknownException
 import kotlinx.coroutines.*
 import org.zeromq.ZContext
@@ -56,7 +57,13 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
                     return Err(UnknownException("output of heartbeat zmq channel is null"))
                 }
             } else {
-                return Err(UnknownException("impossible heart beat poller result: more than 1 "))
+                return Err(UnknownException(
+                    ExceptionInfo(
+                        msg ="not receiving hb signal",
+                        data = o,
+                        loc =this
+                    )
+                ))
             }
         }catch (e:Exception){
             return Err(e)
@@ -69,8 +76,14 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
     override suspend fun stop(): Result<Unit,Exception> {
         // rmd: runBlocking so that all the suspending functions are completed before returning,
         // rmd: guaranteeing that this service is completely stopped when this function returns.
+        if(this.isServiceRunning()){
+            this.bluntStop()
+        }
+        return Ok(Unit)
+    }
+
+    protected suspend fun bluntStop(){
         job?.cancelAndJoin()
         this.job = null
-        return Ok(Unit)
     }
 }

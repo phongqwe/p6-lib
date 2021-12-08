@@ -45,7 +45,8 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
                 poller.register(sk, ZMQ.Poller.POLLIN)
                 poller.use {
                     while (isActive) {
-                        val isAlive: Boolean = check(poller, sk) is Ok
+                        val checkRs = check(poller, sk)
+                        val isAlive: Boolean = checkRs is Ok
                         if (isAlive) {
                             currentLives = liveCount
                         } else {
@@ -59,6 +60,16 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
             }
         }
         val rt = this.waitToLive()
+        if(rt is Err){
+            bluntStop()
+            return Err(
+                CantStartHBServiceException(ExceptionInfo(
+                    msg="Time out when trying to start IOPub service",
+                    loc =this,
+                    data =Unit
+                ))
+            )
+        }
         return rt
     }
 
