@@ -38,9 +38,9 @@ class KernelContextImp @Inject internal constructor(
     @ApplicationCScope
     private val appCScope: CoroutineScope,
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val kernelTimeOut: KernelTimeOut
 ) : KernelContext {
 
+    private val kernelTimeOut = ipythonConfig.timeOut
     // x: Context-related objects
     private var process: Process? = null
     private var connectionFileContent: KernelConnectionFileContent? = null

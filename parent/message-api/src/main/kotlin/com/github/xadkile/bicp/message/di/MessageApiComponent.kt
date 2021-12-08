@@ -30,8 +30,5 @@ interface MessageApiComponent {
 
         @BindsInstance
         fun networkServiceCoroutineDispatcher(dispatcher:CoroutineDispatcher):Builder
-
-        @BindsInstance
-        fun kernelTimeOut(kernelTimeOut: KernelTimeOut):Builder
     }
 }

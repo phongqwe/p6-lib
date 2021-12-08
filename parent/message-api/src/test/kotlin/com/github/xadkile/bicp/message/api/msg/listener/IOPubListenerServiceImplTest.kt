@@ -148,7 +148,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     }
 
     /**
-     * Test sending malformed message
+     * Test sending malformed messagem
      */
     @Test
     fun testParseExceptionHandler() = runBlocking {

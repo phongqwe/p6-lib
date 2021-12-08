@@ -30,7 +30,7 @@ internal class KernelContextImpTest {
     fun beforeEach(){
         this.zContext = ZContext()
         ipythonConfig = TestResources.kernelConfigForTest()
-        pm = KernelContextImp(ipythonConfig,this.zContext, GlobalScope, Dispatchers.IO, KernelTimeOut())
+        pm = KernelContextImp(ipythonConfig,this.zContext, GlobalScope, Dispatchers.IO)
     }
 
     @AfterEach

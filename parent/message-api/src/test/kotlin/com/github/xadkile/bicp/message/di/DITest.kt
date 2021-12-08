@@ -18,7 +18,6 @@ class DITest {
                 .kernelConfig(TestResources.kernelConfigForTest())
                 .applicationCoroutineScope(GlobalScope)
                 .networkServiceCoroutineDispatcher(Dispatchers.IO)
-                .kernelTimeOut(KernelTimeOut())
                 .build()
 
             val context = component.ipythonContext()
