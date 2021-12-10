@@ -13,6 +13,10 @@ import org.zeromq.ZContext
 
 interface KernelContextReadOnlyConv : KernelContextReadOnly {
 
+    override fun getKernelConfig(): KernelConfig {
+        return original().getKernelConfig()
+    }
+
     override fun isServiceRunning(): Boolean {
         return original().isServiceRunning()
     }

@@ -29,18 +29,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- *  [ipythonConfig] is fixed, read from an external file and only change after application start.
+ *  [_kernelConfig] is fixed, read from an external file and only change after application start.
  */
 @Singleton
 class KernelContextImp @Inject internal constructor(
-    private val ipythonConfig: KernelConfig,
+    private val _kernelConfig: KernelConfig,
     private val zcontext: ZContext,
     @ApplicationCScope
     private val appCScope: CoroutineScope,
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : KernelContext {
 
-    private val kernelTimeOut = ipythonConfig.timeOut
+    private val kernelTimeOut = _kernelConfig.timeOut
     // x: Context-related objects
     private var process: Process? = null
     private var connectionFileContent: KernelConnectionFileContent? = null
@@ -90,7 +90,7 @@ class KernelContextImp @Inject internal constructor(
                 this.process = skrs.unwrap()
             }
 
-            this.connectionFilePath = Paths.get(ipythonConfig.getConnectionFilePath())
+            this.connectionFilePath = Paths.get(_kernelConfig.getConnectionFilePath())
             // x: wait for connection file to be written to disk by the kernel
             val waitConnectionFileWritten: Result<Unit, Exception> =
                 Sleeper.delayUntil(50, kernelTimeOut.connectionFileWriteTimeout) { Files.exists(this.connectionFilePath!!) }
@@ -105,7 +105,7 @@ class KernelContextImp @Inject internal constructor(
 
             this.connectionFileContent =
                 KernelConnectionFileContent.fromJsonFile(
-                    ipythonConfig.getConnectionFilePath()).unwrap()
+                    _kernelConfig.getConnectionFilePath()).unwrap()
 
             // x: create resources, careful with the order of resource initiation,
             // x: some must be initialized first
@@ -124,7 +124,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
     private suspend fun startKernelProcess(): Result<Process, Exception> {
-        val processBuilder = ProcessBuilder(this.ipythonConfig.makeCompleteLaunchCmmd())
+        val processBuilder = ProcessBuilder(this._kernelConfig.makeCompleteLaunchCmmd())
         try {
             val p: Process = processBuilder.inheritIO().start()
             val waitRs = Sleeper.delayUntil(50, kernelTimeOut.processInitTimeOut) { p.isAlive }
@@ -132,7 +132,7 @@ class KernelContextImp @Inject internal constructor(
                 return Err(CantStartProcess(ExceptionInfo(
                     msg = "Can't start kernel process",
                     loc = this,
-                    data = "kernel start command: ${this.ipythonConfig.makeCompleteLaunchCmmd().joinToString(" ")}"
+                    data = "kernel start command: ${this._kernelConfig.makeCompleteLaunchCmmd().joinToString(" ")}"
                 )))
             }
             return Ok(p)
@@ -406,6 +406,10 @@ class KernelContextImp @Inject internal constructor(
 
     override fun removeOnProcessStartListener() {
         this.onKernelStartedListener = OnKernelContextEvent.Nothing
+    }
+
+    override fun getKernelConfig(): KernelConfig {
+        return this._kernelConfig
     }
 
     override fun getIOPubListenerService(): Result<IOPubListenerService, Exception> {

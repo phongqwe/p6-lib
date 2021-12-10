@@ -41,9 +41,10 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     }
 
     @BeforeEach
-    fun beforeEach() =runBlocking{
-        kernelContext.startAll()
-        ioPubService = IOPubListenerServiceImpl(
+    fun beforeEach() {
+        runBlocking{
+            kernelContext.startAll()
+            ioPubService = IOPubListenerServiceImpl(
                 kernelContext = kernelContext.conv(),
                 defaultHandler = { msg ->
                     println(msg)
@@ -55,8 +56,9 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 externalScope =  GlobalScope,
                 dispatcher = Dispatchers.Default
             )
-        ioPubService.start()
-        println(ioPubService.isRunning())
+            ioPubService.start()
+//        println(ioPubService.isRunning())
+        }
     }
 
     val message: ExecuteRequest = ExecuteRequest.autoCreate(
@@ -127,6 +129,35 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         runBlocking {
             val sender = CodeExecutionSender(kernelContext.conv())
             val o = sender.send(message, Dispatchers.Default)
+            assertTrue(o is Ok, o.toString())
+            println(o.value.content)
+        }
+    }
+
+//    @Test
+    fun send_Ok2() {
+        runBlocking {
+            val message2: ExecuteRequest = ExecuteRequest.autoCreate(
+                sessionId = "session_id",
+                username = "user_name",
+                msgType = Shell.Execute.Request.msgType,
+                msgContent = Shell.Execute.Request.Content(
+                    code ="""
+                x=0
+                while(True):
+                    x+=1
+            """.trimIndent(),
+                    silent = false,
+                    storeHistory = true,
+                    userExpressions = mapOf(),
+                    allowStdin = false,
+                    stopOnError = true
+                ),
+                "msg_id_abc_123"
+            )
+            val sender = CodeExecutionSender(kernelContext.conv())
+            val o2 = sender.send(message2, Dispatchers.Default)
+            val o = sender.send(message,Dispatchers.Default)
             assertTrue(o is Ok, o.toString())
             println(o.value.content)
         }

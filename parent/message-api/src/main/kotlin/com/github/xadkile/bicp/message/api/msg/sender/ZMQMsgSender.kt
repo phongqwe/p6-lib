@@ -35,8 +35,9 @@ internal class ZMQMsgSender {
             encoder: MsgEncoder,
             hbs: HeartBeatServiceConv,
             zContext: ZContext,
+            interval: Long = SenderConstant.defaultPollingDuration,
         ): Result<JPRawMessage, Exception> {
-            val out: Result<ZMsg, Exception> = send(encoder.encodeMessage(message), socket, hbs, zContext)
+            val out: Result<ZMsg, Exception> = send(encoder.encodeMessage(message), socket, hbs, zContext,interval)
             val rt: Result<JPRawMessage, Exception> = out.andThen { msg ->
                 val rt: List<ByteArray> = msg.map { frame -> frame.data }
                 JPRawMessage.fromPayload(rt)

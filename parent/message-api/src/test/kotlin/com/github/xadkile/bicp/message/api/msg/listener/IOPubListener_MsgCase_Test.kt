@@ -57,14 +57,13 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             listener.addHandler(
                 IOPub.ExecuteError.handler { msg ->
                     errHandlerWasTrigger +=1
-                    println(msg)
                     val jpMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
                     println(jpMsg)
                 }
             )
 
             listener.start()
-            val sr = kernelContext.getSenderProvider().unwrap().executeRequestSender().send(errMsg)
+            val o = kernelContext.getSenderProvider().unwrap().executeRequestSender().send(errMsg)
             delay(1000)
             listener.stop()
             assertEquals(1,errHandlerWasTrigger, "error handler should be triggered exactly once")

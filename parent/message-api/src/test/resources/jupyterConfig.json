@@ -2,9 +2,10 @@
   "launchCmd":["/home/abc/Applications/anaconda3/envs/dl_hw_01/bin/python", "-m", "ipykernel_launcher", "-f"],
   "connectionFilePath": "/tmp/phong-kernel4.json",
   "timeOut": {
-    "processInitTimeOut":5000,
-    "processStopTimeout":5000,
-    "connectionFileWriteTimeout":5000,
-    "serviceInitTimeOut":5000
+    "processInitTimeOut":60000,
+    "processStopTimeout":60000,
+    "connectionFileWriteTimeout":60000,
+    "serviceInitTimeOut":60000,
+    "messageTimeOut": 60000
   }
 }

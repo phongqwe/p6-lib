@@ -7,16 +7,19 @@ import com.github.xadkile.bicp.message.api.exception.UnknownException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.ExecutionErrException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandler
+import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandlers
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
 import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgStatus
+import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.handler
 import com.github.xadkile.bicp.message.api.msg.sender.MsgSender
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToSendMsgException
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.bicp.message.api.msg.sender.shell.ExecuteRequest
+import com.github.xadkile.bicp.message.api.other.Sleeper
 import kotlinx.coroutines.*
 
 typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>
@@ -29,8 +32,6 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
  */
 class CodeExecutionSender internal constructor(
     val kernelContext: KernelContextReadOnlyConv,
-//    val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>>,
-//    val ioPubListenerService: IOPubListenerServiceReadOnly,
 ) : MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>> {
 
 
@@ -91,6 +92,9 @@ class CodeExecutionSender internal constructor(
                     )
                     state = state.transit(rt, kernelContext)
                 }
+            },
+            MsgHandlers.withUUID(MsgType.IOPub_display_data){msg->
+                println(msg)
             }
         )
         // x: add temp handlers to catch the result
@@ -114,9 +118,13 @@ class CodeExecutionSender internal constructor(
             }
         }
 
-        // ph: this ensure that this sender will wait until state reach terminal states: Done
-        while (state != SendingState.Done) {
-            state = state.transit(rt, kernelContext)
+        // x: this ensure that this sender will wait until state reach terminal states: Done
+//        while (state != SendingState.Done) {
+//            state = state.transit(rt, kernelContext)
+//        }
+        Sleeper.delayUntil(50){
+            state = state.transit(rt, kernelContext);
+            state == SendingState.Done
         }
 
         // x: remove temp handlers from the listener to prevent bug

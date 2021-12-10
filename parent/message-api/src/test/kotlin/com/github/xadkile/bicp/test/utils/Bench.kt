@@ -108,7 +108,7 @@ class Bench : TestOnJupyter() {
     /**
      * Each suspend function call is completed before moving to the next
      */
-    @Test
+//    @Test
     fun runBlockingExample2() {
         runBlocking {
             mySusFunc1()
@@ -227,7 +227,7 @@ class Bench : TestOnJupyter() {
         }
     }
 
-    @Test
+//    @Test
     fun suspendingFunction2() {
         val o = measureTimeMillis {
             runBlocking {
@@ -315,7 +315,7 @@ class Bench : TestOnJupyter() {
      * Every coroutine context has a Job instance representing itself. This Job is the same as the one return by "launch"
      *
      */
-    @Test
+//    @Test
     fun coroutineScopeEg() {
         runBlocking {
 

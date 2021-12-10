@@ -5,5 +5,6 @@ class KernelTimeOut(
     val processStopTimeout:Long=5000,
     val connectionFileWriteTimeout:Long=5000,
     val serviceInitTimeOut:Long=5000,
+    val messageTimeOut:Long = 5000
 ) {
 }

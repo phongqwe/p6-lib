@@ -32,7 +32,9 @@ class ExecuteSender internal constructor(
                 kernelContext.getSocketProvider().unwrap().shellSocket(),
                 kernelContext.getMsgEncoder().unwrap(),
                 kernelContext.getConvHeartBeatService().unwrap(),
-                kernelContext.zContext())
+                kernelContext.zContext(),
+                kernelContext.getKernelConfig().timeOut.messageTimeOut
+            )
             val rt: Result<ExecuteReply, Exception> =
                 pcSender.send<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
             rt
