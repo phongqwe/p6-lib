@@ -134,19 +134,17 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         }
     }
 
-//    @Test
+    @Test
     fun send_Ok2() {
+
+        // TODO this run forever, it should not
         runBlocking {
             val message2: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
                 msgType = Shell.Execute.Request.msgType,
                 msgContent = Shell.Execute.Request.Content(
-                    code ="""
-                x=0
-                while(True):
-                    x+=1
-            """.trimIndent(),
+                    code ="x=0\n" + "while(True):\n"+"    x=x+1\n"+"    if(x>200):\n"+"        break\n",
                     silent = false,
                     storeHistory = true,
                     userExpressions = mapOf(),
@@ -157,9 +155,9 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             )
             val sender = CodeExecutionSender(kernelContext.conv())
             val o2 = sender.send(message2, Dispatchers.Default)
-            val o = sender.send(message,Dispatchers.Default)
-            assertTrue(o is Ok, o.toString())
-            println(o.value.content)
+//            val o = sender.send(message,Dispatchers.Default)
+//            assertTrue(o is Ok, o.toString())
+//            println(o.value.content)
         }
     }
 
