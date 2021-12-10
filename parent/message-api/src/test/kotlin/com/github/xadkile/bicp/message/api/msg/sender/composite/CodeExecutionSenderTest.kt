@@ -137,7 +137,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun send_Ok2() {
 
-        // TODO this run forever, it should not
+        // TODO this run forever, it should not. The reason is that: for code that don't return a result and only has side effect, it will never output execute_result message. The current config of the listener does not quit until it get execute_result message => wait forever. Fix it in CodeExecutionSender
         runBlocking {
             val message2: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
@@ -145,6 +145,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 msgType = Shell.Execute.Request.msgType,
                 msgContent = Shell.Execute.Request.Content(
                     code ="x=0\n" + "while(True):\n"+"    x=x+1\n"+"    if(x>200):\n"+"        break\n",
+//                    code ="x=0\n" +"z=\"\"\n"+ "if(x>10):\n"+"    z=(\"large\")\n"+"else:\n"+"    z=(\"small\")\n"+"z",
                     silent = false,
                     storeHistory = true,
                     userExpressions = mapOf(),
@@ -155,6 +156,8 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             )
             val sender = CodeExecutionSender(kernelContext.conv())
             val o2 = sender.send(message2, Dispatchers.Default)
+            assertTrue(o2 is Ok,o2.toString())
+            println(o2.unwrap().content)
 //            val o = sender.send(message,Dispatchers.Default)
 //            assertTrue(o is Ok, o.toString())
 //            println(o.value.content)

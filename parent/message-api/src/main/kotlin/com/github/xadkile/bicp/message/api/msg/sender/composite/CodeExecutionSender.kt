@@ -73,6 +73,7 @@ class CodeExecutionSender internal constructor(
         var rt: Result<ExecuteResult, Exception>? = null
         var state = SendingState.Start
         val handlers: List<MsgHandler> = listOf(
+
             // x: config listener - catch execute_result message
             IOPub.ExecuteResult.handler { msg ->
                 val receivedMsg: ExecuteResult = msg.toModel()
