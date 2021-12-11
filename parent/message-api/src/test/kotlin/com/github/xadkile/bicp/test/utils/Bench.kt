@@ -86,7 +86,7 @@ class Bench : TestOnJupyter() {
     /**
      * Each suspend function call is completed before moving to the next
      */
-    @Test
+//    @Test
     fun coroutineScopeExample2() {
         runBlocking {
             coroutineScope {
@@ -118,7 +118,7 @@ class Bench : TestOnJupyter() {
         }
     }
 
-    @Test
+//    @Test
     fun runBlockingExample() {
         runBlocking {
             val j1 = launch(Dispatchers.Default) {
@@ -139,7 +139,7 @@ class Bench : TestOnJupyter() {
         println("This is blocked by the completion of runBlocking")
     }
 
-    @Test
+//    @Test
     fun coroutineScopeEggg() {
 
         runBlocking {
@@ -215,7 +215,7 @@ class Bench : TestOnJupyter() {
      *      - for multiple-purpose crap: inject in function parameter. But this is rare. For now this is only used in IOPub listener. This listener is supposed to run both as background services, and one-time object. This is bad, and should not be be exposed to external use.
      *      - for one-time blocking such as network call or long computation, use inherited coroutine scope
      */
-    @Test
+//    @Test
     fun suspendingFunction() {
         runBlocking {
             // block of runBlocking is a suspending function, so it is legal to call mySusFunc1 here
@@ -265,7 +265,7 @@ class Bench : TestOnJupyter() {
     /**
      * Just a demo, avoid using this, as I have to manually cancel the scope job, which is not nice at all
      */
-    @Test
+//    @Test
     fun myOwnScope() {
         val myScope = CoroutineScope(Dispatchers.Default + Job() + CoroutineName("myCoroutine_name"))
         myScope.launch {
@@ -277,7 +277,7 @@ class Bench : TestOnJupyter() {
         }
     }
 
-    @Test
+//    @Test
     fun z32() {
         runBlocking {
             val time = measureTimeMillis {

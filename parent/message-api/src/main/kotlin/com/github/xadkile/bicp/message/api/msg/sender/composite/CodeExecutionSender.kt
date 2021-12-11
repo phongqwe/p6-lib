@@ -77,18 +77,18 @@ class CodeExecutionSender internal constructor(
         // x: create handlers
         val handlers: List<MsgHandler> = listOf(
             IOPub.Status.handler { msg ->
-                // x: code pieces that do not return a value or only do side effects will not trigger execution_result,
+                // x: code pieces that do not return a value or only do side effects will not trigger execution_result
                 // x: so I must rely on execution state to terminate this call
                 val receivedMsg: JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = msg.toModel()
                 executionState = receivedMsg.content.executionState
-                state = state.transit(rt,kernelContext,executionState)
+                state = state.transit(rt, kernelContext, executionState)
             },
             // x: catch execute_result message
             IOPub.ExecuteResult.handler { msg ->
                 val receivedMsg: ExecuteResult = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
                     rt = Ok(receivedMsg)
-                    state = state.transit(rt,kernelContext,executionState)
+                    state = state.transit(rt, kernelContext, executionState)
                 }
             },
             // x: handler for execution err
@@ -100,7 +100,7 @@ class CodeExecutionSender internal constructor(
                             loc = this,
                             data = receivedMsg.content))
                     )
-                    state = state.transit(rt,kernelContext,executionState)
+                    state = state.transit(rt, kernelContext, executionState)
                 }
             },
             //TODO something to do with message that return display data
@@ -121,26 +121,29 @@ class CodeExecutionSender internal constructor(
                         loc = this@CodeExecutionSender,
                         data = message
                     )))
-                    state = state.transit(rt,kernelContext,executionState)
+                    state = state.transit(rt, kernelContext, executionState)
                 }
             } else {
                 rt = Err(sendStatus.unwrapError())
-                state = state.transit(rt,kernelContext,executionState)
+                state = state.transit(rt, kernelContext, executionState)
             }
         }
 
         // x: this ensure that this sender will wait until state reach terminal states: Done
         Sleeper.delayUntil(50) {
-            state = state.transit(rt,kernelContext,executionState)
-            state == SendingState.HasResult || state == SendingState.DoneButNoResult || state == SendingState.KernelDieMidway
+            state = state.transit(rt, kernelContext, executionState)
+            when (state) {
+                SendingState.HasResult, SendingState.DoneButNoResult, SendingState.KernelDieMidway -> true
+                else -> false
+            }
         }
 
         // x: remove temp handlers from the listener to prevent bug
         ioPubListenerService.removeHandlers(handlers)
-        val rt2 = when(state){
-            SendingState.HasResult-> rt!!
+        val rt2 = when (state) {
+            SendingState.HasResult -> rt!!
             SendingState.DoneButNoResult -> Ok(null)
-            SendingState.KernelDieMidway ->  Err(KernelIsDownException(ExceptionInfo(
+            SendingState.KernelDieMidway -> Err(KernelIsDownException(ExceptionInfo(
                 msg = "Kernel is killed before result is returned",
                 loc = this,
                 data = Unit
@@ -181,12 +184,12 @@ class CodeExecutionSender internal constructor(
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
-                executionState: IOPub.Status.ExecutionState
+                executionState: IOPub.Status.ExecutionState,
             ): SendingState {
-                return Working.transit(hasResult, kernelIsRunning,executionState)
+                return Working.transit(hasResult, kernelIsRunning, executionState)
             }
         },
-        KernelDieMidway{
+        KernelDieMidway {
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
@@ -199,13 +202,13 @@ class CodeExecutionSender internal constructor(
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
-                executionState: IOPub.Status.ExecutionState
+                executionState: IOPub.Status.ExecutionState,
             ): SendingState {
 
                 if (hasResult) {
                     return HasResult
                 }
-                if(executionState == IOPub.Status.ExecutionState.idle){
+                if (executionState == IOPub.Status.ExecutionState.idle) {
                     return DoneButNoResult
                 }
                 if (kernelIsRunning.not()) {
@@ -215,7 +218,7 @@ class CodeExecutionSender internal constructor(
                 return this
             }
         },
-        DoneButNoResult{
+        DoneButNoResult {
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
@@ -228,7 +231,7 @@ class CodeExecutionSender internal constructor(
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
-                executionState: IOPub.Status.ExecutionState
+                executionState: IOPub.Status.ExecutionState,
             ): SendingState {
                 return this
             }
@@ -242,7 +245,7 @@ class CodeExecutionSender internal constructor(
         abstract fun transit(
             hasResult: Boolean,
             kernelIsRunning: Boolean,
-            executionState: IOPub.Status.ExecutionState
+            executionState: IOPub.Status.ExecutionState,
         ): SendingState
 
         /**
@@ -251,7 +254,7 @@ class CodeExecutionSender internal constructor(
         fun transit(
             rt: Result<*, *>?,
             kernelContext: KernelContextReadOnlyConv,
-            executionState: IOPub.Status.ExecutionState
+            executionState: IOPub.Status.ExecutionState,
         ): SendingState {
 
             return this.transit(
