@@ -77,7 +77,8 @@ class CodeExecutionSender internal constructor(
         // x: create handlers
         val handlers: List<MsgHandler> = listOf(
             IOPub.Status.handler { msg ->
-                // code piece that do not return a value or only do println will not trigger execution_result, so I must rely on execution state to terminate this call
+                // x: code pieces that do not return a value or only do side effects will not trigger execution_result,
+                // x: so I must rely on execution state to terminate this call
                 val receivedMsg: JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = msg.toModel()
                 executionState = receivedMsg.content.executionState
                 state = state.transit(rt,kernelContext,executionState)
@@ -102,6 +103,7 @@ class CodeExecutionSender internal constructor(
                     state = state.transit(rt,kernelContext,executionState)
                 }
             },
+            //TODO something to do with message that return display data
             MsgHandlers.withUUID(MsgType.IOPub_display_data) { msg ->
                 println(msg)
             }
@@ -130,14 +132,14 @@ class CodeExecutionSender internal constructor(
         // x: this ensure that this sender will wait until state reach terminal states: Done
         Sleeper.delayUntil(50) {
             state = state.transit(rt,kernelContext,executionState)
-            state == SendingState.HasResult || state == SendingState.IdleButNoresult || state == SendingState.KernelDieMidway
+            state == SendingState.HasResult || state == SendingState.DoneButNoResult || state == SendingState.KernelDieMidway
         }
 
         // x: remove temp handlers from the listener to prevent bug
         ioPubListenerService.removeHandlers(handlers)
         val rt2 = when(state){
             SendingState.HasResult-> rt!!
-            SendingState.IdleButNoresult -> Ok(null)
+            SendingState.DoneButNoResult -> Ok(null)
             SendingState.KernelDieMidway ->  Err(KernelIsDownException(ExceptionInfo(
                 msg = "Kernel is killed before result is returned",
                 loc = this,
@@ -203,16 +205,17 @@ class CodeExecutionSender internal constructor(
                 if (hasResult) {
                     return HasResult
                 }
+                if(executionState == IOPub.Status.ExecutionState.idle){
+                    return DoneButNoResult
+                }
                 if (kernelIsRunning.not()) {
                     return KernelDieMidway
                 }
-                if(executionState == IOPub.Status.ExecutionState.idle){
-                    return IdleButNoresult
-                }
+
                 return this
             }
         },
-        IdleButNoresult{
+        DoneButNoResult{
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
