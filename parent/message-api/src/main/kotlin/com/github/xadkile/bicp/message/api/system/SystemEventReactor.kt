@@ -7,6 +7,6 @@ interface SystemEventReactor {
     fun onSystemEvent(event:SystemEvent)
 }
 
-interface SystemEvent {
-    fun getCode():Int
+enum class SystemEvent {
+//    fun getCode():Int
 }
