@@ -27,9 +27,9 @@ object IOPub {
         val msgType = MsgType.IOPub_status
 
         /**
-         * When the kernel starts to handle a message, it will enter the 'busy'
-         * state and when it finishes, it will enter the 'idle' state.
-         * The kernel will publish state 'starting' exactly ONCE at process startup.
+         * busy: When the kernel starts to handle a message.
+         * idle: when it finishes running code
+         * starting: The kernel will publish state 'starting' exactly ONCE at process startup.
          */
         data class Content(
             @SerializedName("execution_state")
@@ -39,7 +39,7 @@ object IOPub {
         class MetaData() : MsgMetaData
 
         enum class ExecutionState{
-            busy, idle, starting
+            busy, idle, starting, undefined
         }
 
         override fun getMsgType2(): MsgType {

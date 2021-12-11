@@ -22,7 +22,7 @@ class SenderProviderImp internal constructor(
         return KernelInfoSender(kernelContext)
     }
 
-    override fun codeExecutionSender(): MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>> {
+    override fun codeExecutionSender(): MsgSender<ExecuteRequest, Result<ExecuteResult?, Exception>> {
         return CodeExecutionSender(kernelContext)
     }
 }

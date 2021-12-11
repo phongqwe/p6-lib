@@ -27,7 +27,7 @@ interface SenderProvider {
     /**
      * composite code execution sender
      */
-    fun codeExecutionSender(): MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>>
+    fun codeExecutionSender(): MsgSender<ExecuteRequest, Result<ExecuteResult?, Exception>>
 
 }
 

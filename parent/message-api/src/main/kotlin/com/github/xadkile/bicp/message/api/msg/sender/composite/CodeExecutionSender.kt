@@ -32,20 +32,20 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
  */
 class CodeExecutionSender internal constructor(
     val kernelContext: KernelContextReadOnlyConv,
-) : MsgSender<ExecuteRequest, Result<ExecuteResult, Exception>> {
+) : MsgSender<ExecuteRequest, Result<ExecuteResult?, Exception>> {
 
 
     /**
      * This works like this:
-     * - add handlers to ioPub listener service catch incoming message
-     * - send message
-     * - wait for listener service to return result
-     * - remove handlers from listener service
+     * - add handlers to ioPub listener service to catch incoming messages
+     * - send input message
+     * - wait for listener service to catch returned result
+     * - remove handlers from listener service when done
      */
     override suspend fun send(
         message: ExecuteRequest,
         dispatcher: CoroutineDispatcher,
-    ): Result<ExecuteResult, Exception> {
+    ): Result<ExecuteResult?, Exception> {
 
         if (kernelContext.isKernelNotRunning()) {
             return Err(KernelIsDownException.occurAt(this))
@@ -71,18 +71,26 @@ class CodeExecutionSender internal constructor(
         }
 
         var rt: Result<ExecuteResult, Exception>? = null
+        var executionState = IOPub.Status.ExecutionState.undefined
         var state = SendingState.Start
-        val handlers: List<MsgHandler> = listOf(
 
-            // x: config listener - catch execute_result message
+        // x: create handlers
+        val handlers: List<MsgHandler> = listOf(
+            IOPub.Status.handler { msg ->
+                // code piece that do not return a value or only do println will not trigger execution_result, so I must rely on execution state to terminate this call
+                val receivedMsg: JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = msg.toModel()
+                executionState = receivedMsg.content.executionState
+                state = state.transit(rt,kernelContext,executionState)
+            },
+            // x: catch execute_result message
             IOPub.ExecuteResult.handler { msg ->
                 val receivedMsg: ExecuteResult = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
                     rt = Ok(receivedMsg)
-                    state = state.transit(rt, kernelContext)
+                    state = state.transit(rt,kernelContext,executionState)
                 }
             },
-            // x: execution err handler
+            // x: handler for execution err
             IOPub.ExecuteError.handler { msg ->
                 val receivedMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
@@ -91,10 +99,10 @@ class CodeExecutionSender internal constructor(
                             loc = this,
                             data = receivedMsg.content))
                     )
-                    state = state.transit(rt, kernelContext)
+                    state = state.transit(rt,kernelContext,executionState)
                 }
             },
-            MsgHandlers.withUUID(MsgType.IOPub_display_data){msg->
+            MsgHandlers.withUUID(MsgType.IOPub_display_data) { msg ->
                 println(msg)
             }
         )
@@ -111,39 +119,56 @@ class CodeExecutionSender internal constructor(
                         loc = this@CodeExecutionSender,
                         data = message
                     )))
-                    state = state.transit(rt, kernelContext)
+                    state = state.transit(rt,kernelContext,executionState)
                 }
             } else {
                 rt = Err(sendStatus.unwrapError())
-                state = state.transit(rt, kernelContext)
+                state = state.transit(rt,kernelContext,executionState)
             }
         }
 
         // x: this ensure that this sender will wait until state reach terminal states: Done
-//        while (state != SendingState.Done) {
-//            state = state.transit(rt, kernelContext)
-//        }
-        Sleeper.delayUntil(50){
-            state = state.transit(rt, kernelContext);
-            state == SendingState.Done
+        Sleeper.delayUntil(50) {
+            state = state.transit(rt,kernelContext,executionState)
+            state == SendingState.HasResult || state == SendingState.IdleButNoresult || state == SendingState.KernelDieMidway
         }
 
         // x: remove temp handlers from the listener to prevent bug
         ioPubListenerService.removeHandlers(handlers)
-
-        if (state == SendingState.Done) {
-            if (rt != null) {
-                return rt!!
-            } else {
-                return Err(KernelIsDownException(ExceptionInfo(
-                    msg = "Kernel is killed before result is returned",
-                    loc = this,
-                    data = Unit
-                )))
-            }
-        } else {
-            return Err(UnknownException.occurAt(this))
+        val rt2 = when(state){
+            SendingState.HasResult-> rt!!
+            SendingState.IdleButNoresult -> Ok(null)
+            SendingState.KernelDieMidway ->  Err(KernelIsDownException(ExceptionInfo(
+                msg = "Kernel is killed before result is returned",
+                loc = this,
+                data = Unit
+            )))
+            else -> Err(UnknownException.occurAt(this))
         }
+        return rt2
+
+//        if (state == SendingState.HasResult) {
+//            if (rt != null) {
+//                return rt!!
+//            } else {
+//                if(executionState == IOPub.Status.ExecutionState.idle){
+//                    //
+//                    return Err(KernelIsDownException(ExceptionInfo(
+//                        msg = "Ace",
+//                        loc = this,
+//                        data = Unit
+//                    )))
+//                }else{
+//                    return Err(KernelIsDownException(ExceptionInfo(
+//                        msg = "Kernel is killed before result is returned",
+//                        loc = this,
+//                        data = Unit
+//                    )))
+//                }
+//            }
+//        } else {
+//            return Err(UnknownException.occurAt(this))
+//        }
     }
 
     /**
@@ -154,29 +179,53 @@ class CodeExecutionSender internal constructor(
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
+                executionState: IOPub.Status.ExecutionState
             ): SendingState {
-                return Working.transit(hasResult, kernelIsRunning)
+                return Working.transit(hasResult, kernelIsRunning,executionState)
+            }
+        },
+        KernelDieMidway{
+            override fun transit(
+                hasResult: Boolean,
+                kernelIsRunning: Boolean,
+                executionState: IOPub.Status.ExecutionState,
+            ): SendingState {
+                return this
             }
         },
         Working {
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
+                executionState: IOPub.Status.ExecutionState
             ): SendingState {
 
                 if (hasResult) {
-                    return Done
+                    return HasResult
                 }
-                if (kernelIsRunning == false) {
-                    return Done
+                if (kernelIsRunning.not()) {
+                    return KernelDieMidway
+                }
+                if(executionState == IOPub.Status.ExecutionState.idle){
+                    return IdleButNoresult
                 }
                 return this
             }
         },
-        Done {
+        IdleButNoresult{
             override fun transit(
                 hasResult: Boolean,
                 kernelIsRunning: Boolean,
+                executionState: IOPub.Status.ExecutionState,
+            ): SendingState {
+                return this
+            }
+        },
+        HasResult {
+            override fun transit(
+                hasResult: Boolean,
+                kernelIsRunning: Boolean,
+                executionState: IOPub.Status.ExecutionState
             ): SendingState {
                 return this
             }
@@ -190,6 +239,7 @@ class CodeExecutionSender internal constructor(
         abstract fun transit(
             hasResult: Boolean,
             kernelIsRunning: Boolean,
+            executionState: IOPub.Status.ExecutionState
         ): SendingState
 
         /**
@@ -198,11 +248,13 @@ class CodeExecutionSender internal constructor(
         fun transit(
             rt: Result<*, *>?,
             kernelContext: KernelContextReadOnlyConv,
+            executionState: IOPub.Status.ExecutionState
         ): SendingState {
 
             return this.transit(
                 hasResult = rt != null,
                 kernelIsRunning = kernelContext.getConvHeartBeatService().get()?.isHBAlive() ?: false,
+                executionState = executionState
             )
         }
     }

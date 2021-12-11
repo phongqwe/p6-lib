@@ -25,6 +25,8 @@ import org.junit.jupiter.api.TestInstance
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.system.measureTimeMillis
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -130,37 +132,56 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             val sender = CodeExecutionSender(kernelContext.conv())
             val o = sender.send(message, Dispatchers.Default)
             assertTrue(o is Ok, o.toString())
-            println(o.value.content)
+            println(o.value?.content)
         }
     }
 
-    @Test
-    fun send_Ok2() {
-
-        // TODO this run forever, it should not. The reason is that: for code that don't return a result and only has side effect, it will never output execute_result message. The current config of the listener does not quit until it get execute_result message => wait forever. Fix it in CodeExecutionSender
+//    @Test
+    fun send_Ok_longOperation() {
         runBlocking {
             val message2: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
                 msgType = Shell.Execute.Request.msgType,
                 msgContent = Shell.Execute.Request.Content(
-                    code ="x=0\n" + "while(True):\n"+"    x=x+1\n"+"    if(x>200):\n"+"        break\n",
-//                    code ="x=0\n" +"z=\"\"\n"+ "if(x>10):\n"+"    z=(\"large\")\n"+"else:\n"+"    z=(\"small\")\n"+"z",
+                    code =
+                            "x=0\n" + "" +
+                            "while(True):\n"+
+                            "    x=x+1\n"+
+                            "    if(x>200000000):\n"+
+                            "        break\n"
+                    ,
                     silent = false,
                     storeHistory = true,
                     userExpressions = mapOf(),
                     allowStdin = false,
                     stopOnError = true
                 ),
-                "msg_id_abc_123"
+                "msg_id_abc_2"
+            )
+            val message: ExecuteRequest = ExecuteRequest.autoCreate(
+                sessionId = "session_id",
+                username = "user_name",
+                msgType = Shell.Execute.Request.msgType,
+                msgContent = Shell.Execute.Request.Content(
+                    code = "x",
+                    silent = false,
+                    storeHistory = true,
+                    userExpressions = mapOf(),
+                    allowStdin = false,
+                    stopOnError = true
+                ),
+                "msg_id_abc_1"
             )
             val sender = CodeExecutionSender(kernelContext.conv())
             val o2 = sender.send(message2, Dispatchers.Default)
             assertTrue(o2 is Ok,o2.toString())
-            println(o2.unwrap().content)
-//            val o = sender.send(message,Dispatchers.Default)
-//            assertTrue(o is Ok, o.toString())
-//            println(o.value.content)
+            assertNull(o2.value)
+
+            val o = sender.send(message,Dispatchers.Default)
+            assertTrue(o is Ok, o.toString())
+            assertNotNull(o.value)
+            println(o.value?.content)
         }
     }
 

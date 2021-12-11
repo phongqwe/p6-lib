@@ -6,6 +6,6 @@
     "processStopTimeout":60000,
     "connectionFileWriteTimeout":60000,
     "serviceInitTimeOut":60000,
-    "messageTimeOut": 2000
+    "messageTimeOut": -1
   }
 }
