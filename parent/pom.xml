@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>bom</artifactId>
-        <groupId>com.github.xadkile.bicp</groupId>
+        <groupId>com.github.xadkile.p6</groupId>
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,7 +13,6 @@
 
     <modules>
         <module>message-api</module>
-        <module>file-operation</module>
         <module>formula-translator</module>
         <module>exception-lib</module>
     </modules>
