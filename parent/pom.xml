@@ -14,6 +14,8 @@
     <modules>
         <module>message-api</module>
         <module>file-operation</module>
+        <module>formula-translator</module>
+        <module>exception-lib</module>
     </modules>
 
     <properties>

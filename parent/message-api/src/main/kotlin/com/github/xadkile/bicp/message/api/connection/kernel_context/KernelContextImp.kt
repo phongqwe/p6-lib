@@ -10,7 +10,7 @@ import com.github.xadkile.bicp.message.api.connection.service.heart_beat.corouti
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
-import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
+import com.github.xadkile.bicp.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.KernelConnectionFileContent
 //import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceUpdater
 import com.github.xadkile.bicp.message.api.other.Sleeper

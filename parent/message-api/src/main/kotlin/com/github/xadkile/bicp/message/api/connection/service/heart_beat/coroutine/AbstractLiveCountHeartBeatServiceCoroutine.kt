@@ -5,8 +5,8 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.exception.HBServiceNotRunningCrashException
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatService
-import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
-import com.github.xadkile.bicp.message.api.exception.UnknownException
+import com.github.xadkile.bicp.exception.ExceptionInfo
+import com.github.xadkile.bicp.exception.UnknownException
 import kotlinx.coroutines.*
 import org.zeromq.ZContext
 import org.zeromq.ZMQ

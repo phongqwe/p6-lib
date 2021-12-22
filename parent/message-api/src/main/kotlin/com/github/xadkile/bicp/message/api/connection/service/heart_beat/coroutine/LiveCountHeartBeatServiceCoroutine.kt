@@ -5,7 +5,7 @@ import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBe
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceConvImp
 import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.SocketProvider
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.exception.CantStartHBServiceException
-import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
+import com.github.xadkile.bicp.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.exception.TimeOutException
 import com.github.xadkile.bicp.message.api.other.Sleeper
 import kotlinx.coroutines.*

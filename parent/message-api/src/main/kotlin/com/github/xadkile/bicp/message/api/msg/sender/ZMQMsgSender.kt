@@ -8,7 +8,7 @@ import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBe
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.context_object.MsgEncoder
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.exception.HBServiceNotRunningException
-import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
+import com.github.xadkile.bicp.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.sender.exception.UnableToQueueZMsgException

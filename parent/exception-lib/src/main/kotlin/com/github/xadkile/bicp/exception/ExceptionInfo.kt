@@ -1,14 +1,18 @@
-package com.github.xadkile.bicp.message.api.exception
+package com.github.xadkile.bicp.exception
 
 
 /**
  * An exception in which I can specify the location it occurs and the message
+ * [msg]: a message briefly describe the exception
+ * [loc]: location where an exception occurs
+ * [data]: data about the exception
+ * [dataToStrConverter] : a function that convert [data] to String
  */
 data class ExceptionInfo<D>(
     val msg: String = "",
     val loc: String = "",
     val data: D,
-    val dataStrMaker: () -> String = { data?.toString() ?: "" },
+    val dataToStrConverter: () -> String = { data?.toString() ?: "" },
 ) {
 
     constructor(
@@ -17,14 +21,14 @@ data class ExceptionInfo<D>(
         data: D,
         dataStrMaker: () -> String = { data?.toString() ?: "" },
     ) : this(
-        msg, loc::class.java.canonicalName, data, dataStrMaker
+        msg, if(loc is String) loc else loc::class.java.canonicalName, data, dataStrMaker
     )
 
     override fun toString(): String {
-        val dataStr = dataStrMaker()
+        val dataStr = dataToStrConverter()
         return """
         ${if (msg.isNotEmpty()) "* msg: $msg" else ""}
-        ${if (loc.isNotEmpty()) "* at: ${loc}" else ""}
+        ${if (loc.isNotEmpty()) "* at: $loc" else ""}
         ${if (dataStr.isNotEmpty()) "* data: $dataStr" else ""}
         """
     }
@@ -43,8 +47,8 @@ data class ExceptionInfo<D>(
         return this.copy(data = data)
     }
 
-    fun withDataStrMaker(dataStrMaker: () -> String): ExceptionInfo<D> {
-        return this.copy(dataStrMaker = dataStrMaker)
+    fun withDataToStrConverter(dataStrMaker: () -> String): ExceptionInfo<D> {
+        return this.copy(dataToStrConverter = dataStrMaker)
     }
 }
 

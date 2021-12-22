@@ -1,65 +1,28 @@
 package com.github.xadkile.bicp.test.utils
 
-import com.github.xadkile.bicp.message.api.other.Sleeper
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.*
 import java.math.BigInteger
 import java.util.*
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.regex.Pattern
 import kotlin.concurrent.thread
 import kotlin.system.measureTimeMillis
+import kotlin.test.assertTrue
 
-
-class S1 {
-    var i = true
-    var x = 0
-    suspend fun start() {
-        while (i) {
-            delay(500)
-            x++
-        }
-    }
-
-    fun isRunning(): Boolean {
-        return x > 3
-    }
-
-    fun cancel() {
-        i = false
-    }
-}
-
-class S2 {
-    var x = 0
-    var job: Job? = null
-
-    fun start(scope: CoroutineScope): Boolean {
-        this.job = scope.launch(Dispatchers.Default) {
-            while (isActive) {
-                delay(100)
-                x++
-            }
-        }
-        return true
-    }
-
-    fun cancel() {
-        this.job?.cancel()
-    }
-
-    fun isRunning(): Boolean {
-        return x > 3 && (this.job?.isActive ?: false)
-    }
-}
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
 
     @Test
     fun bench(){
-        println(this::class.java.simpleName)
+        val pattern = Pattern.compile("SUM\\([A-Za-z]+[1-9][0-9]*:?([A-Za-z]+[1-9][0-9]*)*\\)")
+        val o1 = pattern.matcher("SUM(A1:BC333)").matches()
+        val o2 = pattern.matcher("SUM(A1)").matches()
+        assertTrue(o1)
+        assertTrue(o2)
+
     }
     suspend fun fs() {
         withContext(Dispatchers.Default) {

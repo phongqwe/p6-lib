@@ -3,13 +3,13 @@ package com.github.xadkile.bicp.message.api.msg.sender.composite
 import com.github.michaelbull.result.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
-import com.github.xadkile.bicp.message.api.exception.UnknownException
+import com.github.xadkile.bicp.exception.UnknownException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.ExecutionErrException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandler
 import com.github.xadkile.bicp.message.api.connection.service.iopub.MsgHandlers
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
-import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
+import com.github.xadkile.bicp.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.JPMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgStatus
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType

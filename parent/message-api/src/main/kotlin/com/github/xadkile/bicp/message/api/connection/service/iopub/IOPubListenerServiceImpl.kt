@@ -5,7 +5,7 @@ import com.github.xadkile.bicp.message.api.connection.kernel_context.*
 import com.github.xadkile.bicp.message.api.connection.kernel_context.exception.KernelIsDownException
 import com.github.xadkile.bicp.message.api.connection.service.heart_beat.exception.HBIsDeadException
 import com.github.xadkile.bicp.message.api.connection.service.iopub.exception.CantStartIOPubServiceException
-import com.github.xadkile.bicp.message.api.exception.ExceptionInfo
+import com.github.xadkile.bicp.exception.ExceptionInfo
 import com.github.xadkile.bicp.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.bicp.message.api.msg.protocol.MsgType
 import com.github.xadkile.bicp.message.api.msg.protocol.data_interface_definition.IOPub
