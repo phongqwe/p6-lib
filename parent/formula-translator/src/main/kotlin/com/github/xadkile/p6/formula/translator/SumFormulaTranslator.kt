@@ -8,9 +8,9 @@ import com.github.xadkile.p6.formula.translator.exception.FailToParseFormulaExce
 import com.github.xadkile.p6.formula.translator.static.Py
 import java.util.regex.Pattern
 
-class NaiveFormulaTranslator : FormulaTranslator {
+class SumFormulaTranslator : FormulaTranslator {
     companion object {
-        val sumPattern = Pattern.compile("SUM\\([A-Za-z]+[1-9][0-9]*:?([A-Za-z]+[1-9][0-9]*)*\\)")
+        val sumPattern = Pattern.compile("=SUM\\([A-Za-z]+[1-9][0-9]*:?([A-Za-z]+[1-9][0-9]*)*\\)")
 
         val addressPattern = Pattern.compile("[A-Za-z]+[1-9][0-9]*:?([A-Za-z]+[1-9][0-9]*)")
     }
