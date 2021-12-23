@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>formular-translator</artifactId>
+    <artifactId>formula-translator</artifactId>
     <description>translate spreadsheet formula into python code</description>
 
     <dependencies>

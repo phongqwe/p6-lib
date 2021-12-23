@@ -20,6 +20,16 @@
                 <artifactId>message-api</artifactId>
                 <version>${message.api.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.github.xadkile.p6</groupId>
+                <artifactId>formula-translator</artifactId>
+                <version>${message.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.xadkile.p6</groupId>
+                <artifactId>exception-lib</artifactId>
+                <version>${message.api.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
