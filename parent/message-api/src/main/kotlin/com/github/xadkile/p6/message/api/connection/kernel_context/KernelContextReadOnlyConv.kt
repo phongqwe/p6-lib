@@ -5,7 +5,6 @@ import com.github.michaelbull.result.map
 import com.github.xadkile.p6.message.api.channel.ChannelInfo
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.p6.message.api.msg.protocol.KernelConnectionFileContent
 import com.github.xadkile.p6.message.api.msg.protocol.other.MsgIdGenerator
@@ -31,10 +30,6 @@ interface KernelContextReadOnlyConv : KernelContextReadOnly {
 
     fun getShellAddress():Result<String,Exception>{
         return this.getChannelProvider().map { it.shellAddress() }
-    }
-
-    fun getConvHeartBeatService(): Result<HeartBeatServiceConv, Exception> {
-        return this.getHeartBeatService().map { it.conv() }
     }
 
     fun getIOPubChannel():Result<ChannelInfo,Exception>{

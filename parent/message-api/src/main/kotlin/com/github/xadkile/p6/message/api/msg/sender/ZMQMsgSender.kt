@@ -6,7 +6,7 @@ import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
 import com.github.xadkile.p6.exception.ExceptionInfo
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.MsgEncoder
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatServiceConv
+import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.HBServiceNotRunningException
 import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
 import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
@@ -32,7 +32,7 @@ internal class ZMQMsgSender {
             message: JPMessage<*, *>,
             socket: ZMQ.Socket,
             encoder: MsgEncoder,
-            hbs: HeartBeatServiceConv,
+            hbs: HeartBeatService,
             zContext: ZContext,
             interval: Long = SenderConstant.defaultPollingDuration,
         ): Result<JPRawMessage, Exception> {
@@ -54,14 +54,14 @@ internal class ZMQMsgSender {
         fun send(
             message: List<ByteArray>,
             socket: ZMQ.Socket,
-            hbs: HeartBeatServiceConv,
+            hbs: HeartBeatService,
             zContext: ZContext,
             interval: Long = SenderConstant.defaultPollingDuration,
         ): Result<ZMsg, Exception> {
             // reminder: if heart beat service is not running, then
             // there is no way to ensure that zmq is running
             // => don't send any message if hb service is dead
-            if (hbs.convCheck()) {
+            if (hbs.isServiceUpAndHBLive()) {
                 val poller: ZMQ.Poller = zContext.createPoller(1)
                 val payload: List<ZFrame> = message.map { ZFrame(it) }
                 val zmsg: ZMsg = ZMsg().also { it.addAll(payload) }

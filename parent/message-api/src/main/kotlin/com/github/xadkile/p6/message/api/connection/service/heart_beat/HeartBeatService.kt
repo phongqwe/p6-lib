@@ -19,10 +19,11 @@ interface HeartBeatService: Service {
      */
     fun isServiceRunning():Boolean
 
-    /**
-     * convert this to a more convenient but more dangerous interface. Use with care and thought
-     */
-    fun conv(): HeartBeatServiceConv
+    fun isServiceUpAndHBLive():Boolean{
+        val c1 = this.isServiceRunning()
+        val c2 = this.isHBAlive()
+        return c1 && c2
+    }
 
     override fun isRunning(): Boolean {
         return isServiceRunning()

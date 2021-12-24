@@ -168,7 +168,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
             every { it.getSocketProvider().unwrap().ioPubSocket() } returns subSocket
             every { it.isKernelRunning() } returns true
             every { it.isKernelNotRunning() } returns false
-            every { it.getConvHeartBeatService().get()?.isHBAlive() } returns true
+            every { it.getHeartBeatService().get()?.isHBAlive() } returns true
         }
 
         var exceptionHandlerTriggerCount = 0

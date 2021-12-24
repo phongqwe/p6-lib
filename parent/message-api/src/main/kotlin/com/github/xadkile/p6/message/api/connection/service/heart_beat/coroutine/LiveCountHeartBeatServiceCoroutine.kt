@@ -1,12 +1,9 @@
 package com.github.xadkile.p6.message.api.connection.service.heart_beat.coroutine
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatServiceConv
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatServiceConvImp
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.SocketProvider
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.CantStartHBServiceException
 import com.github.xadkile.p6.exception.ExceptionInfo
-import com.github.xadkile.p6.message.api.exception.TimeOutException
 import com.github.xadkile.p6.message.api.other.Sleeper
 import kotlinx.coroutines.*
 import org.zeromq.ZContext
@@ -29,7 +26,6 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
     cDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : AbstractLiveCountHeartBeatServiceCoroutine(zContext, liveCount, pollTimeout, cScope, cDispatcher) {
 
-    private val convService = HeartBeatServiceConvImp(this)
 
     /**
      * init resources and start service thread
@@ -71,10 +67,6 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
             )
         }
         return rt
-    }
-
-    override fun conv(): HeartBeatServiceConv {
-        return this.convService
     }
 
     private suspend fun waitToLive():Result<Unit, Exception>{

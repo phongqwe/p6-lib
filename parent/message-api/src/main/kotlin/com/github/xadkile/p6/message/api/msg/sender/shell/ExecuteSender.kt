@@ -32,7 +32,7 @@ class ExecuteSender internal constructor(
             val pcSender = PCSender<ExecuteRequest, ExecuteReply>(
                 kernelContext.getSocketProvider().unwrap().shellSocket(),
                 kernelContext.getMsgEncoder().unwrap(),
-                kernelContext.getConvHeartBeatService().unwrap(),
+                kernelContext.getHeartBeatService().unwrap(),
                 kernelContext.zContext(),
                 kernelContext.getKernelConfig().timeOut.messageTimeOut
             )

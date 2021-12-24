@@ -23,7 +23,7 @@ internal class ZMQMsgSenderTest : TestOnJupyter() {
             socket= zcontext.createSocket(SocketType.REQ).also {
                 it.connect(iPythonContextConv.getHeartBeatAddress().unwrap())
             },
-            hbs= kernelContext.getHeartBeatService().unwrap().conv(),
+            hbs= kernelContext.getHeartBeatService().unwrap(),
             interval = 1000,
             zContext = kernelContext.zContext()
         )
