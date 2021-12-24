@@ -9,14 +9,22 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>formula-translator</artifactId>
-    <description>module for translating spreadsheet formula into python code</description>
+    <artifactId>p6-app</artifactId>
+    <description>p6 app interface without UI, handle things such as getting system information, user info, reading, writing config </description>
 
     <dependencies>
         <dependency>
             <groupId>com.github.xadkile.p6</groupId>
+            <artifactId>message-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.xadkile.p6</groupId>
             <artifactId>exception-lib</artifactId>
-            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.xadkile.p6</groupId>
+            <artifactId>formula-translator</artifactId>
         </dependency>
     </dependencies>
+
 </project>

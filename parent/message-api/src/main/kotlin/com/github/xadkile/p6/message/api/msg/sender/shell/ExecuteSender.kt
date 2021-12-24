@@ -3,13 +3,14 @@ package com.github.xadkile.p6.message.api.msg.sender.shell
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.p6.message.api.connection.kernel_context.*
+import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelIsDownException
 import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.p6.message.api.msg.sender.MsgSender
 import com.github.xadkile.p6.message.api.msg.sender.PCSender
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 
 typealias ExecuteReply = JPMessage<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>
 

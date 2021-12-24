@@ -29,15 +29,16 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- *  [_kernelConfig] is fixed, read from an external file and only change after application start.
+ *  standard implementation of [KernelContext]
  */
 @Singleton
 class KernelContextImp @Inject internal constructor(
+    // x: _kernelConfig is created from an external file.
     private val _kernelConfig: KernelConfig,
     private val zcontext: ZContext,
-
     @ApplicationCScope
     private val appCScope: CoroutineScope,
+    // x: dispatcher (a group of threads) on which network communication services run on
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : KernelContext {
 
@@ -63,7 +64,7 @@ class KernelContextImp @Inject internal constructor(
     private var onAfterStopListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
     private var onKernelStartedListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
 
-    private val convenientInterface = KernelContextReadOnlyConvImp(this)
+    private val convInstance = KernelContextReadOnlyConvImp(this)
 
     companion object {
         private val ipythonIsDownErr = KernelIsDownException.occurAt(this)
@@ -110,7 +111,7 @@ class KernelContextImp @Inject internal constructor(
 
             // x: create resources, careful with the order of resource initiation,
             // x: some must be initialized first
-            // x: don't use getter here
+            // x: must NOT use getters here because getters always check for kernel status before return derivative objects
             this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
             this.socketProvider = SocketProviderImp(this.channelProvider!!, this.zcontext)
             this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
@@ -414,36 +415,36 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getIOPubListenerService(): Result<IOPubListenerService, Exception> {
-//        val z = getService<IOPubListenerService>(this.ioPubService)
-//        return z
-        if (this.ioPubService != null) {
-            if (this.ioPubService?.isRunning() == true) {
-                return Ok(this.ioPubService!!)
-            } else {
-                return Err(IOPubListenerNotRunningException.occurAt(this))
-            }
-        } else {
-            return Err(ServiceNullException.occurAt(this, IOPubListenerService::class.java.simpleName))
-        }
+        val sv = getService<IOPubListenerService>(this.ioPubService)
+        return sv
+//        if (this.ioPubService != null) {
+//            if (this.ioPubService?.isRunning() == true) {
+//                return Ok(this.ioPubService!!)
+//            } else {
+//                return Err(IOPubListenerNotRunningException.occurAt(this))
+//            }
+//        } else {
+//            return Err(ServiceNullException.occurAt(this, IOPubListenerService::class.java.simpleName))
+//        }
     }
 
     override fun getHeartBeatService(): Result<HeartBeatService, Exception> {
-//        val z = getService<HeartBeatService>(this.hbService)
-//        return z
-        if (this.hbService != null) {
-            if (this.hbService?.isServiceRunning() == true) {
-                return Ok(this.hbService!!)
-            } else {
-                return Err(IOPubListenerNotRunningException.occurAt(this))
-            }
-        } else {
-            return Err(ServiceNullException.occurAt(this, HeartBeatService::class.java.simpleName))
-        }
+        val sv = getService<HeartBeatService>(this.hbService)
+        return sv
+//        if (this.hbService != null) {
+//            if (this.hbService?.isServiceRunning() == true) {
+//                return Ok(this.hbService!!)
+//            } else {
+//                return Err(IOPubListenerNotRunningException.occurAt(this))
+//            }
+//        } else {
+//            return Err(ServiceNullException.occurAt(this, HeartBeatService::class.java.simpleName))
+//        }
     }
 
     private fun <T> getService(service: Service?): Result<T, Exception> {
         if (service != null) {
-            if (service?.isRunning() == true) {
+            if (service.isRunning() == true) {
                 return Ok(service as T)
             } else {
                 return Err(IOPubListenerNotRunningException.occurAt(this))
@@ -454,7 +455,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun conv(): KernelContextReadOnlyConv {
-        return this.convenientInterface
+        return this.convInstance
     }
 
     override fun zContext(): ZContext {

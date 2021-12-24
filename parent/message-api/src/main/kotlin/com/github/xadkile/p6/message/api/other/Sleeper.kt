@@ -3,7 +3,6 @@ package com.github.xadkile.p6.message.api.other
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.ExceptionInfo
 import com.github.xadkile.p6.message.api.exception.TimeOutException
 import kotlinx.coroutines.delay
 

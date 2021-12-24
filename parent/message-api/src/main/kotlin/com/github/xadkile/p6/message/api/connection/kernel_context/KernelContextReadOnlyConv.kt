@@ -10,25 +10,19 @@ import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerS
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.p6.message.api.msg.protocol.KernelConnectionFileContent
 import com.github.xadkile.p6.message.api.msg.protocol.other.MsgIdGenerator
+import com.github.xadkile.p6.message.api.msg.sender.MsgSender
+import com.github.xadkile.p6.message.api.msg.sender.composite.ExecuteResult
+import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteReply
+import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteRequest
+import com.github.xadkile.p6.message.api.msg.sender.shell.KernelInfoInput
+import com.github.xadkile.p6.message.api.msg.sender.shell.KernelInfoOutput
 import org.zeromq.ZContext
 
+/**
+ * A more convenient KernelContext interface
+ */
 interface KernelContextReadOnlyConv : KernelContextReadOnly {
 
-    override fun getKernelConfig(): KernelConfig {
-        return original().getKernelConfig()
-    }
-
-    override fun isServiceRunning(): Boolean {
-        return original().isServiceRunning()
-    }
-
-    override fun isAllRunning(): Boolean {
-        return original().isAllRunning()
-    }
-
-    override fun getIOPubListenerService(): Result<IOPubListenerServiceReadOnly, Exception> {
-        return this.original().getIOPubListenerService()
-    }
 
     fun getHeartBeatChannel(): Result<ChannelInfo, Exception> {
         return this.getChannelProvider().map { it.heartbeatChannel() }
@@ -67,6 +61,26 @@ interface KernelContextReadOnlyConv : KernelContextReadOnly {
     }
 
     fun original(): KernelContextReadOnly
+
+
+    // === OVERLOADED === //
+
+
+    override fun getKernelConfig(): KernelConfig {
+        return original().getKernelConfig()
+    }
+
+    override fun isServiceRunning(): Boolean {
+        return original().isServiceRunning()
+    }
+
+    override fun isAllRunning(): Boolean {
+        return original().isAllRunning()
+    }
+
+    override fun getIOPubListenerService(): Result<IOPubListenerServiceReadOnly, Exception> {
+        return this.original().getIOPubListenerService()
+    }
 
     override fun getSocketProvider(): Result<SocketProvider, Exception> {
         return this.original().getSocketProvider()

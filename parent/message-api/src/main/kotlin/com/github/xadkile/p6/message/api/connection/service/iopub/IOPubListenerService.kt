@@ -4,7 +4,6 @@ import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.message.api.connection.service.Service
 import com.github.xadkile.p6.message.api.msg.protocol.MsgType
 import com.github.xadkile.p6.message.api.other.RunningState
-import kotlin.Exception
 
 /**
  * Listen for in-coming message.

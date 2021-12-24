@@ -3,7 +3,6 @@ package com.github.xadkile.p6.message.di
 import com.github.xadkile.p6.message.api.connection.kernel_context.ApplicationCScope
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelConfig
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContext
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelTimeOut
 import dagger.BindsInstance
 import dagger.Component
 import kotlinx.coroutines.CoroutineDispatcher

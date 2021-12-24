@@ -2,8 +2,8 @@ package com.github.xadkile.p6.message.api.msg.sender
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.MsgEncoder
+import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatServiceConv
 import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
 import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.p6.message.api.msg.protocol.MsgContent

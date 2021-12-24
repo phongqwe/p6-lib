@@ -5,23 +5,9 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * manage IPython process, also provide connection info.
- * This class is stateful.
- * TODO long: need to add something to watch for unexpected kill of IPython
- * There is a risk of memory leak here. Objects produced by context can be hold by other objects, therefore if this context die, the legality of such objects become questionable, but their references in external objects are still valid, therefore, they are not cleaned up => leak faulty object, and their usage is dangerous. I must take measure to prevent that from happening.
- *
- * For example:
- * heartbeat service can be used by sender to check zmq liveness.
- * During a long computation session, the hb service is polled to make sure that it is safe to continue waiting for the computation to complete.
- * If IpythonContext stops midway or ipython process is killed, it will stop the hb service + null the reference to the service. The consequence is:
- *  - The hb is stopped => the poll will fail => sender return fail result
- *      + if the sender is reused, it will re-used the discarded hb instances => always return fail result even when the zmq is restored.
- *      + if the sender is kept around, the discarded hb instance is kept around => mem leak
- *  - if IPython context is start again, there will be a new hb service instance that is completely different from the discarded instance
- *
- *  Solution:
- *  1. never cached leakable instances as properties, always use method call from context to retrieve their instances. The only cached object is the context instance
- *  2. create an elaborated structure to host leakable instances, this structure must react on state change event of context to retrieve the correct instances. This is just solution 1 with an abstract wall insert between the context and the users. => no added value, just more complexity.
+ * TODO need to add something to watch for unexpected kill of IPython
+ * Interface for managing kernel process, provide information to work with the kernel.
+ * There is a risk of memory leak here. It is crucial that consumers of instances of this interface must not cache any derivative objects
  */
 interface KernelContext : KernelContextReadOnly {
     /**

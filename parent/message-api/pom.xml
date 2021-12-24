@@ -5,19 +5,17 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.github.xadkile.p6</groupId>
-        <version>1.0</version>
+        <version>${revision}</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>message-api</artifactId>
-
+    <description>api for communicating with kernel using zmq</description>
     <dependencies>
         <dependency>
             <groupId>com.github.xadkile.p6</groupId>
             <artifactId>exception-lib</artifactId>
-            <version>1.0</version>
         </dependency>
-
         <dependency>
             <groupId>com.google.dagger</groupId>
             <artifactId>dagger-compiler</artifactId>
@@ -34,11 +32,9 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
-
     </dependencies>
 </project>

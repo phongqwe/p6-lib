@@ -7,10 +7,10 @@
     <groupId>com.github.xadkile.p6</groupId>
     <artifactId>bom</artifactId>
     <packaging>pom</packaging>
-    <version>1.0</version>
+    <version>${revision}</version>
 
     <properties>
-        <message.api.version>1.0</message.api.version>
+        <revision>1.0</revision>
     </properties>
 
     <dependencyManagement>
@@ -18,17 +18,22 @@
             <dependency>
                 <groupId>com.github.xadkile.p6</groupId>
                 <artifactId>message-api</artifactId>
-                <version>${message.api.version}</version>
+                <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.xadkile.p6</groupId>
                 <artifactId>formula-translator</artifactId>
-                <version>${message.api.version}</version>
+                <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.xadkile.p6</groupId>
                 <artifactId>exception-lib</artifactId>
-                <version>${message.api.version}</version>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.xadkile.p6</groupId>
+                <artifactId>p6-app</artifactId>
+                <version>${revision}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -4,11 +4,10 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatServiceConv
-import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.MsgEncoder
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.HBServiceNotRunningException
 import com.github.xadkile.p6.exception.ExceptionInfo
+import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.MsgEncoder
+import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatServiceConv
+import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.HBServiceNotRunningException
 import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
 import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.p6.message.api.msg.sender.exception.UnableToQueueZMsgException
