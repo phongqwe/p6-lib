@@ -19,7 +19,7 @@ import org.zeromq.ZMQ
 internal class LiveCountHeartBeatServiceCoroutine constructor(
     zContext: ZContext,
     private val socketProvider: SocketProvider,
-    liveCount: Int = 3,
+    liveCount: Int = 10,
     pollTimeout: Long = 1000,
     val startTimeOut:Long = 5000,
     cScope: CoroutineScope,

@@ -16,8 +16,8 @@ import org.zeromq.ZMQ
  */
 internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
     protected val zContext: ZContext,
-    protected val liveCount: Int = 10,
-    private val pollTimeOut: Long = 1000,
+    protected val liveCount: Int,
+    private val pollTimeOut: Long,
     protected val cScope: CoroutineScope,
     protected val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : HeartBeatService {

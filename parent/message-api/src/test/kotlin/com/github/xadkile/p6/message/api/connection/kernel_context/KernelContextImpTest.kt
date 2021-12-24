@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.message.api.connection
+package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelConfig
