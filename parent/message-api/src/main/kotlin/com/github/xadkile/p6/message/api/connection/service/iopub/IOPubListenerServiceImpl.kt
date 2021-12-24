@@ -56,12 +56,6 @@ class IOPubListenerServiceImpl internal constructor(
             return Err(KernelIsDownException.occurAt(this))
         }
 
-//        val hbIsAlive:Boolean = kernelContext.getConvHeartBeatService().get()?.isHBAlive() ?: false
-//
-//        if (hbIsAlive.not()) {
-//            return Err(HBIsDeadException(ExceptionInfo(loc = this, data = Unit)))
-//        }
-
         val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
         // x: add default handler
         this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
@@ -70,8 +64,7 @@ class IOPubListenerServiceImpl internal constructor(
                 // x: start the service loop
                 // x: when the kernel is down, this service simply does not do anything. Just hang there.
                 while (isActive) {
-//                    if (kernelContext.getConvHeartBeatService().get()?.isHBAlive() == true) {
-                    // this listener is passive, so it can start listening when the kernel is up, no need to wait for heartbeat service
+                    // x: this listener is passive, so it can start listening when the kernel is up, no need to wait for heartbeat service
                     if (kernelContext.isKernelRunning()) {
                         val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
                         if (msg != null) {
