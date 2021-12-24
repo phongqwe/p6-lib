@@ -34,7 +34,7 @@ import javax.inject.Singleton
 @Singleton
 class KernelContextImp @Inject internal constructor(
     // x: _kernelConfig is created from an external file.
-    private val _kernelConfig: KernelConfig,
+    private val kernelConfig: KernelConfig,
     private val zcontext: ZContext,
     @ApplicationCScope
     private val appCScope: CoroutineScope,
@@ -42,7 +42,7 @@ class KernelContextImp @Inject internal constructor(
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : KernelContext {
 
-    private val kernelTimeOut = _kernelConfig.timeOut
+    private val kernelTimeOut = kernelConfig.timeOut
     // x: Context-related objects
     private var process: Process? = null
     private var connectionFileContent: KernelConnectionFileContent? = null
@@ -92,7 +92,7 @@ class KernelContextImp @Inject internal constructor(
                 this.process = skrs.unwrap()
             }
 
-            this.connectionFilePath = Paths.get(_kernelConfig.getConnectionFilePath())
+            this.connectionFilePath = Paths.get(kernelConfig.getConnectionFilePath())
             // x: wait for connection file to be written to disk by the kernel
             val waitConnectionFileWritten: Result<Unit, Exception> =
                 Sleeper.delayUntil(50, kernelTimeOut.connectionFileWriteTimeout) { Files.exists(this.connectionFilePath!!) }
@@ -107,7 +107,7 @@ class KernelContextImp @Inject internal constructor(
 
             this.connectionFileContent =
                 KernelConnectionFileContent.fromJsonFile(
-                    _kernelConfig.getConnectionFilePath()).unwrap()
+                    kernelConfig.getConnectionFilePath()).unwrap()
 
             // x: create resources, careful with the order of resource initiation,
             // x: some must be initialized first
@@ -126,7 +126,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
     private suspend fun startKernelProcess(): Result<Process, Exception> {
-        val processBuilder = ProcessBuilder(this._kernelConfig.makeCompleteLaunchCmmd())
+        val processBuilder = ProcessBuilder(this.kernelConfig.makeCompleteLaunchCmmd())
         try {
             val p: Process = processBuilder.inheritIO().start()
             val waitRs = Sleeper.delayUntil(50, kernelTimeOut.processInitTimeOut) { p.isAlive }
@@ -134,7 +134,7 @@ class KernelContextImp @Inject internal constructor(
                 return Err(CantStartProcess(ExceptionInfo(
                     msg = "Can't start kernel process",
                     loc = this,
-                    data = "kernel start command: ${this._kernelConfig.makeCompleteLaunchCmmd().joinToString(" ")}"
+                    data = "kernel start command: ${this.kernelConfig.makeCompleteLaunchCmmd().joinToString(" ")}"
                 )))
             }
             return Ok(p)
@@ -354,21 +354,23 @@ class KernelContextImp @Inject internal constructor(
         return rt
     }
 
-    override fun isServiceRunning(): Boolean {
+    override fun areServicesRunning(): Boolean {
         val hbRunning = this.hbService?.isServiceRunning() ?: false
         val ioPubRunning = this.ioPubService?.isRunning() ?: false
         return hbRunning && ioPubRunning
     }
 
     override fun isAllRunning(): Boolean {
-        return isServiceRunning() && isKernelRunning()
+        return areServicesRunning() && isKernelRunning()
     }
 
     override fun isKernelNotRunning(): Boolean {
-        val rt = this.getKernelStatus().all { !it }
-        return rt
+        return !this.isKernelRunning()
     }
 
+    /**
+     * Kernel status does NOT include service status
+     */
     private fun getKernelStatus(): List<Boolean> {
         val isProcessLive = this.process?.isAlive ?: false
         val isFileWritten = this.connectionFilePath?.let { Files.exists(it) } ?: false
@@ -381,7 +383,7 @@ class KernelContextImp @Inject internal constructor(
 
         val rt = listOf(
             isProcessLive, isFileWritten, connectionFileIsRead,
-            isSessonOk, isChannelProviderOk, isMsgEncodeOk, isMsgCounterOk, isSenderProviderOk, /*isHBServiceRunning*/
+            isSessonOk, isChannelProviderOk, isMsgEncodeOk, isMsgCounterOk, isSenderProviderOk,
         )
         return rt
     }
@@ -411,35 +413,17 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getKernelConfig(): KernelConfig {
-        return this._kernelConfig
+        return this.kernelConfig
     }
 
     override fun getIOPubListenerService(): Result<IOPubListenerService, Exception> {
         val sv = getService<IOPubListenerService>(this.ioPubService)
         return sv
-//        if (this.ioPubService != null) {
-//            if (this.ioPubService?.isRunning() == true) {
-//                return Ok(this.ioPubService!!)
-//            } else {
-//                return Err(IOPubListenerNotRunningException.occurAt(this))
-//            }
-//        } else {
-//            return Err(ServiceNullException.occurAt(this, IOPubListenerService::class.java.simpleName))
-//        }
     }
 
     override fun getHeartBeatService(): Result<HeartBeatService, Exception> {
         val sv = getService<HeartBeatService>(this.hbService)
         return sv
-//        if (this.hbService != null) {
-//            if (this.hbService?.isServiceRunning() == true) {
-//                return Ok(this.hbService!!)
-//            } else {
-//                return Err(IOPubListenerNotRunningException.occurAt(this))
-//            }
-//        } else {
-//            return Err(ServiceNullException.occurAt(this, HeartBeatService::class.java.simpleName))
-//        }
     }
 
     private fun <T> getService(service: Service?): Result<T, Exception> {

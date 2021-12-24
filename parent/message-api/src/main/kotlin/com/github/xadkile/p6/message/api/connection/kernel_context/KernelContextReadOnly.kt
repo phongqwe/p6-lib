@@ -55,7 +55,7 @@ interface KernelContextReadOnly {
     /**
      * all context-related services are running
      */
-    fun isServiceRunning():Boolean
+    fun areServicesRunning():Boolean
     /**
      * A running context guarantees that all context-related objects and services are up, running, not null
      */

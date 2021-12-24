@@ -3,7 +3,7 @@ package com.github.xadkile.p6.message.api.connection.service.heart_beat.coroutin
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.HBServiceNotRunningCrashException
+import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.HBServiceCrashException
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.p6.exception.ExceptionInfo
 import com.github.xadkile.p6.exception.UnknownException
@@ -16,7 +16,7 @@ import org.zeromq.ZMQ
  */
 internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
     protected val zContext: ZContext,
-    protected val liveCount: Int = 3,
+    protected val liveCount: Int = 10,
     private val pollTimeOut: Long = 1000,
     protected val cScope: CoroutineScope,
     protected val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
@@ -32,7 +32,7 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
         if (this.isServiceRunning()) {
             return this.currentLives > 0
         } else {
-            throw HBServiceNotRunningCrashException()
+            throw HBServiceCrashException()
         }
     }
 

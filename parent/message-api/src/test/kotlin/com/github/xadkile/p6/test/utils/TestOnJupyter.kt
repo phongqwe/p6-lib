@@ -16,24 +16,25 @@ abstract class TestOnJupyter {
     lateinit var ipythonConfig: KernelConfig
     lateinit var kernelContext: KernelContext
     lateinit var iPythonContextConv: KernelContextReadOnlyConv
-    lateinit var zcontext:ZContext
+    lateinit var zcontext: ZContext
     lateinit var mainThreadSurrogate: ExecutorCoroutineDispatcher
+
     @BeforeAll
-    open fun beforeAll(){
+    open fun beforeAll() {
         this.zcontext = ZContext()
         this.ipythonConfig = TestResources.kernelConfigForTest()
-        this.kernelContext= KernelContextImp(this.ipythonConfig,zcontext,GlobalScope,Dispatchers.IO)
+        this.kernelContext = KernelContextImp(this.ipythonConfig, zcontext, GlobalScope, Dispatchers.IO)
         this.iPythonContextConv = this.kernelContext.conv()
-        mainThreadSurrogate= newSingleThreadContext("Test Thread")
+        mainThreadSurrogate = newSingleThreadContext("Test Thread")
         Dispatchers.setMain(mainThreadSurrogate)
     }
 
     @AfterAll
-    open fun afterAll(){
+    open fun afterAll() {
         runBlocking {
             kernelContext.stopAll()
+            Dispatchers.resetMain()
+            mainThreadSurrogate.close()
         }
-        Dispatchers.resetMain()
-        mainThreadSurrogate.close()
     }
 }

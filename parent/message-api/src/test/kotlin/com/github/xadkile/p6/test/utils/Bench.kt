@@ -17,11 +17,8 @@ class Bench : TestOnJupyter() {
 
     @Test
     fun bench(){
-        val pattern = Pattern.compile("SUM\\([A-Za-z]+[1-9][0-9]*:?([A-Za-z]+[1-9][0-9]*)*\\)")
-        val o1 = pattern.matcher("SUM(A1:BC333)").matches()
-        val o2 = pattern.matcher("SUM(A1)").matches()
-        assertTrue(o1)
-        assertTrue(o2)
+        val l = listOf(false,true)
+        println(l.any { !it })
 
     }
     suspend fun fs() {

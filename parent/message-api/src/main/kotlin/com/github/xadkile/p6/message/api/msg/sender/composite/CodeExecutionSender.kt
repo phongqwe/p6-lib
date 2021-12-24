@@ -16,6 +16,7 @@ import com.github.xadkile.p6.message.api.msg.protocol.MsgType
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.IOPub
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.handler
 import com.github.xadkile.p6.message.api.msg.sender.MsgSender
+import com.github.xadkile.p6.message.api.msg.sender.exception.CodeExecutionException
 import com.github.xadkile.p6.message.api.msg.sender.exception.UnableToSendMsgException
 import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteRequest
@@ -34,7 +35,6 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
 class CodeExecutionSender internal constructor(
     val kernelContext: KernelContextReadOnlyConv,
 ) : MsgSender<ExecuteRequest, Result<ExecuteResult?, Exception>> {
-
 
     /**
      * This works like this:
@@ -116,14 +116,23 @@ class CodeExecutionSender internal constructor(
         withContext(dispatcher) {
             val sendStatus = executeSender.send(message, dispatcher)
             if (sendStatus is Ok) {
-                val msgIsOk: Boolean = sendStatus.get()!!.content.status == MsgStatus.ok
-                if (msgIsOk.not()) {
-                    rt = Err(UnableToSendMsgException(ExceptionInfo(
-                        loc = this@CodeExecutionSender,
-                        data = message
-                    )))
-                    state = state.transit(rt, kernelContext, executionState)
+                val content = sendStatus.get()?.content
+                val st = content?.status
+                when(st){
+                    MsgStatus.ok->{
+                        //dont do anything, wait for result from the listener
+                    }
+                    MsgStatus.error->{
+                        rt = Err(CodeExecutionException.Error("${content.ename}:${content.evalue}"))
+                    }
+                    MsgStatus.aborted->{
+                        rt = Err(CodeExecutionException.Aborted())
+                    }
+                    else -> {
+                        rt = Err(UnknownException.occurAt(this))
+                    }
                 }
+                state = state.transit(rt, kernelContext, executionState)
             } else {
                 rt = Err(sendStatus.unwrapError())
                 state = state.transit(rt, kernelContext, executionState)
@@ -152,29 +161,6 @@ class CodeExecutionSender internal constructor(
             else -> Err(UnknownException.occurAt(this))
         }
         return rt2
-
-//        if (state == SendingState.HasResult) {
-//            if (rt != null) {
-//                return rt!!
-//            } else {
-//                if(executionState == IOPub.Status.ExecutionState.idle){
-//                    //
-//                    return Err(KernelIsDownException(ExceptionInfo(
-//                        msg = "Ace",
-//                        loc = this,
-//                        data = Unit
-//                    )))
-//                }else{
-//                    return Err(KernelIsDownException(ExceptionInfo(
-//                        msg = "Kernel is killed before result is returned",
-//                        loc = this,
-//                        data = Unit
-//                    )))
-//                }
-//            }
-//        } else {
-//            return Err(UnknownException.occurAt(this))
-//        }
     }
 
     /**
@@ -260,7 +246,8 @@ class CodeExecutionSender internal constructor(
 
             return this.transit(
                 hasResult = rt != null,
-                kernelIsRunning = kernelContext.getConvHeartBeatService().get()?.isHBAlive() ?: false,
+//                kernelIsRunning = kernelContext.getConvHeartBeatService().get()?.isHBAlive() ?: false,
+                kernelIsRunning = kernelContext.isKernelRunning(),
                 executionState = executionState
             )
         }

@@ -6,16 +6,9 @@ import com.github.xadkile.p6.message.api.channel.ChannelInfo
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatServiceConv
-import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.p6.message.api.msg.protocol.KernelConnectionFileContent
 import com.github.xadkile.p6.message.api.msg.protocol.other.MsgIdGenerator
-import com.github.xadkile.p6.message.api.msg.sender.MsgSender
-import com.github.xadkile.p6.message.api.msg.sender.composite.ExecuteResult
-import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteReply
-import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteRequest
-import com.github.xadkile.p6.message.api.msg.sender.shell.KernelInfoInput
-import com.github.xadkile.p6.message.api.msg.sender.shell.KernelInfoOutput
 import org.zeromq.ZContext
 
 /**
@@ -70,8 +63,8 @@ interface KernelContextReadOnlyConv : KernelContextReadOnly {
         return original().getKernelConfig()
     }
 
-    override fun isServiceRunning(): Boolean {
-        return original().isServiceRunning()
+    override fun areServicesRunning(): Boolean {
+        return original().areServicesRunning()
     }
 
     override fun isAllRunning(): Boolean {

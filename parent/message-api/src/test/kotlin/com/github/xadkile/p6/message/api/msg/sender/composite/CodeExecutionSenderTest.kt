@@ -10,6 +10,7 @@ import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerS
 import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.p6.message.api.msg.sender.MsgSender
+import com.github.xadkile.p6.message.api.msg.sender.exception.CodeExecutionException
 import com.github.xadkile.p6.message.api.msg.sender.exception.UnableToSendMsgException
 import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteRequest
@@ -35,7 +36,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     lateinit var ioPubService: IOPubListenerServiceImpl
 
     @AfterEach
-    fun ae() {
+    fun afterEach() {
         runBlocking {
             ioPubService.stop()
             kernelContext.stopAll()
@@ -59,7 +60,6 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 dispatcher = Dispatchers.Default
             )
             ioPubService.start()
-//        println(ioPubService.isRunning())
         }
     }
 
@@ -136,6 +136,9 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         }
     }
 
+    /**
+     * Ensure that long operations is wait until they are completed
+     */
 //    @Test
     fun send_Ok_longOperation() {
         runBlocking {
@@ -241,7 +244,32 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
 
         val sender = CodeExecutionSender(mockContext)
         val o = sender.send(message)
-        kotlin.test.assertTrue(o is Err)
-        kotlin.test.assertTrue((o.unwrapError()) is IOPubListenerNotRunningException,"should return the correct exception")
+        assertTrue(o is Err)
+        assertTrue((o.unwrapError()) is IOPubListenerNotRunningException,"should return the correct exception")
+    }
+
+    @Test
+    fun test_sendMalformedCode() {
+        runBlocking{
+            kernelContext.startAll()
+            val malformedCodeMsg: ExecuteRequest = ExecuteRequest.autoCreate(
+                sessionId = "session_id",
+                username = "user_name",
+                msgType = Shell.Execute.Request.msgType,
+                msgContent = Shell.Execute.Request.Content(
+                    code = "x=1+2*2;functionX()",
+                    silent = false,
+                    storeHistory = true,
+                    userExpressions = mapOf(),
+                    allowStdin = false,
+                    stopOnError = true
+                ),
+                "msg_id_abc_123"
+            )
+            val sender = CodeExecutionSender(kernelContext.conv())
+            val o = sender.send(malformedCodeMsg,Dispatchers.IO)
+            assertTrue(o is Err)
+            assertTrue(o.unwrapError() is CodeExecutionException.Error)
+        }
     }
 }

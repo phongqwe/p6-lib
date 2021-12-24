@@ -43,7 +43,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
         username = "user_name",
         msgType = Shell.Execute.Request.msgType,
         msgContent = Shell.Execute.Request.Content(
-            code = "x=1+1*2;abc",
+            code = "x=1+1*2;functionx()",
             silent = false,
             storeHistory = true,
             userExpressions = mapOf(),
