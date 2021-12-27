@@ -1,13 +1,10 @@
-package com.github.xadkile.p6.message.api.connection.service.heart_beat.coroutine
+package com.github.xadkile.p6.message.api.connection.service.heart_beat
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.SocketProvider
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.CantStartHBServiceException
-import com.github.xadkile.p6.exception.ExceptionInfo
 import com.github.xadkile.p6.exception.error.CommonErrors
-import com.github.xadkile.p6.exception.error.ErrorHeader
 import com.github.xadkile.p6.exception.error.ErrorReport
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.HBServiceErrors
+import com.github.xadkile.p6.message.api.connection.service.heart_beat.errors.HBServiceErrors
 import com.github.xadkile.p6.message.api.other.Sleeper
 import kotlinx.coroutines.*
 import org.zeromq.ZContext
@@ -34,46 +31,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
     /**
      * init resources and start service thread
      */
-    override suspend fun start(): Result<Unit, Exception> {
-        if (this.isServiceRunning()) {
-            return Ok(Unit)
-        }
-        this.job = cScope.launch(cDispatcher) {
-            val socket = socketProvider.heartBeatSocket()
-            socket.use { sk ->
-                val poller = zContext.createPoller(1)
-                poller.register(sk, ZMQ.Poller.POLLIN)
-                poller.use {
-                    while (isActive) {
-                        val checkRs = check(poller, sk)
-                        val isAlive: Boolean = checkRs is Ok
-                        if (isAlive) {
-                            currentLives = liveCount
-                        } else {
-                            // rmd: only reduce life if there are lives left to prevent underflow of int
-                            if (currentLives > 0) {
-                                currentLives -= 1
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        val rt = this.waitToLive()
-        if (rt is Err) {
-            bluntStop()
-            return Err(
-                CantStartHBServiceException(ExceptionInfo(
-                    msg = "Time out when trying to start IOPub service",
-                    loc = this,
-                    data = Unit
-                ))
-            )
-        }
-        return rt
-    }
-
-    override suspend fun start2(): Result<Unit, ErrorReport> {
+    override suspend fun start(): Result<Unit, ErrorReport> {
         if (this.isServiceRunning()) {
             return Ok(Unit)
         }
@@ -110,40 +68,14 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
         return rt
     }
 
-    private suspend fun waitToLive(): Result<Unit, Exception> {
-        val waitRs = Sleeper.delayUntil(50, startTimeOut) { this.isRunning() }
-        val rt = waitRs.mapError {
-            CantStartHBServiceException(ExceptionInfo(
-                msg = "Time out when trying to start heart beat service",
-                loc = this,
-                data = "timeout"
-            ))
-        }
-
-        if (rt is Err) {
-            return rt
-        }
-
-        val waitRs2 = Sleeper.delayUntil(50, startTimeOut) { this.isHBAlive() }
-
-        val rt2 = waitRs2.mapError {
-            CantStartHBServiceException(ExceptionInfo(
-                msg = "Time out when waiting for HB to come live",
-                loc = this,
-                data = "timeout"
-            ))
-        }
-        return rt2
-    }
-
     private suspend fun waitToLive2(): Result<Unit, ErrorReport> {
         val waitRs = Sleeper.delayUntil(50, startTimeOut) { this.isRunning() }
         val loc = "${this.javaClass.canonicalName}:waitToLive"
         val rt = waitRs.mapError {
             ErrorReport(
-                header=CommonErrors.TimeOut,
-                data=CommonErrors.TimeOut.Data("Time out when trying to start heart beat service"),
-                loc=loc
+                header = CommonErrors.TimeOut,
+                data = CommonErrors.TimeOut.Data("Time out when trying to start heart beat service"),
+                loc = loc
             )
         }
 

@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.message.api.connection.service.heart_beat.coroutine
+package com.github.xadkile.p6.message.api.connection.service.heart_beat
 
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.p6.test.utils.TestOnJupyter
@@ -14,7 +14,7 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     @BeforeEach
     fun beforeEach() {
         runBlocking {
-            kernelContext.startKernel2()
+            kernelContext.startKernel()
         }
         hbService = LiveCountHeartBeatServiceCoroutine(
             zcontext,
@@ -31,7 +31,7 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
         fun afterEach() {
             runBlocking {
                 hbService.stop()
-                kernelContext.stopAll2()
+                kernelContext.stopAll()
             }
         }
 
@@ -45,7 +45,7 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
 
         @Test
         fun isAlive() = runBlocking {
-            kernelContext.startAll2()
+            kernelContext.startAll()
             hbService.start()
             Thread.sleep(1000)
             assertTrue(hbService.isHBAlive())

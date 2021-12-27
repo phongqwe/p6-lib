@@ -1,14 +1,11 @@
 package com.github.xadkile.p6.message.api.connection.service.iopub
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.exception.ExceptionInfo
 import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContext
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelErrors
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelIsDownException
-import com.github.xadkile.p6.message.api.connection.service.iopub.exception.CantStartIOPubServiceException
-import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubServiceErrors
+import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
+import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.p6.message.api.msg.protocol.MsgType
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.IOPub
@@ -25,7 +22,7 @@ import org.zeromq.ZMsg
 class IOPubListenerServiceImpl internal constructor(
     private val kernelContext: KernelContextReadOnlyConv,
     private val defaultHandler: (msg: JPRawMessage) -> Unit,
-    private val parseExceptionHandler: suspend (exception: Exception) -> Unit,
+    private val parseExceptionHandler: suspend (exception: ErrorReport) -> Unit,
     private val handlerContainer: MsgHandlerContainer,
     private val externalScope: CoroutineScope,
     private val dispatcher: CoroutineDispatcher,
@@ -35,7 +32,7 @@ class IOPubListenerServiceImpl internal constructor(
     internal constructor(
         kernelContext: KernelContext,
         defaultHandler: (msg: JPRawMessage) -> Unit = { /*do nothing*/ },
-        parseExceptionHandler: suspend (exception: Exception) -> Unit = {  /*do nothing*/ },
+        parseExceptionHandler: suspend (exception: ErrorReport) -> Unit = {  /*do nothing*/ },
         handlerContainer: MsgHandlerContainer = HandlerContainerImp(),
         externalScope: CoroutineScope,
         dispatcher: CoroutineDispatcher,
@@ -48,57 +45,7 @@ class IOPubListenerServiceImpl internal constructor(
     /**
      * this will start this listener on a coroutine that runs concurrently.
      */
-    override suspend fun start(): Result<Unit, Exception> {
-
-        if (this.isRunning()) {
-            return Ok(Unit)
-        }
-
-        if(kernelContext.isKernelRunning().not()){
-            return Err(KernelIsDownException.occurAt(this))
-        }
-
-        val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
-        // x: add default handler
-        this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
-        job = externalScope.launch(dispatcher) {
-            socket.use {
-                // x: start the service loop
-                // x: when the kernel is down, this service simply does not do anything. Just hang there.
-                while (isActive) {
-                    // x: this listener is passive, so it can start listening when the kernel is up, no need to wait for heartbeat service
-                    if (kernelContext.isKernelRunning()) {
-                        val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
-                        if (msg != null) {
-                            val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
-                            when (parseResult) {
-                                is Ok -> {
-                                    val rawMsg: JPRawMessage = parseResult.unwrap()
-                                    val msgType: MsgType = extractMsgType(rawMsg.identities)
-                                    dispatch(msgType, rawMsg)
-                                }
-                                else -> {
-                                    parseExceptionHandler(parseResult.unwrapError())
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        val waitRs = Sleeper.delayUntil(10, startTimeOut) { this.isRunning() }
-        if(waitRs is Err){
-            this.bluntStop()
-             return Err(CantStartIOPubServiceException(ExceptionInfo(
-                msg = "Time out when trying to start IOPub service",
-                loc = this,
-                data = "timeout"
-            )))
-        }
-        return waitRs
-    }
-
-    override suspend fun start2(): Result<Unit, ErrorReport> {
+    override suspend fun start(): Result<Unit, ErrorReport> {
         if (this.isRunning()) {
             return Ok(Unit)
         }
@@ -123,7 +70,7 @@ class IOPubListenerServiceImpl internal constructor(
                     if (kernelContext.isKernelRunning()) {
                         val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
                         if (msg != null) {
-                            val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
+                            val parseResult = JPRawMessage.fromPayload2(msg.map { f -> f.data })
                             when (parseResult) {
                                 is Ok -> {
                                     val rawMsg: JPRawMessage = parseResult.unwrap()
@@ -171,14 +118,7 @@ class IOPubListenerServiceImpl internal constructor(
         return msgType
     }
 
-    override suspend fun stop(): Result<Unit, Exception> {
-        if (this.isRunning()) {
-            bluntStop()
-        }
-        return Ok(Unit)
-    }
-
-    override suspend fun stop2(): Result<Unit, ErrorReport> {
+    override suspend fun stop(): Result<Unit, ErrorReport> {
         if (this.isRunning()) {
             bluntStop()
         }

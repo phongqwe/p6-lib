@@ -5,7 +5,7 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.channel.ChannelInfo
-import com.github.xadkile.p6.message.api.msg.protocol.exception.MsgProtocolErrors
+import com.github.xadkile.p6.message.api.msg.protocol.errors.MsgProtocolErrors
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import java.io.IOException
@@ -38,22 +38,6 @@ data class KernelConnectionFileContent(
     val kernelName:String
 ){
     companion object CO{
-        fun fromJsonFile(jsonFilePath: Path):Result<KernelConnectionFileContent,IOException>{
-            try{
-                val fileContent = Files.readString(jsonFilePath)
-                val gson = Gson()
-                val rt = gson.fromJson(fileContent,
-                    KernelConnectionFileContent::class.java)
-                return Ok(rt)
-            }catch(e:IOException){
-                return Err(e)
-            }
-        }
-        fun fromJsonFile(filePath:String):Result<KernelConnectionFileContent,IOException>{
-            return KernelConnectionFileContent.fromJsonFile(Paths.get(
-                filePath))
-        }
-
         fun fromJsonFile2(jsonFilePath: Path):Result<KernelConnectionFileContent,ErrorReport>{
             try{
                 val fileContent = Files.readString(jsonFilePath)
@@ -71,7 +55,7 @@ data class KernelConnectionFileContent(
             }
         }
         fun fromJsonFile2(filePath:String):Result<KernelConnectionFileContent,ErrorReport>{
-            return KernelConnectionFileContent.fromJsonFile2(Paths.get(
+            return fromJsonFile2(Paths.get(
                 filePath))
         }
 

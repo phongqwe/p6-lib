@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.message.api.connection.service.iopub.exception
+package com.github.xadkile.p6.message.api.connection.service.iopub.errors
 
 import com.github.xadkile.p6.exception.error.ErrorHeader
 import com.github.xadkile.p6.message.api.msg.protocol.MsgContent

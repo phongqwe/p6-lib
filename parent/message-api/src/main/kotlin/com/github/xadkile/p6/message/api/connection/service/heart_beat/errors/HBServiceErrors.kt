@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.message.api.connection.service.heart_beat.exception
+package com.github.xadkile.p6.message.api.connection.service.heart_beat.errors
 
 import com.github.xadkile.p6.exception.error.ErrorHeader
 

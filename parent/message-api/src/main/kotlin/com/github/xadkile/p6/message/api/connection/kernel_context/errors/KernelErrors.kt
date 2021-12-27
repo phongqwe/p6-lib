@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.message.api.connection.kernel_context.exception
+package com.github.xadkile.p6.message.api.connection.kernel_context.errors
 
 import com.github.xadkile.p6.exception.error.ErrorHeader
 import java.nio.file.Path
@@ -30,5 +30,9 @@ object KernelErrors {
 
     object GetKernelObjectError:ErrorHeader("GetKernelObjectError".hashCode(),"can't get kernel object"){
         class Data(val objectName:String)
+    }
+
+    object CantCreateKernelConfig:ErrorHeader("CantCreateKernelConfig".hashCode(),"can't create kernel config"){
+        class Data(val exception:Exception)
     }
 }

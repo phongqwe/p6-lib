@@ -6,8 +6,7 @@ import com.github.michaelbull.result.unwrap
 import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.MsgEncoder
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelErrors
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelIsDownException
+import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.Shell
@@ -38,9 +37,9 @@ class KernelInfoSender internal constructor(
             ))
         }
         return withContext(dispatcher) {
-            val socket: ZMQ.Socket = kernelContext.getSocketProvider2().unwrap().shellSocket()
-            val msgEncoder: MsgEncoder = kernelContext.getMsgEncoder2().unwrap()
-            val hbService: HeartBeatService = kernelContext.getHeartBeatService2().unwrap()
+            val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().shellSocket()
+            val msgEncoder: MsgEncoder = kernelContext.getMsgEncoder().unwrap()
+            val hbService: HeartBeatService = kernelContext.getHeartBeatService().unwrap()
             val zContext: ZContext = kernelContext.zContext()
             val zSender = PCSender<KernelInfoInput, KernelInfoOutput>(socket, msgEncoder, hbService, zContext)
             val rt = zSender.send2<Shell.KernelInfo.Request.MetaData, Shell.KernelInfo.Request.Content>(message)

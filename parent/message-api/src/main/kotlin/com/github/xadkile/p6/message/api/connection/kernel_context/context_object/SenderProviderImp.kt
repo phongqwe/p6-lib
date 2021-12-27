@@ -15,17 +15,17 @@ class SenderProviderImp internal constructor(
     val kernelContext: KernelContextReadOnlyConv,
 ) : SenderProvider {
 
-    override fun executeRequestSender2(): MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> {
+    override fun executeRequestSender(): MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> {
         return ExecuteSender(kernelContext)
     }
 
 
-    override fun kernelInfoSender2(): MsgSender<KernelInfoInput, Result<KernelInfoOutput, ErrorReport>> {
+    override fun kernelInfoSender(): MsgSender<KernelInfoInput, Result<KernelInfoOutput, ErrorReport>> {
         return KernelInfoSender(kernelContext)
     }
 
 
-    override fun codeExecutionSender2(): MsgSender<ExecuteRequest, Result<ExecuteResult?, ErrorReport>> {
+    override fun codeExecutionSender(): MsgSender<ExecuteRequest, Result<ExecuteResult?, ErrorReport>> {
         return CodeExecutionSender(kernelContext)
     }
 

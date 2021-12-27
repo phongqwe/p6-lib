@@ -5,10 +5,10 @@ import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.test.utils.TestOnJupyter
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.SenderProvider
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelErrors
+import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.github.xadkile.p6.message.api.connection.service.iopub.HandlerContainerImp
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
-import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubServiceErrors
+import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.p6.message.api.msg.sender.MsgSender
 import com.github.xadkile.p6.message.api.msg.sender.exception.SenderErrors
@@ -39,14 +39,14 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     fun afterEach() {
         runBlocking {
             ioPubService.stop()
-            kernelContext.stopAll2()
+            kernelContext.stopAll()
         }
     }
 
     @BeforeEach
     fun beforeEach() {
         runBlocking{
-            kernelContext.startAll2()
+            kernelContext.startAll()
             ioPubService = IOPubListenerServiceImpl(
                 kernelContext = kernelContext.conv(),
                 defaultHandler = { msg ->
@@ -194,7 +194,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun send_fail() {
         runBlocking {
-            kernelContext.startAll2()
+            kernelContext.startAll()
 
             // ph: mockk is horribly slow here
             val mockSender = object : MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> {
@@ -210,10 +210,10 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             }
 
             val mockSenderProvider = mockk<SenderProvider>().also {
-                every{it.executeRequestSender2()} returns mockSender
+                every{it.executeRequestSender()} returns mockSender
             }
             val mockContext = spyk(kernelContext.conv()).also {
-                every{it.getSenderProvider2()} returns Ok(mockSenderProvider)
+                every{it.getSenderProvider()} returns Ok(mockSenderProvider)
             }
 
             val sender = CodeExecutionSender(mockContext)
@@ -225,7 +225,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
 
     @Test
     fun send_kernelNotRunning() = runBlocking {
-        kernelContext.stopAll2()
+        kernelContext.stopAll()
         val sender = CodeExecutionSender(kernelContext.conv())
         val o = sender.send(message)
         assertTrue(o is Err)
@@ -234,7 +234,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
 
     @Test
     fun send_listenerServiceIsDown() = runBlocking {
-        kernelContext.startAll2()
+        kernelContext.startAll()
         val mockListener = mockk<IOPubListenerServiceImpl>().also {
             every { it.isRunning() } returns false
             every { it.isNotRunning() } returns true
@@ -253,7 +253,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun test_sendMalformedCode() {
         runBlocking{
-            kernelContext.startAll2()
+            kernelContext.startAll()
             val malformedCodeMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",

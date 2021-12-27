@@ -15,10 +15,10 @@ internal class ZMQMsgSenderTest : TestOnJupyter() {
 
     @Test
     fun send_Ok() = runBlocking{
-        kernelContext.startAll2()
+        kernelContext.startAll()
         // send ok
         val t = System.currentTimeMillis()
-        val o = ZMQMsgSender.send(
+        val o = ZMQMsgSender.send2(
             message = listOf("a").map { it.toByteArray() },
             socket= zcontext.createSocket(SocketType.REQ).also {
                 it.connect(iPythonContextConv.getHeartBeatAddress().unwrap())

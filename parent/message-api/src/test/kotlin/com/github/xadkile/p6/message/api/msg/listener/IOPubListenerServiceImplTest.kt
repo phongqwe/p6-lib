@@ -64,7 +64,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     @AfterEach
     fun ae() {
         runBlocking{
-            kernelContext.stopAll2()
+            kernelContext.stopAll()
         }
     }
 
@@ -74,7 +74,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     @Test
     fun completenessTest_MultiListeners() = runBlocking {
 
-        kernelContext.startAll2()
+        kernelContext.startAll()
 
         val handlerWasTriggered = AtomicInteger(0)
         val handlerWasTriggered2 = AtomicInteger(0)
@@ -136,7 +136,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
                 ),
                 kernelContext.getMsgIdGenerator().get()?.next() ?: "zzZ"
             )
-            val sender = kernelContext.getSenderProvider().unwrap().executeRequestSender2()
+            val sender = kernelContext.getSenderProvider().unwrap().executeRequestSender()
             sender.send(okMsg, Dispatchers.Default)
         }
         delay(1000)
@@ -201,7 +201,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     @Test
     fun testTriggeringDefaultHandler() = runBlocking {
 
-        kernelContext.startAll2()
+        kernelContext.startAll()
         var defaultHandlerTriggeredCount = 0
         var handlerTriggeredCount = 0
         val listener = IOPubListenerServiceImpl(
@@ -224,7 +224,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
 //        Sleeper.waitUntil { listener.isRunning() }
         // rmd: send message
 
-        kernelContext.getSenderProvider().unwrap().executeRequestSender2().also {
+        kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
             it.send(okMesg(), Dispatchers.Default)
         }
         listener.stop()
@@ -236,7 +236,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     fun fullLifeCycle() {
         runBlocking {
 
-            val krs = kernelContext.startAll2()
+            val krs = kernelContext.startAll()
             assertTrue(krs is Ok,krs.toString())
 
             val handlerWasTriggered = AtomicInteger(0)
@@ -260,7 +260,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
             assertTrue(listener.isRunning(), "listener should be running")
             // rmd: send message
 
-            kernelContext.getSenderProvider().unwrap().executeRequestSender2().also {
+            kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
                 it.send(okMesg(), Dispatchers.Default)
             }
             listener.stop()

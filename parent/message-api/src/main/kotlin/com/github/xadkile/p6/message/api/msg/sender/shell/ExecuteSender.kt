@@ -5,8 +5,7 @@ import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelErrors
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelIsDownException
+import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.p6.message.api.msg.sender.MsgSender

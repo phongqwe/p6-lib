@@ -4,6 +4,7 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.exception.UnknownException
+import com.github.xadkile.p6.exception.error.ErrorReport
 import kotlinx.coroutines.*
 
 /**
@@ -17,7 +18,7 @@ class OnStopWatcher(
     private val cScope: CoroutineScope,
     private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : CoroutineWatcher() {
-    override fun startWatching(process: Process): Result<Unit, Exception> {
+    override fun startWatching(process: Process): Result<Unit, ErrorReport> {
 
         return this.skeleton(process){
             this.job = cScope.launch(cDispatcher) {

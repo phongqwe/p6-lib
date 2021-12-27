@@ -4,8 +4,7 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.exception.error.ErrorReport
-import com.github.xadkile.p6.message.api.msg.protocol.exception.InvalidPayloadSizeException
-import com.github.xadkile.p6.message.api.msg.protocol.exception.MsgProtocolErrors
+import com.github.xadkile.p6.message.api.msg.protocol.errors.MsgProtocolErrors
 import com.github.xadkile.p6.message.api.other.HmacMaker
 import com.google.gson.GsonBuilder
 
@@ -28,42 +27,6 @@ class JPRawMessage(
          *
          * Detect the delimiter and use it as a pivot point to locate other elements
          */
-        fun fromPayload(payload: List<ByteArray>): Result<JPRawMessage, Exception> {
-            if (payload.size < 6) {
-                return Err(InvalidPayloadSizeException(payload.size,this))
-            } else {
-                // find the delimiter's index
-                val delimiterIndexEither = findDelimiterIndex(payload)
-                when (delimiterIndexEither) {
-                    is Ok -> {
-                        val delimiterIndex = delimiterIndexEither.value
-                        val identities: String = if (delimiterIndex == 0) {
-                            // does not have identities
-                            ""
-                        } else {
-                            String(payload[delimiterIndex - 1])
-                        }
-
-                        val theRestCount: Int = payload.size - delimiterIndex
-
-                        return Ok(JPRawMessage(
-                            identities = identities,
-                            delimiter = String(payload[delimiterIndex]),
-                            hmacSig = String(payload[delimiterIndex + 1]),
-                            header = String(payload[delimiterIndex + 2]),
-                            parentHeader = String(payload[delimiterIndex + 3]),
-                            metaData = if (theRestCount > 4) String(payload[delimiterIndex + 4]) else "",
-                            content = if (theRestCount > 5) String(payload[delimiterIndex + 5]) else "",
-                            buffer = if (theRestCount > 6) payload[delimiterIndex + 6].copyOf() else ByteArray(0)
-                        ))
-                    }
-                    is Err -> {
-                        return Err(delimiterIndexEither.error)
-                    }
-                }
-            }
-        }
-
         fun fromPayload2(payload: List<ByteArray>): Result<JPRawMessage, ErrorReport> {
             if (payload.size < 6) {
                 val report = ErrorReport(
@@ -104,23 +67,6 @@ class JPRawMessage(
             }
         }
 
-        private fun findDelimiterIndex(
-            payload: List<ByteArray>,
-        ): Result<Int, NoSuchElementException> {
-            try {
-                val index: Int = payload.withIndex()
-                    .first { (i: Int, e: ByteArray) -> String(e) == ProtocolConstant.messageDelimiter }
-                    .index
-                return Ok(index)
-            } catch (e: NoSuchElementException) {
-                return Err(
-                    NoSuchElementException(
-                        "Payload lacks delimiter\n" +
-                                "Payload info: ${payload.map { String(it) }.joinToString("\n")}"
-                    )
-                )
-            }
-        }
         private fun findDelimiterIndex2(
             payload: List<ByteArray>,
         ): Result<Int, ErrorReport> {

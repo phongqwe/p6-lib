@@ -4,11 +4,11 @@ import com.github.michaelbull.result.*
 import com.github.xadkile.p6.exception.error.CommonErrors
 import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelErrors
+import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.p6.message.api.connection.service.iopub.MsgHandler
 import com.github.xadkile.p6.message.api.connection.service.iopub.MsgHandlers
-import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubServiceErrors
+import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
 import com.github.xadkile.p6.message.api.msg.protocol.MsgStatus
 import com.github.xadkile.p6.message.api.msg.protocol.MsgType
@@ -58,7 +58,7 @@ class CodeExecutionSender internal constructor(
         }
 
         val hasIoPubService = kernelContext.getIOPubListenerService2()
-        val hasSenderProvider = kernelContext.getSenderProvider2()
+        val hasSenderProvider = kernelContext.getSenderProvider()
 
         if (hasIoPubService is Err) {
             return Err(hasIoPubService.unwrapError())
@@ -70,7 +70,7 @@ class CodeExecutionSender internal constructor(
 
         val ioPubListenerService: IOPubListenerServiceReadOnly = hasIoPubService.unwrap()
         val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> =
-            hasSenderProvider.unwrap().executeRequestSender2()
+            hasSenderProvider.unwrap().executeRequestSender()
 
         if (ioPubListenerService.isNotRunning()) {
             val report = ErrorReport(

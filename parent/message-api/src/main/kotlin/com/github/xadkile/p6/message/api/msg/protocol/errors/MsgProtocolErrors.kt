@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.message.api.msg.protocol.exception
+package com.github.xadkile.p6.message.api.msg.protocol.errors
 
 import com.github.xadkile.p6.exception.error.ErrorHeader
 import com.github.xadkile.p6.message.api.msg.protocol.ProtocolConstant

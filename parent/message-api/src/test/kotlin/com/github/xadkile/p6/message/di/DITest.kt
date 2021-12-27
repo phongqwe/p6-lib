@@ -21,9 +21,9 @@ class DITest {
 
             val context = component.kernelContext()
 
-            context.startAll2()
+            context.startAll()
             assertTrue(context.getChannelProvider() is Ok)
-            context.stopAll2()
+            context.stopAll()
         }
     }
 }

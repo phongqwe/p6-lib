@@ -2,20 +2,17 @@ package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.*
+import com.github.xadkile.p6.message.api.connection.kernel_context.errors.*
 import com.github.xadkile.p6.message.api.connection.service.Service
-import com.github.xadkile.p6.message.api.connection.service.exception.ServiceNullException
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.coroutine.LiveCountHeartBeatServiceCoroutine
+import com.github.xadkile.p6.message.api.connection.service.heart_beat.LiveCountHeartBeatServiceCoroutine
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
-import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
-import com.github.xadkile.p6.exception.ExceptionInfo
 import com.github.xadkile.p6.exception.error.CommonErrors
 import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.service.exception.ServiceErrors
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
-import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubServiceErrors
+import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.github.xadkile.p6.message.api.msg.protocol.KernelConnectionFileContent
 //import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatServiceUpdater
 import com.github.xadkile.p6.message.api.other.Sleeper
@@ -25,7 +22,6 @@ import com.github.xadkile.p6.message.api.msg.protocol.other.RandomMsgIdGenerator
 import kotlinx.coroutines.*
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
 import org.zeromq.ZContext
-import zmq.io.StreamEngine
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
@@ -74,28 +70,17 @@ class KernelContextImp @Inject internal constructor(
     private val convInstance = KernelContextReadOnlyConvImp(this)
 
     companion object {
-        private val ipythonIsDownErr = KernelIsDownException.occurAt(this)
         private val kernelDownReport = ErrorReport(
             header = KernelErrors.KernelDown,
             data = KernelErrors.KernelDown.Data(""),
-            loc = "${this.javaClass.canonicalName}:getSession",
+            loc = "${this::class.java.canonicalName}:getSession",
         )
     }
 
-    override suspend fun startAll(): Result<Unit, Exception> {
-        val kernelRS: Result<Unit, Exception> = this.startKernel()
+    override suspend fun startAll(): Result<Unit, ErrorReport> {
+        val kernelRS: Result<Unit, ErrorReport> = this.startKernel()
         if (kernelRS is Ok) {
-            val serviceRs: Result<Unit, Exception> = this.startServices()
-            return serviceRs
-        } else {
-            return kernelRS
-        }
-    }
-
-    override suspend fun startAll2(): Result<Unit, ErrorReport> {
-        val kernelRS: Result<Unit, ErrorReport> = this.startKernel2()
-        if (kernelRS is Ok) {
-            val serviceRs: Result<Unit, ErrorReport> = this.startServices2()
+            val serviceRs: Result<Unit, ErrorReport> = this.startServices()
             return serviceRs
         } else {
             return kernelRS
@@ -103,54 +88,8 @@ class KernelContextImp @Inject internal constructor(
     }
 
 
-    @Deprecated("replace with ErrorReport api")
-    override suspend fun startKernel(): Result<Unit, Exception> {
-        if (this.isKernelRunning()) {
-            return Ok(Unit)
-        } else {
 
-            val skrs = this.startKernelProcess()
-            if (skrs is Err) {
-                return Err(skrs.unwrapError())
-            } else {
-                this.process = skrs.unwrap()
-            }
-
-            this.connectionFilePath = Paths.get(kernelConfig.getConnectionFilePath())
-            // x: wait for connection file to be written to disk by the kernel
-            val waitConnectionFileWritten: Result<Unit, Exception> =
-                Sleeper.delayUntil(50,
-                    kernelTimeOut.connectionFileWriteTimeout) { Files.exists(this.connectionFilePath!!) }
-
-            if (waitConnectionFileWritten is Err) {
-                return Err(CantWriteConnectionFile(ExceptionInfo(
-                    msg = "Can't write connection file to disk",
-                    loc = this,
-                    data = this.connectionFilePath.toString()
-                )))
-            }
-
-            this.connectionFileContent =
-                KernelConnectionFileContent.fromJsonFile(
-                    kernelConfig.getConnectionFilePath()).unwrap()
-
-            // x: create resources, careful with the order of resource initiation,
-            // x: some must be initialized first
-            // x: must NOT use getters here because getters always check for kernel status before return derivative objects
-            this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
-            this.socketProvider = SocketProviderImp(this.channelProvider!!, this.zcontext)
-            this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
-            this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
-            this.msgCounter = MsgCounterImp()
-            this.msgIdGenerator = RandomMsgIdGenerator()
-            this.senderProvider = SenderProviderImp(this.conv())
-
-            this.onKernelStartedListener.run(this)
-            return Ok(Unit)
-        }
-    }
-
-    override suspend fun startKernel2(): Result<Unit, ErrorReport> {
+    override suspend fun startKernel(): Result<Unit, ErrorReport> {
         if (this.isKernelRunning()) {
             return Ok(Unit)
         } else {
@@ -164,7 +103,7 @@ class KernelContextImp @Inject internal constructor(
 
             this.connectionFilePath = Paths.get(kernelConfig.getConnectionFilePath())
             // x: wait for connection file to be written to disk by the kernel
-            val waitConnectionFileWritten: Result<Unit, Exception> =
+            val waitConnectionFileWritten: Result<Unit, ErrorReport> =
                 Sleeper.delayUntil(50,
                     kernelTimeOut.connectionFileWriteTimeout) { Files.exists(this.connectionFilePath!!) }
 
@@ -176,7 +115,7 @@ class KernelContextImp @Inject internal constructor(
             }
 
             this.connectionFileContent =
-                KernelConnectionFileContent.fromJsonFile(
+                KernelConnectionFileContent.fromJsonFile2(
                     kernelConfig.getConnectionFilePath()).unwrap()
 
             // x: create resources, careful with the order of resource initiation,
@@ -195,25 +134,6 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    @Deprecated("replace with ErrorReport api")
-    private suspend fun startKernelProcess(): Result<Process, Exception> {
-        val processBuilder = ProcessBuilder(this.kernelConfig.makeCompleteLaunchCmmd())
-        try {
-            val p: Process = processBuilder.inheritIO().start()
-            val waitRs = Sleeper.delayUntil(50, kernelTimeOut.processInitTimeOut) { p.isAlive }
-            if (waitRs is Err) {
-                return Err(CantStartProcess(ExceptionInfo(
-                    msg = "Can't start kernel process",
-                    loc = this,
-                    data = "kernel start command: ${this.kernelConfig.makeCompleteLaunchCmmd().joinToString(" ")}"
-                )))
-            }
-            return Ok(p)
-        } catch (e: Exception) {
-            this.destroyResource()
-            return Err(e)
-        }
-    }
 
     private suspend fun startKernelProcess2(): Result<Process, ErrorReport> {
         val processBuilder = ProcessBuilder(this.kernelConfig.makeCompleteLaunchCmmd())
@@ -238,7 +158,8 @@ class KernelContextImp @Inject internal constructor(
     }
 
 
-    override suspend fun startServices(): Result<Unit, Exception> {
+
+    override suspend fun startServices(): Result<Unit, ErrorReport> {
         if (this.isKernelRunning()) {
 
             this.hbService = LiveCountHeartBeatServiceCoroutine(
@@ -270,46 +191,6 @@ class KernelContextImp @Inject internal constructor(
             return Ok(Unit)
 
         } else {
-            return Err(KernelIsDownException(ExceptionInfo(
-                msg = "Can't start services because kernel is down",
-                loc = this,
-                data = Unit
-            )))
-        }
-    }
-
-    override suspend fun startServices2(): Result<Unit, ErrorReport> {
-        if (this.isKernelRunning()) {
-
-            this.hbService = LiveCountHeartBeatServiceCoroutine(
-                socketProvider = this.socketProvider!!,
-                zContext = this.zcontext,
-                cScope = appCScope,
-                cDispatcher = this.networkServiceDispatcher
-            )
-
-            val hbStartRs = this.hbService!!.start2()
-            if (hbStartRs is Err) {
-                this.hbService?.stop()
-                this.hbService = null
-                return hbStartRs
-            }
-
-            this.ioPubService = IOPubListenerServiceImpl(
-                kernelContext = this,
-                externalScope = appCScope,
-                dispatcher = this.networkServiceDispatcher
-            )
-
-            val ioPubStartRs = this.ioPubService!!.start2()
-            if (ioPubStartRs is Err) {
-                this.ioPubService?.stop()
-                this.ioPubService = null
-                return ioPubStartRs
-            }
-            return Ok(Unit)
-
-        } else {
             val report = ErrorReport(
                 header = KernelErrors.KernelDown,
                 data = KernelErrors.KernelDown.Data(this::class.java.canonicalName)
@@ -318,47 +199,19 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    override suspend fun stopAll(): Result<Unit, Exception> {
-        val r: Result<Unit, Exception> = stopServices().andThen {
+
+    override suspend fun stopAll(): Result<Unit, ErrorReport> {
+        val r: Result<Unit, ErrorReport> = stopServices().andThen {
             stopKernel()
         }
         return r
-    }
-
-    override suspend fun stopAll2(): Result<Unit, ErrorReport> {
-        val r: Result<Unit, ErrorReport> = stopServices2().andThen {
-            stopKernel2()
-        }
-        return r
-    }
-
-    @Deprecated("replace with ErrorReport api")
-    private suspend fun stopKernelProcess(): Result<Unit, Exception> {
-        if (this.process != null) {
-            this.process?.destroy()
-            // x: polling until the process is completely dead
-            val stopRs: Result<Unit, Exception> =
-                Sleeper.delayUntil(50, kernelTimeOut.processStopTimeout) { this.process?.isAlive == false }
-            val rs = stopRs.mapError {
-                CantStopKernelProcess(ExceptionInfo(
-                    msg = "Can't stop kernel process",
-                    loc = this,
-                    data = this.process?.pid()
-                ))
-            }
-            if (rs is Err) {
-                return rs
-            }
-            this.process = null
-        }
-        return Ok(Unit)
     }
 
     private suspend fun stopKernelProcess2(): Result<Unit, ErrorReport> {
         if (this.process != null) {
             this.process?.destroy()
             // x: polling until the process is completely dead
-            val stopRs: Result<Unit, Exception> =
+            val stopRs: Result<Unit, ErrorReport> =
                 Sleeper.delayUntil(50, kernelTimeOut.processStopTimeout) { this.process?.isAlive == false }
             val rs = stopRs.mapError {
                 ErrorReport(
@@ -375,15 +228,8 @@ class KernelContextImp @Inject internal constructor(
     }
 
 
-    override fun getSocketProvider(): Result<SocketProvider, Exception> {
-        if (this.isKernelRunning()) {
-            return Ok(this.socketProvider!!)
-        } else {
-            return Err(ipythonIsDownErr)
-        }
-    }
 
-    override fun getSocketProvider2(): Result<SocketProvider, ErrorReport> {
+    override fun getSocketProvider(): Result<SocketProvider, ErrorReport> {
         if (this.isKernelRunning()) {
             return Ok(this.socketProvider!!)
         } else {
@@ -391,7 +237,8 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    override suspend fun stopServices(): Result<Unit, Exception> {
+
+    override suspend fun stopServices(): Result<Unit, ErrorReport> {
         val ioPubStopRs = this.ioPubService?.stop() ?: Ok(Unit)
         if (ioPubStopRs is Err) {
             return ioPubStopRs
@@ -407,41 +254,7 @@ class KernelContextImp @Inject internal constructor(
         return Ok(Unit)
     }
 
-    override suspend fun stopServices2(): Result<Unit, ErrorReport> {
-        val ioPubStopRs = this.ioPubService?.stop2() ?: Ok(Unit)
-        if (ioPubStopRs is Err) {
-            return ioPubStopRs
-        }
-        this.ioPubService = null
-
-        val hbStopRs = this.hbService?.stop2() ?: Ok(Unit)
-        if (hbStopRs is Err) {
-            return hbStopRs
-        }
-        this.hbService = null
-
-        return Ok(Unit)
-    }
-
-    override suspend fun stopKernel(): Result<Unit, Exception> {
-        if (this.isKernelNotRunning()) {
-            return Ok(Unit)
-        }
-        try {
-            this.onBeforeStopListener.run(this)
-            val stopRs: Result<Unit, Exception> = this.stopKernelProcess()
-            if (stopRs is Err) {
-                return stopRs
-            }
-            destroyResource()
-            this.onAfterStopListener.run(this)
-            return Ok(Unit)
-        } catch (e: Exception) {
-            return Err(e)
-        }
-    }
-
-    override suspend fun stopKernel2(): Result<Unit, ErrorReport> {
+    override suspend fun stopKernel(): Result<Unit, ErrorReport> {
         if (this.isKernelNotRunning()) {
             return Ok(Unit)
         }
@@ -485,15 +298,7 @@ class KernelContextImp @Inject internal constructor(
         this.socketProvider = null
     }
 
-    override fun getKernelProcess(): Result<Process, Exception> {
-        if (this.isKernelRunning()) {
-            return Ok(this.process!!)
-        } else {
-            return Err(ipythonIsDownErr)
-        }
-    }
-
-    override fun getKernelProcess2(): Result<Process, ErrorReport> {
+    override fun getKernelProcess(): Result<Process, ErrorReport> {
         if (this.isKernelRunning()) {
             return Ok(this.process!!)
         } else {
@@ -505,39 +310,19 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    override fun getKernelInputStream(): Result<InputStream, Exception> {
+    override fun getKernelInputStream(): Result<InputStream, ErrorReport> {
         return this.getKernelProcess().map { it.inputStream }
     }
 
-    override fun getKernelInputStream2(): Result<InputStream, ErrorReport> {
-        return this.getKernelProcess2().map { it.inputStream }
-    }
-
-    override fun getKernelOutputStream(): Result<OutputStream, Exception> {
+    override fun getKernelOutputStream(): Result<OutputStream, ErrorReport> {
         return this.getKernelProcess().map { it.outputStream }
     }
 
-    override fun getKernelOutputStream2(): Result<OutputStream, ErrorReport> {
-        return this.getKernelProcess2().map { it.outputStream }
-    }
-
-    override suspend fun restartKernel(): Result<Unit, Exception> {
+    override suspend fun restartKernel(): Result<Unit, ErrorReport> {
         if (this.isKernelRunning()) {
             val rt = this.stopAll()
                 .andThen {
                     this.startAll()
-                }
-            return rt
-        } else {
-            return Err(KernelContextIllegalStateException("IPythonProcessManager is stopped, thus cannot be restarted"))
-        }
-    }
-
-    override suspend fun restartKernel2(): Result<Unit, ErrorReport> {
-        if (this.isKernelRunning()) {
-            val rt = this.stopAll2()
-                .andThen {
-                    this.startAll2()
                 }
             return rt
         } else {
@@ -552,15 +337,8 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    override fun getConnectionFileContent(): Result<KernelConnectionFileContent, Exception> {
-        if (this.isKernelRunning()) {
-            return Ok(this.connectionFileContent!!)
-        } else {
-            return Err(ipythonIsDownErr)
-        }
-    }
 
-    override fun getConnectionFileContent2(): Result<KernelConnectionFileContent, ErrorReport> {
+    override fun getConnectionFileContent(): Result<KernelConnectionFileContent, ErrorReport> {
         if (this.isKernelRunning()) {
             return Ok(this.connectionFileContent!!)
         } else {
@@ -568,15 +346,8 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    override fun getSession(): Result<Session, Exception> {
-        if (this.isKernelRunning()) {
-            return Ok(this.session!!)
-        } else {
-            return Err(ipythonIsDownErr)
-        }
-    }
 
-    override fun getSession2(): Result<Session, ErrorReport> {
+    override fun getSession(): Result<Session, ErrorReport> {
         if (this.isKernelRunning()) {
             return Ok(this.session!!)
         } else {
@@ -584,50 +355,24 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-    override fun getChannelProvider(): Result<ChannelProvider, Exception> {
-        return this.checkKernelRunningAndGet { this.channelProvider!! }
-    }
 
-    override fun getChannelProvider2(): Result<ChannelProvider, ErrorReport> {
+    override fun getChannelProvider(): Result<ChannelProvider, ErrorReport> {
         return this.checkKernelRunningAndGet2 { this.channelProvider!! }
     }
 
-    override fun getSenderProvider(): Result<SenderProvider, Exception> {
-        return this.checkKernelRunningAndGet { this.senderProvider!! }
-    }
 
-    override fun getSenderProvider2(): Result<SenderProvider, ErrorReport> {
+    override fun getSenderProvider(): Result<SenderProvider, ErrorReport> {
         return this.checkKernelRunningAndGet2 { this.senderProvider!! }
     }
 
-    override fun getMsgEncoder(): Result<MsgEncoder, Exception> {
-        return this.checkKernelRunningAndGet(MsgEncoder::class.simpleName ?: "MsgEncoder") { this.msgEncoder!! }
-    }
 
-    override fun getMsgEncoder2(): Result<MsgEncoder, ErrorReport> {
+    override fun getMsgEncoder(): Result<MsgEncoder, ErrorReport> {
         return this.checkKernelRunningAndGet2(MsgEncoder::class.simpleName ?: "MsgEncoder") { this.msgEncoder!! }
     }
 
-    override fun getMsgIdGenerator(): Result<MsgIdGenerator, Exception> {
-        return this.checkKernelRunningAndGet("MsgIdGenerator") { this.msgIdGenerator!! }
-    }
 
-    override fun getMsgIdGenerator2(): Result<MsgIdGenerator, ErrorReport> {
+    override fun getMsgIdGenerator(): Result<MsgIdGenerator, ErrorReport> {
         return this.checkKernelRunningAndGet2("MsgIdGenerator") { this.msgIdGenerator!! }
-    }
-
-    private fun <T> checkKernelRunningAndGet(objectName: String = "", that: () -> T): Result<T, Exception> {
-        if (this.isKernelRunning()) {
-            return Ok(that())
-        } else {
-            return Err(KernelIsDownException(
-                ExceptionInfo(
-                    msg = "Can't get $objectName because kernel is down",
-                    loc = this,
-                    data = objectName
-                )
-            ))
-        }
     }
 
     private fun <T> checkKernelRunningAndGet2(objectName: String = "", that: () -> T): Result<T, ErrorReport> {
@@ -710,36 +455,16 @@ class KernelContextImp @Inject internal constructor(
         return this.kernelConfig
     }
 
-    override fun getIOPubListenerService(): Result<IOPubListenerService, Exception> {
-        val sv = getService<IOPubListenerService>(this.ioPubService)
-        return sv
-    }
 
     override fun getIOPubListenerService2(): Result<IOPubListenerServiceReadOnly, ErrorReport> {
         val sv = getService2<IOPubListenerService>(this.ioPubService, "IO Pub service")
         return sv
     }
 
-    override fun getHeartBeatService(): Result<HeartBeatService, Exception> {
-        val sv = getService<HeartBeatService>(this.hbService)
-        return sv
-    }
 
-    override fun getHeartBeatService2(): Result<HeartBeatService, ErrorReport> {
+    override fun getHeartBeatService(): Result<HeartBeatService, ErrorReport> {
         val sv = getService2<HeartBeatService>(this.hbService, "heart beat service")
         return sv
-    }
-
-    private fun <T> getService(service: Service?): Result<T, Exception> {
-        if (service != null) {
-            if (service.isRunning() == true) {
-                return Ok(service as T)
-            } else {
-                return Err(IOPubListenerNotRunningException.occurAt(this))
-            }
-        } else {
-            return Err(ServiceNullException.occurAt(this, ""))
-        }
     }
 
     private fun <T> getService2(service: Service?, serviceName: String): Result<T, ErrorReport> {
