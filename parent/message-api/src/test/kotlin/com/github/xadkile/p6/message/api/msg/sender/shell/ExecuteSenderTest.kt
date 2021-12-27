@@ -27,7 +27,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     val message: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
-        msgType = Shell.Execute.Request.msgType,
+        msgType = Shell.Execute.Request.getMsgType(),
         msgContent = Shell.Execute.Request.Content(
             code = "x=1+1*2;y=x*2;y",
             silent = false,
@@ -41,7 +41,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     val malformedCodeMsg: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
-        msgType = Shell.Execute.Request.msgType,
+        msgType = Shell.Execute.Request.getMsgType(),
         msgContent = Shell.Execute.Request.Content(
             code = "x=1+1*2;functionx()",
             silent = false,

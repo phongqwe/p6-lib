@@ -11,7 +11,7 @@ object Shell{
     object Execute{
         object Request : MsgDefinitionEncapsulation {
 
-            val msgType = MsgType.Shell_execute_request
+            val _msgType = MsgType.Shell_execute_request
 
             data class Content(
                 val code: String,
@@ -29,13 +29,13 @@ object Shell{
             class MetaData : MsgMetaData {}
 
             override fun getMsgType(): MsgType {
-                return msgType
+                return _msgType
             }
         }
 
         object Reply: MsgDefinitionEncapsulation {
 
-            val msgType = MsgType.Shell_execute_reply
+            val _msgType = MsgType.Shell_execute_reply
 
             class Content(
                 status: MsgStatus,
@@ -59,7 +59,7 @@ object Shell{
             ) : MsgMetaData
 
             override fun getMsgType(): MsgType {
-                return msgType
+                return _msgType
             }
         }
     }
@@ -68,19 +68,19 @@ object Shell{
 
         object Request: MsgDefinitionEncapsulation {
 
-            val msgType = MsgType.Shell_kernel_info_request
+            val _msgType = MsgType.Shell_kernel_info_request
 
             class Content : MsgContent
 
             class MetaData: MsgMetaData
 
             override fun getMsgType(): MsgType {
-                return msgType
+                return _msgType
             }
         }
         object Reply: MsgDefinitionEncapsulation {
 
-            val msgType = MsgType.Shell_kernel_info_reply
+            val _msgType = MsgType.Shell_kernel_info_reply
 
             class Content(
                 status: MsgStatus,
@@ -122,7 +122,7 @@ object Shell{
             )
 
             override fun getMsgType(): MsgType {
-                return msgType
+                return _msgType
             }
         }
     }

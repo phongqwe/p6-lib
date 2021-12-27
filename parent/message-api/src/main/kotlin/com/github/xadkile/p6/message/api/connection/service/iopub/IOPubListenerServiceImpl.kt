@@ -103,9 +103,9 @@ class IOPubListenerServiceImpl internal constructor(
     private fun extractMsgType(msgIdentity: String): MsgType {
         val msgType: MsgType = when {
 
-            msgIdentity.endsWith(IOPub.ExecuteResult.msgType.text()) -> IOPub.ExecuteResult.msgType
+            msgIdentity.endsWith(IOPub.ExecuteResult.getMsgType().text()) -> IOPub.ExecuteResult.getMsgType()
 
-            msgIdentity.endsWith(IOPub.Status.msgType.text()) -> IOPub.Status.msgType
+            msgIdentity.endsWith(IOPub.Status.getMsgType().text()) -> IOPub.Status.getMsgType()
 
             msgIdentity.endsWith(IOPub.ExecuteError.getMsgType().text()) -> IOPub.ExecuteError.getMsgType()
 

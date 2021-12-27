@@ -14,20 +14,20 @@ object Control {
     object KernelInterrupt{
         object Request : MsgDefinitionEncapsulation {
 
-            val msgType = MsgType.Control_interrupt_request
+            val _msgType = MsgType.Control_interrupt_request
 
             class Content : MsgContent
 
             class MetaData : MsgMetaData
 
             override fun getMsgType(): MsgType {
-                return msgType
+                return _msgType
             }
         }
 
         object Reply : MsgDefinitionEncapsulation {
 
-            val msgType = MsgType.Control_interrupt_reply
+            val _msgType = MsgType.Control_interrupt_reply
 
             class Content(
                 status: MsgStatus,
@@ -39,7 +39,7 @@ object Control {
             class MetaData : MsgMetaData {}
 
             override fun getMsgType(): MsgType {
-                return msgType
+                return _msgType
             }
         }
     }
@@ -48,18 +48,18 @@ object Control {
 
         object Request: MsgDefinitionEncapsulation {
 
-            val msgType = MsgType.Control_shutdown_request
+            val _msgType = MsgType.Control_shutdown_request
 
             class Content constructor(val restart: Boolean) : MsgContent
 
             override fun getMsgType(): MsgType {
-                return msgType
+                return _msgType
             }
         }
 
         object Reply: MsgDefinitionEncapsulation {
 
-            val msgType = MsgType.Control_shutdown_reply
+            val _msgType = MsgType.Control_shutdown_reply
 
             class Content(
                 status: MsgStatus,
@@ -70,7 +70,7 @@ object Control {
             ) : MsgContent, CommonReplyContent(status, traceback, ename, evalue)
 
             override fun getMsgType(): MsgType {
-                return msgType
+                return _msgType
             }
         }
     }

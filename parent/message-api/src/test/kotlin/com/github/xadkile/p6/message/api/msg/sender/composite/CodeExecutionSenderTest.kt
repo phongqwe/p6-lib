@@ -66,7 +66,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     val message: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",
         username = "user_name",
-        msgType = Shell.Execute.Request.msgType,
+        msgType = Shell.Execute.Request.getMsgType(),
         msgContent = Shell.Execute.Request.Content(
             code ="""
                 x=0
@@ -100,7 +100,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                     val message: ExecuteRequest = ExecuteRequest.autoCreate(
                         sessionId = "session_id",
                         username = "user_name",
-                        msgType = Shell.Execute.Request.msgType,
+                        msgType = Shell.Execute.Request.getMsgType(),
                         msgContent = Shell.Execute.Request.Content(
                             code = "x=1+1*2;y=x*2;y",
                             silent = false,
@@ -145,7 +145,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             val message2: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
-                msgType = Shell.Execute.Request.msgType,
+                msgType = Shell.Execute.Request.getMsgType(),
                 msgContent = Shell.Execute.Request.Content(
                     code =
                             "x=0\n" + "" +
@@ -165,7 +165,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             val message: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
-                msgType = Shell.Execute.Request.msgType,
+                msgType = Shell.Execute.Request.getMsgType(),
                 msgContent = Shell.Execute.Request.Content(
                     code = "x",
                     silent = false,
@@ -257,7 +257,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             val malformedCodeMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
-                msgType = Shell.Execute.Request.msgType,
+                msgType = Shell.Execute.Request.getMsgType(),
                 msgContent = Shell.Execute.Request.Content(
                     code = "x=1+2*2;functionX()",
                     silent = false,
