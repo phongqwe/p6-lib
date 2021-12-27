@@ -1,6 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.Result
+import com.github.xadkile.p6.exception.error.ErrorReport
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -13,7 +14,7 @@ interface KernelContext : KernelContextReadOnly {
     /**
      * startCore() + startServices
      */
-    suspend fun startAll(): Result<Unit, Exception>
+    suspend fun startAll(): Result<Unit, ErrorReport>
 
     /**
      * Start IPython process and read connection file.
@@ -24,12 +25,12 @@ interface KernelContext : KernelContextReadOnly {
      *
      * It must be guaranteed that connection file is created and read, and process (jpython + zmq) is on and ready to accept command.
      */
-    suspend fun startKernel():Result<Unit,Exception>
+    suspend fun startKernel():Result<Unit,ErrorReport>
 
     /**
      * start services
      */
-    suspend fun startServices():Result<Unit,Exception>
+    suspend fun startServices():Result<Unit,ErrorReport>
 
     /**
      * Kill the current kernel process and delete the current connection file.
@@ -38,12 +39,12 @@ interface KernelContext : KernelContextReadOnly {
      *
      * It must be guaranteed that connection file is deleted, process is completely killed after calling stop.
      */
-    suspend fun stopAll(): Result<Unit, Exception>
+    suspend fun stopAll(): Result<Unit, ErrorReport>
 
-    suspend fun stopServices():Result<Unit,Exception>
+    suspend fun stopServices():Result<Unit,ErrorReport>
 
-    suspend fun stopKernel():Result<Unit,Exception>
-//
+    suspend fun stopKernel():Result<Unit,ErrorReport>
+
     /**
      * Terminate the current process and launch a new IPython Process.
      *
@@ -51,19 +52,19 @@ interface KernelContext : KernelContextReadOnly {
      *
      * This function can only be used on already running manager. Attempt to call it on stopped manager must be prohibited.
      */
-    suspend fun restartKernel(): Result<Unit, Exception>
+    suspend fun restartKernel(): Result<Unit, ErrorReport>
 
-    fun getKernelProcess(): Result<Process, Exception>
+    fun getKernelProcess(): Result<Process, ErrorReport>
 
     /**
      * Return input stream of the current IPython process
      */
-    fun getKernelInputStream():Result<InputStream,Exception>
+    fun getKernelInputStream():Result<InputStream,ErrorReport>
 
     /**
      * Return output stream of the current IPython process
      */
-    fun getKernelOutputStream():Result<OutputStream,Exception>
+    fun getKernelOutputStream():Result<OutputStream,ErrorReport>
 
     /**
      * add a listener that is invoked before a legal/normal stopping of a process

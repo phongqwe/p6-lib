@@ -1,6 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.service.process_watcher
 
 import com.github.michaelbull.result.Result
+import com.github.xadkile.p6.exception.error.ErrorReport
 import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -16,7 +17,7 @@ class OnStderrWatcher(
     private val cDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : CoroutineWatcher() {
 
-    override fun startWatching(process: Process): Result<Unit, Exception> {
+    override fun startWatching(process: Process): Result<Unit, ErrorReport> {
         return this.skeleton(process){
             this.job = cScope.launch(cDispatcher) {
                 val reader = BufferedReader(InputStreamReader(process.errorStream))

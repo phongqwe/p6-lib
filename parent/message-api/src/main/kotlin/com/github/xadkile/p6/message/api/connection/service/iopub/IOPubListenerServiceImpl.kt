@@ -1,12 +1,11 @@
 package com.github.xadkile.p6.message.api.connection.service.iopub
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.exception.ExceptionInfo
+import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContext
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelIsDownException
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.HBIsDeadException
-import com.github.xadkile.p6.message.api.connection.service.iopub.exception.CantStartIOPubServiceException
+import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
+import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.p6.message.api.msg.protocol.MsgType
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.IOPub
@@ -23,7 +22,7 @@ import org.zeromq.ZMsg
 class IOPubListenerServiceImpl internal constructor(
     private val kernelContext: KernelContextReadOnlyConv,
     private val defaultHandler: (msg: JPRawMessage) -> Unit,
-    private val parseExceptionHandler: suspend (exception: Exception) -> Unit,
+    private val parseExceptionHandler: suspend (exception: ErrorReport) -> Unit,
     private val handlerContainer: MsgHandlerContainer,
     private val externalScope: CoroutineScope,
     private val dispatcher: CoroutineDispatcher,
@@ -33,7 +32,7 @@ class IOPubListenerServiceImpl internal constructor(
     internal constructor(
         kernelContext: KernelContext,
         defaultHandler: (msg: JPRawMessage) -> Unit = { /*do nothing*/ },
-        parseExceptionHandler: suspend (exception: Exception) -> Unit = {  /*do nothing*/ },
+        parseExceptionHandler: suspend (exception: ErrorReport) -> Unit = {  /*do nothing*/ },
         handlerContainer: MsgHandlerContainer = HandlerContainerImp(),
         externalScope: CoroutineScope,
         dispatcher: CoroutineDispatcher,
@@ -46,14 +45,17 @@ class IOPubListenerServiceImpl internal constructor(
     /**
      * this will start this listener on a coroutine that runs concurrently.
      */
-    override suspend fun start(): Result<Unit, Exception> {
-
+    override suspend fun start(): Result<Unit, ErrorReport> {
         if (this.isRunning()) {
             return Ok(Unit)
         }
 
         if(kernelContext.isKernelRunning().not()){
-            return Err(KernelIsDownException.occurAt(this))
+            val report = ErrorReport(
+                header = KernelErrors.KernelDown,
+                data = KernelErrors.KernelDown.Data("${this.javaClass.canonicalName}:start")
+            )
+            return Err(report)
         }
 
         val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
@@ -68,7 +70,7 @@ class IOPubListenerServiceImpl internal constructor(
                     if (kernelContext.isKernelRunning()) {
                         val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
                         if (msg != null) {
-                            val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
+                            val parseResult = JPRawMessage.fromPayload2(msg.map { f -> f.data })
                             when (parseResult) {
                                 is Ok -> {
                                     val rawMsg: JPRawMessage = parseResult.unwrap()
@@ -87,13 +89,15 @@ class IOPubListenerServiceImpl internal constructor(
         val waitRs = Sleeper.delayUntil(10, startTimeOut) { this.isRunning() }
         if(waitRs is Err){
             this.bluntStop()
-             return Err(CantStartIOPubServiceException(ExceptionInfo(
-                msg = "Time out when trying to start IOPub service",
-                loc = this,
-                data = "timeout"
-            )))
+            val report = ErrorReport(
+                header= IOPubServiceErrors.CantStartIOPubServiceTimeOut,
+                data = IOPubServiceErrors.CantStartIOPubServiceTimeOut.Data("Time out when trying to start IOPub service"),
+                loc = "${this.javaClass.canonicalName}:start"
+            )
+            return Err(report)
+        }else{
+            return Ok(Unit)
         }
-        return waitRs
     }
 
     private fun extractMsgType(msgIdentity: String): MsgType {
@@ -103,7 +107,7 @@ class IOPubListenerServiceImpl internal constructor(
 
             msgIdentity.endsWith(IOPub.Status.msgType.text()) -> IOPub.Status.msgType
 
-            msgIdentity.endsWith(IOPub.ExecuteError.getMsgType2().text()) -> IOPub.ExecuteError.getMsgType2()
+            msgIdentity.endsWith(IOPub.ExecuteError.getMsgType().text()) -> IOPub.ExecuteError.getMsgType()
 
             // TODO add more msg type here
 
@@ -114,7 +118,7 @@ class IOPubListenerServiceImpl internal constructor(
         return msgType
     }
 
-    override suspend fun stop(): Result<Unit, Exception> {
+    override suspend fun stop(): Result<Unit, ErrorReport> {
         if (this.isRunning()) {
             bluntStop()
         }

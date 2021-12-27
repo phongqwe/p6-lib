@@ -4,14 +4,14 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
-import com.github.xadkile.p6.exception.ExceptionInfo
+import com.github.xadkile.p6.exception.error.CommonErrors
+import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.MsgEncoder
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.HBServiceNotRunningException
+import com.github.xadkile.p6.message.api.connection.service.heart_beat.errors.HBServiceErrors
 import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
 import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
-import com.github.xadkile.p6.message.api.msg.sender.exception.UnableToQueueZMsgException
-import com.github.xadkile.p6.message.api.msg.sender.exception.ZMQMsgTimeOutException
+import com.github.xadkile.p6.message.api.msg.sender.exception.SenderErrors
 import org.zeromq.ZContext
 import org.zeromq.ZFrame
 import org.zeromq.ZMQ
@@ -28,18 +28,18 @@ internal class ZMQMsgSender {
          * wrapper function allowing calling [send] function on [JPMessage]
          * [zContext] is for creating poller
          */
-        fun sendJPMsg(
+        fun sendJPMsg2(
             message: JPMessage<*, *>,
             socket: ZMQ.Socket,
             encoder: MsgEncoder,
             hbs: HeartBeatService,
             zContext: ZContext,
             interval: Long = SenderConstant.defaultPollingDuration,
-        ): Result<JPRawMessage, Exception> {
-            val out: Result<ZMsg, Exception> = send(encoder.encodeMessage(message), socket, hbs, zContext,interval)
-            val rt: Result<JPRawMessage, Exception> = out.andThen { msg ->
+        ): Result<JPRawMessage, ErrorReport> {
+            val out: Result<ZMsg, ErrorReport> = send2(encoder.encodeMessage(message), socket, hbs, zContext, interval)
+            val rt: Result<JPRawMessage, ErrorReport> = out.andThen { msg ->
                 val rt: List<ByteArray> = msg.map { frame -> frame.data }
-                JPRawMessage.fromPayload(rt)
+                JPRawMessage.fromPayload2(rt)
             }
             return rt
         }
@@ -51,16 +51,16 @@ internal class ZMQMsgSender {
          * - wait for a response using Poller with a timeout
          * [zContext] is for creating poller
          */
-        fun send(
+        fun send2(
             message: List<ByteArray>,
             socket: ZMQ.Socket,
             hbs: HeartBeatService,
             zContext: ZContext,
             interval: Long = SenderConstant.defaultPollingDuration,
-        ): Result<ZMsg, Exception> {
-            // reminder: if heart beat service is not running, then
-            // there is no way to ensure that zmq is running
-            // => don't send any message if hb service is dead
+        ): Result<ZMsg, ErrorReport> {
+            // x: if heart beat service is not running, then
+            // x: there is no way to ensure that zmq is running
+            // x: => don't send any message if hb service is dead
             if (hbs.isServiceUpAndHBLive()) {
                 val poller: ZMQ.Poller = zContext.createPoller(1)
                 val payload: List<ZFrame> = message.map { ZFrame(it) }
@@ -72,20 +72,27 @@ internal class ZMQMsgSender {
                     if (poller.pollin(0)) {
                         return Ok(ZMsg.recvMsg(socket, ZMQ.DONTWAIT))
                     } else {
-                        return Err(ZMQMsgTimeOutException())
+                        return Err(
+                            ErrorReport(
+                                header = CommonErrors.TimeOut,
+                                data = CommonErrors.TimeOut.Data(""),
+                                loc = ""
+                            )
+                        )
                     }
                 } else {
-                    return Err(UnableToQueueZMsgException(ExceptionInfo(
-                        loc = this,
-                        data = zmsg
-                    )))
+                    val report = ErrorReport(
+                        header = SenderErrors.UnableToQueueZMsg,
+                        data = SenderErrors.UnableToQueueZMsg.Data(zmsg)
+                    )
+                    return Err(report)
                 }
             } else {
-                return Err(HBServiceNotRunningException(ExceptionInfo(
-                    msg = "ZMQMsgSender can't send msg because hb service is not running",
-                    loc = this,
-                    data = Unit
-                )))
+                val report = ErrorReport(
+                    header = HBServiceErrors.HBIsDead,
+                    data = HBServiceErrors.HBIsDead.Data("ZMQMsgSender can't send msg because hb service is not running")
+                )
+                return Err(report)
             }
         }
     }

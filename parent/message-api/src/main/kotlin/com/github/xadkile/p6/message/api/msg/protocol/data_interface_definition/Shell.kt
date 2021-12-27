@@ -28,7 +28,7 @@ object Shell{
 
             class MetaData : MsgMetaData {}
 
-            override fun getMsgType2(): MsgType {
+            override fun getMsgType(): MsgType {
                 return msgType
             }
         }
@@ -58,7 +58,7 @@ object Shell{
                 val status: MsgStatus,
             ) : MsgMetaData
 
-            override fun getMsgType2(): MsgType {
+            override fun getMsgType(): MsgType {
                 return msgType
             }
         }
@@ -74,7 +74,7 @@ object Shell{
 
             class MetaData: MsgMetaData
 
-            override fun getMsgType2(): MsgType {
+            override fun getMsgType(): MsgType {
                 return msgType
             }
         }
@@ -121,7 +121,7 @@ object Shell{
                 val nbConvertExporter:String
             )
 
-            override fun getMsgType2(): MsgType {
+            override fun getMsgType(): MsgType {
                 return msgType
             }
         }

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>bom</artifactId>
         <groupId>com.github.xadkile.p6</groupId>
-        <version>${revision}</version>
+        <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
@@ -15,7 +15,6 @@
         <module>message-api</module>
         <module>formula-translator</module>
         <module>exception-lib</module>
-        <module>p6-app</module>
     </modules>
 
     <properties>

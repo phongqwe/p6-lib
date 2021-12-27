@@ -1,9 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelConfig
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextImp
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelTimeOut
+import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.github.xadkile.p6.test.utils.TestResources
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -24,13 +22,13 @@ import kotlin.test.assertTrue
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class KernelContextImpTest {
     lateinit var pm : KernelContextImp
-    lateinit var ipythonConfig: KernelConfig
+    lateinit var kernelConfig: KernelConfig
     lateinit var zContext: ZContext
     @BeforeEach
     fun beforeEach(){
         this.zContext = ZContext()
-        ipythonConfig = TestResources.kernelConfigForTest()
-        pm = KernelContextImp(ipythonConfig,this.zContext, GlobalScope, Dispatchers.IO)
+        kernelConfig = TestResources.kernelConfigForTest()
+        pm = KernelContextImp(kernelConfig,this.zContext, GlobalScope, Dispatchers.IO)
     }
 
     @AfterEach
@@ -82,7 +80,7 @@ internal class KernelContextImpTest {
         assertTrue(pm.getMsgIdGenerator() is Ok,pm.getMsgIdGenerator().toString())
         assertTrue(pm.getHeartBeatService() is Ok,pm.getHeartBeatService().toString())
         assertTrue(pm.getHeartBeatService().unwrap().isServiceRunning())
-        assertTrue(Files.exists(Paths.get(ipythonConfig.getConnectionFilePath())))
+        assertTrue(Files.exists(Paths.get(kernelConfig.getConnectionFilePath())))
     }
 
     @Test
@@ -109,7 +107,7 @@ internal class KernelContextImpTest {
         assertTrue(pm.getMsgEncoder() is Err)
         assertTrue(pm.getMsgIdGenerator() is Err)
         assertTrue(pm.getHeartBeatService() is Err)
-        assertFalse(Files.exists(Paths.get(ipythonConfig.getConnectionFilePath())))
+        assertFalse(Files.exists(Paths.get(kernelConfig.getConnectionFilePath())))
     }
     @Test
     fun stopIPython_onAlreadyStopped()=runBlocking {
@@ -143,7 +141,7 @@ internal class KernelContextImpTest {
             pm.stopAll()
             val rs = pm.restartKernel()
             assertTrue(rs is Err)
-            assertTrue(rs.getError() is IllegalStateException)
+            assertTrue(rs.error.header is KernelErrors.KernelContextIllegalState)
         }
     }
 }

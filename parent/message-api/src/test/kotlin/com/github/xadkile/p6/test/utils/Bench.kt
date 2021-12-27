@@ -6,21 +6,17 @@ import org.junit.jupiter.api.TestInstance
 import org.zeromq.*
 import java.math.BigInteger
 import java.util.*
-import java.util.regex.Pattern
 import kotlin.concurrent.thread
 import kotlin.system.measureTimeMillis
-import kotlin.test.assertTrue
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
 
     @Test
-    fun bench(){
-        val l = listOf(false,true)
-        println(l.any { !it })
-
+    fun bench() {
     }
+
     suspend fun fs() {
         withContext(Dispatchers.Default) {
             var x = 0
@@ -78,7 +74,7 @@ class Bench : TestOnJupyter() {
         }
     }
 
-//    @Test
+    //    @Test
     fun runBlockingExample() {
         runBlocking {
             val j1 = launch(Dispatchers.Default) {
@@ -99,7 +95,7 @@ class Bench : TestOnJupyter() {
         println("This is blocked by the completion of runBlocking")
     }
 
-//    @Test
+    //    @Test
     fun coroutineScopeEggg() {
 
         runBlocking {
@@ -187,7 +183,7 @@ class Bench : TestOnJupyter() {
         }
     }
 
-//    @Test
+    //    @Test
     fun suspendingFunction2() {
         val o = measureTimeMillis {
             runBlocking {
@@ -237,7 +233,7 @@ class Bench : TestOnJupyter() {
         }
     }
 
-//    @Test
+    //    @Test
     fun z32() {
         runBlocking {
             val time = measureTimeMillis {

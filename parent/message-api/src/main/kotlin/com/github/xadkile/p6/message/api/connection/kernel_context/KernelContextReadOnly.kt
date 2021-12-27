@@ -1,9 +1,9 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.Result
+import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
-import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.p6.message.api.msg.protocol.KernelConnectionFileContent
 import com.github.xadkile.p6.message.api.msg.protocol.other.MsgIdGenerator
@@ -18,28 +18,28 @@ interface KernelContextReadOnly {
 
     fun getKernelConfig(): KernelConfig
 
-    fun getIOPubListenerService():Result<IOPubListenerServiceReadOnly,Exception>
+    fun getIOPubListenerService():Result<IOPubListenerServiceReadOnly,ErrorReport>
 
     /**
      * Return content of connection file .
      *
      * Connection file is available for use only when IPython process is launch successfully.
      */
-    fun getConnectionFileContent(): Result<KernelConnectionFileContent, Exception>
+    fun getConnectionFileContent(): Result<KernelConnectionFileContent, ErrorReport>
 
-    fun getSession(): Result<Session, Exception>
+    fun getSession(): Result<Session, ErrorReport>
 
-    fun getChannelProvider(): Result<ChannelProvider, Exception>
+    fun getChannelProvider(): Result<ChannelProvider, ErrorReport>
 
-    fun getSenderProvider(): Result<SenderProvider, Exception>
+    fun getSenderProvider(): Result<SenderProvider, ErrorReport>
 
-    fun getMsgEncoder(): Result<MsgEncoder, Exception>
+    fun getMsgEncoder(): Result<MsgEncoder, ErrorReport>
 
-    fun getMsgIdGenerator(): Result<MsgIdGenerator, Exception>
+    fun getMsgIdGenerator(): Result<MsgIdGenerator, ErrorReport>
 
-    fun getHeartBeatService():Result<HeartBeatService,Exception>
+    fun getHeartBeatService():Result<HeartBeatService,ErrorReport>
 
-    fun getSocketProvider():Result<SocketProvider,Exception>
+    fun getSocketProvider():Result<SocketProvider,ErrorReport>
 
     fun zContext(): ZContext
     /**

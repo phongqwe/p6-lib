@@ -2,6 +2,7 @@ package com.github.xadkile.p6.message.api.msg.sender
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
+import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.MsgEncoder
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
@@ -23,11 +24,11 @@ internal class PCSender<I: JPMessage<*, *>,O: JPMessage<*, *>> internal construc
 ) {
 
     inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent>
-            send(message: I): Result<O, Exception> {
+            send2(message: I): Result<O, ErrorReport> {
         return socket.use {
-            val out: Result<JPRawMessage, Exception> =
-                ZMQMsgSender.sendJPMsg(message, socket, msgEncoder, hbService, zContext,interval)
-            val rt: Result<O, Exception> = out.map { msg ->
+            val out: Result<JPRawMessage, ErrorReport> =
+                ZMQMsgSender.sendJPMsg2(message, socket, msgEncoder, hbService, zContext,interval)
+            val rt: Result<O, ErrorReport> = out.map { msg ->
                 val parsedOutput: JPMessage<*, *> = msg.toModel<META,CONTENT>()
                 parsedOutput as O
             }

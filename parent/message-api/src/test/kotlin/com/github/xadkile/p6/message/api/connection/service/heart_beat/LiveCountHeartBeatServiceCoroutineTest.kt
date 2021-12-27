@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.message.api.connection.service.heart_beat.coroutine
+package com.github.xadkile.p6.message.api.connection.service.heart_beat
 
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.p6.test.utils.TestOnJupyter

@@ -2,6 +2,7 @@ package com.github.xadkile.p6.message.api.connection.kernel_context.context_obje
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.unwrap
+import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
@@ -14,15 +15,18 @@ class SenderProviderImp internal constructor(
     val kernelContext: KernelContextReadOnlyConv,
 ) : SenderProvider {
 
-    override fun executeRequestSender(): MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> {
+    override fun executeRequestSender(): MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> {
         return ExecuteSender(kernelContext)
     }
 
-    override fun kernelInfoSender(): MsgSender<KernelInfoInput, Result<KernelInfoOutput, Exception>> {
+
+    override fun kernelInfoSender(): MsgSender<KernelInfoInput, Result<KernelInfoOutput, ErrorReport>> {
         return KernelInfoSender(kernelContext)
     }
 
-    override fun codeExecutionSender(): MsgSender<ExecuteRequest, Result<ExecuteResult?, Exception>> {
+
+    override fun codeExecutionSender(): MsgSender<ExecuteRequest, Result<ExecuteResult?, ErrorReport>> {
         return CodeExecutionSender(kernelContext)
     }
+
 }
