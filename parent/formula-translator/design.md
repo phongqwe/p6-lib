@@ -1,2 +1,31 @@
 # Grammar
 
+```
+<FORMULA> -> =<EXPR>
+
+<EXPR> -> <FUNC_CALL>
+<EXPR> -> <LITERA>
+<EXPR> -> <RANGE_ADDRESS>
+<EXPR> -> (<EXPR>)
+
+<FUNC_CALL> -> <FUNC_NAME>(<EXPR>)
+<FUNCTION_NAME> -> <IDENTIFIER> 
+
+<RANGE_ADDRESS> -> [<SHEET_PREFIX>]?<CELL_ADDRESS> : <CELL_ADDRESS> | <WHOLE_COL> | <WHOLE_ROW>  | <CELL_ADDRESS>
+<CELL_ADDRESS> -> <COL_LABEL><ROW_LABEL> 
+<WHOLE_COL> -> <COL_LABEL> : <COL_LABEL>
+<WHOLE_ROW> -> <ROW_LABEL> : <ROW_LABEL>
+<COL_LABEL> -> [$]?[A-Z][A-Z]*
+<ROW_LABEL> -> [$]?<NUM>
+<SHEET_PREFIX> -> '<SHEET_NAME>'! | <SHEET_NAME>! 
+<SHEET_NAME> -> <IDENTIFIER>
+
+<IDENTIFIER> -> [a-zA-Z0-9 ]+ 
+<LITERAL> -> <NUM> | <TEXT>
+<NUM> -> [0-9]+
+<TEXT> -> "[a-zA-Z]*"
+
+<UN_OP> -> [-+]
+<BIN_OP> -> [+-*/%]
+
+```
