@@ -58,8 +58,8 @@ interface KernelContextReadOnlyConv : KernelContextReadOnly {
         return original().getKernelConfig()
     }
 
-    override fun getIOPubListenerService2(): Result<IOPubListenerServiceReadOnly, ErrorReport> {
-        return original().getIOPubListenerService2()
+    override fun getIOPubListenerService(): Result<IOPubListenerServiceReadOnly, ErrorReport> {
+        return original().getIOPubListenerService()
     }
 
     override fun getConnectionFileContent(): Result<KernelConnectionFileContent, ErrorReport> {

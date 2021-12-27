@@ -13,6 +13,7 @@ import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
 import com.github.xadkile.p6.message.api.msg.protocol.MsgStatus
 import com.github.xadkile.p6.message.api.msg.protocol.MsgType
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.IOPub
+import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.handler
 import com.github.xadkile.p6.message.api.msg.sender.MsgSender
 import com.github.xadkile.p6.message.api.msg.sender.exception.SenderErrors
@@ -32,9 +33,7 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
  */
 class CodeExecutionSender internal constructor(
     val kernelContext: KernelContextReadOnlyConv,
-)
-    : MsgSender<ExecuteRequest, Result<ExecuteResult?, ErrorReport>>
-{
+) : MsgSender<ExecuteRequest, Result<ExecuteResult?, ErrorReport>> {
 
     /**
      * This works like this:
@@ -57,7 +56,7 @@ class CodeExecutionSender internal constructor(
             return Err(report)
         }
 
-        val hasIoPubService = kernelContext.getIOPubListenerService2()
+        val hasIoPubService = kernelContext.getIOPubListenerService()
         val hasSenderProvider = kernelContext.getSenderProvider()
 
         if (hasIoPubService is Err) {
@@ -75,8 +74,8 @@ class CodeExecutionSender internal constructor(
         if (ioPubListenerService.isNotRunning()) {
             val report = ErrorReport(
                 header = IOPubServiceErrors.IOPubServiceNotRunning,
-                data =  IOPubServiceErrors.IOPubServiceNotRunning.Data(""),
-                loc =  "${this.javaClass.canonicalName}.send"
+                data = IOPubServiceErrors.IOPubServiceNotRunning.Data(""),
+                loc = "${this.javaClass.canonicalName}.send"
             )
             return Err(report)
         }
@@ -124,22 +123,22 @@ class CodeExecutionSender internal constructor(
 
         // x: sending the computing request
         withContext(dispatcher) {
-            val sendStatus = executeSender.send(message, dispatcher)
+            val sendStatus:Result<ExecuteReply,ErrorReport> = executeSender.send(message, dispatcher)
             if (sendStatus is Ok) {
-                val content = sendStatus.get()?.content
-                val st = content?.status
-                when(st){
-                    MsgStatus.ok->{
+                val content:Shell.Execute.Reply.Content? = sendStatus.get()?.content
+                val st:MsgStatus? = content?.status
+                when (st) {
+                    MsgStatus.ok -> {
                         //dont do anything, wait for result from the listener
                     }
-                    MsgStatus.error->{
+                    MsgStatus.error -> {
                         val report = ErrorReport(
                             header = SenderErrors.CodeError,
                             data = SenderErrors.CodeError.Data(content),
                         )
                         rt = Err(report)
                     }
-                    MsgStatus.aborted->{
+                    MsgStatus.aborted -> {
                         val report = ErrorReport(
                             header = SenderErrors.CodeError,
                             data = SenderErrors.CodeError.Data(content),
@@ -148,8 +147,8 @@ class CodeExecutionSender internal constructor(
                     }
                     else -> {
                         val report = ErrorReport(
-                            header=CommonErrors.Unknown,
-                            data = CommonErrors.Unknown.Data("Unknown error when executing code",null)
+                            header = CommonErrors.Unknown,
+                            data = CommonErrors.Unknown.Data("Unknown error when executing code", null)
                         )
                         rt = Err(report)
                     }
@@ -162,7 +161,7 @@ class CodeExecutionSender internal constructor(
         }
 
         // x: this ensure that this sender will wait until state reach terminal states: Done
-        Sleeper.delayUntil(50) {
+        Sleeper.delayUntil(10) {
             state = state.transit(rt, kernelContext, executionState)
             when (state) {
                 SendingState.HasResult, SendingState.DoneButNoResult, SendingState.KernelDieMidway -> true
@@ -172,14 +171,14 @@ class CodeExecutionSender internal constructor(
 
         // x: remove temp handlers from the listener to prevent bug
         ioPubListenerService.removeHandlers(handlers)
-        val rt2:Result<ExecuteResult?, ErrorReport> = when (state) {
+        val rt2: Result<ExecuteResult?, ErrorReport> = when (state) {
             SendingState.HasResult -> rt!!
             SendingState.DoneButNoResult -> Ok(null)
             SendingState.KernelDieMidway -> {
                 val report = ErrorReport(
                     header = KernelErrors.KernelDown,
                     data = KernelErrors.KernelDown.Data("Kernel is killed before result is returned"),
-                    loc ="${this.javaClass.canonicalName}.send"
+                    loc = "${this.javaClass.canonicalName}.send"
                 )
                 Err(report)
             }

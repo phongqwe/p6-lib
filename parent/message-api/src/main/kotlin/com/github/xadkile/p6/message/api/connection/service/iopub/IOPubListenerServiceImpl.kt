@@ -107,7 +107,7 @@ class IOPubListenerServiceImpl internal constructor(
 
             msgIdentity.endsWith(IOPub.Status.msgType.text()) -> IOPub.Status.msgType
 
-            msgIdentity.endsWith(IOPub.ExecuteError.getMsgType2().text()) -> IOPub.ExecuteError.getMsgType2()
+            msgIdentity.endsWith(IOPub.ExecuteError.getMsgType().text()) -> IOPub.ExecuteError.getMsgType()
 
             // TODO add more msg type here
 

@@ -18,7 +18,7 @@ interface KernelContextReadOnly {
 
     fun getKernelConfig(): KernelConfig
 
-    fun getIOPubListenerService2():Result<IOPubListenerServiceReadOnly,ErrorReport>
+    fun getIOPubListenerService():Result<IOPubListenerServiceReadOnly,ErrorReport>
 
     /**
      * Return content of connection file .

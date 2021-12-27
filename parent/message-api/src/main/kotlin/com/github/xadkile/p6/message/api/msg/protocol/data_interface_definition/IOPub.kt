@@ -18,7 +18,7 @@ object IOPub {
 
         class MetaData : MsgMetaData
 
-        override fun getMsgType2(): MsgType {
+        override fun getMsgType(): MsgType {
             return msgType
         }
     }
@@ -42,7 +42,7 @@ object IOPub {
             busy, idle, starting, undefined
         }
 
-        override fun getMsgType2(): MsgType {
+        override fun getMsgType(): MsgType {
             return msgType
         }
     }
@@ -65,7 +65,7 @@ object IOPub {
 
         class MetaData: MsgMetaData
 
-        override fun getMsgType2(): MsgType {
+        override fun getMsgType(): MsgType {
             return msgType
         }
     }
@@ -81,7 +81,7 @@ object IOPub {
             val transient: Map<String, Any>
         ) : MsgContent
 
-        override fun getMsgType2(): MsgType {
+        override fun getMsgType(): MsgType {
             return msgType
         }
     }

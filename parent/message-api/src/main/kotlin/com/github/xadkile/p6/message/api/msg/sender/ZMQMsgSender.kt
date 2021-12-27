@@ -58,9 +58,9 @@ internal class ZMQMsgSender {
             zContext: ZContext,
             interval: Long = SenderConstant.defaultPollingDuration,
         ): Result<ZMsg, ErrorReport> {
-            // reminder: if heart beat service is not running, then
-            // there is no way to ensure that zmq is running
-            // => don't send any message if hb service is dead
+            // x: if heart beat service is not running, then
+            // x: there is no way to ensure that zmq is running
+            // x: => don't send any message if hb service is dead
             if (hbs.isServiceUpAndHBLive()) {
                 val poller: ZMQ.Poller = zContext.createPoller(1)
                 val payload: List<ZFrame> = message.map { ZFrame(it) }

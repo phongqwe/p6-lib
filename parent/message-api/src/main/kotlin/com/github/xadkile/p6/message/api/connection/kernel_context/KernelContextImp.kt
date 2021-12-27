@@ -456,7 +456,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
 
-    override fun getIOPubListenerService2(): Result<IOPubListenerServiceReadOnly, ErrorReport> {
+    override fun getIOPubListenerService(): Result<IOPubListenerServiceReadOnly, ErrorReport> {
         val sv = getService2<IOPubListenerService>(this.ioPubService, "IO Pub service")
         return sv
     }

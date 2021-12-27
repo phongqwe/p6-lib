@@ -11,6 +11,9 @@ object SenderErrors {
         class Data(val currentState: CodeExecutionSender.SendingState)
     }
 
+    /**
+     * Indicate there are errors in code sent to kernel to be executed
+     */
     object CodeError: ErrorHeader("SenderErrors.CodeExecution".hashCode(),"error in code"){
         class Data (val messageContent: MsgContent)
     }

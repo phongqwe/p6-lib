@@ -241,7 +241,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         }
 
         val mockContext:KernelContextReadOnlyConv = spyk(kernelContext.conv()).also {
-            every {it.getIOPubListenerService2()} returns Ok(mockListener)
+            every {it.getIOPubListenerService()} returns Ok(mockListener)
         }
 
         val sender = CodeExecutionSender(mockContext)

@@ -20,7 +20,7 @@ object Control {
 
             class MetaData : MsgMetaData
 
-            override fun getMsgType2(): MsgType {
+            override fun getMsgType(): MsgType {
                 return msgType
             }
         }
@@ -38,7 +38,7 @@ object Control {
 
             class MetaData : MsgMetaData {}
 
-            override fun getMsgType2(): MsgType {
+            override fun getMsgType(): MsgType {
                 return msgType
             }
         }
@@ -52,7 +52,7 @@ object Control {
 
             class Content constructor(val restart: Boolean) : MsgContent
 
-            override fun getMsgType2(): MsgType {
+            override fun getMsgType(): MsgType {
                 return msgType
             }
         }
@@ -69,7 +69,7 @@ object Control {
                 val restart: Boolean,
             ) : MsgContent, CommonReplyContent(status, traceback, ename, evalue)
 
-            override fun getMsgType2(): MsgType {
+            override fun getMsgType(): MsgType {
                 return msgType
             }
         }
