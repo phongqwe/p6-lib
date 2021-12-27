@@ -2,11 +2,13 @@ package com.github.xadkile.p6.message.api.connection.service.iopub
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.p6.exception.ExceptionInfo
+import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContext
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
+import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelErrors
 import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelIsDownException
-import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception.HBIsDeadException
 import com.github.xadkile.p6.message.api.connection.service.iopub.exception.CantStartIOPubServiceException
+import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubServiceErrors
 import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.p6.message.api.msg.protocol.MsgType
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.IOPub
@@ -96,6 +98,61 @@ class IOPubListenerServiceImpl internal constructor(
         return waitRs
     }
 
+    override suspend fun start2(): Result<Unit, ErrorReport> {
+        if (this.isRunning()) {
+            return Ok(Unit)
+        }
+
+        if(kernelContext.isKernelRunning().not()){
+            val report = ErrorReport(
+                header = KernelErrors.KernelDown,
+                data = KernelErrors.KernelDown.Data("${this.javaClass.canonicalName}:start")
+            )
+            return Err(report)
+        }
+
+        val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
+        // x: add default handler
+        this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
+        job = externalScope.launch(dispatcher) {
+            socket.use {
+                // x: start the service loop
+                // x: when the kernel is down, this service simply does not do anything. Just hang there.
+                while (isActive) {
+                    // x: this listener is passive, so it can start listening when the kernel is up, no need to wait for heartbeat service
+                    if (kernelContext.isKernelRunning()) {
+                        val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
+                        if (msg != null) {
+                            val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
+                            when (parseResult) {
+                                is Ok -> {
+                                    val rawMsg: JPRawMessage = parseResult.unwrap()
+                                    val msgType: MsgType = extractMsgType(rawMsg.identities)
+                                    dispatch(msgType, rawMsg)
+                                }
+                                else -> {
+                                    parseExceptionHandler(parseResult.unwrapError())
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        val waitRs = Sleeper.delayUntil(10, startTimeOut) { this.isRunning() }
+        if(waitRs is Err){
+            this.bluntStop()
+            val report = ErrorReport(
+                header= IOPubServiceErrors.CantStartIOPubServiceTimeOut,
+                data = IOPubServiceErrors.CantStartIOPubServiceTimeOut.Data("Time out when trying to start IOPub service"),
+                loc = "${this.javaClass.canonicalName}:start"
+            )
+            return Err(report)
+        }else{
+            return Ok(Unit)
+        }
+    }
+
     private fun extractMsgType(msgIdentity: String): MsgType {
         val msgType: MsgType = when {
 
@@ -115,6 +172,13 @@ class IOPubListenerServiceImpl internal constructor(
     }
 
     override suspend fun stop(): Result<Unit, Exception> {
+        if (this.isRunning()) {
+            bluntStop()
+        }
+        return Ok(Unit)
+    }
+
+    override suspend fun stop2(): Result<Unit, ErrorReport> {
         if (this.isRunning()) {
             bluntStop()
         }

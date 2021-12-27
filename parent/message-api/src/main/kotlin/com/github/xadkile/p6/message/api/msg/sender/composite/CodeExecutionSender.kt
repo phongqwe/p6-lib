@@ -1,23 +1,21 @@
 package com.github.xadkile.p6.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.exception.ExceptionInfo
-import com.github.xadkile.p6.exception.UnknownException
+import com.github.xadkile.p6.exception.error.CommonErrors
+import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelIsDownException
+import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelErrors
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.p6.message.api.connection.service.iopub.MsgHandler
 import com.github.xadkile.p6.message.api.connection.service.iopub.MsgHandlers
-import com.github.xadkile.p6.message.api.connection.service.iopub.exception.ExecutionErrException
-import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
+import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubServiceErrors
 import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
 import com.github.xadkile.p6.message.api.msg.protocol.MsgStatus
 import com.github.xadkile.p6.message.api.msg.protocol.MsgType
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.IOPub
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.handler
 import com.github.xadkile.p6.message.api.msg.sender.MsgSender
-import com.github.xadkile.p6.message.api.msg.sender.exception.CodeExecutionException
-import com.github.xadkile.p6.message.api.msg.sender.exception.UnableToSendMsgException
+import com.github.xadkile.p6.message.api.msg.sender.exception.SenderErrors
 import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteRequest
 import com.github.xadkile.p6.message.api.other.Sleeper
@@ -34,7 +32,9 @@ typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteR
  */
 class CodeExecutionSender internal constructor(
     val kernelContext: KernelContextReadOnlyConv,
-) : MsgSender<ExecuteRequest, Result<ExecuteResult?, Exception>> {
+)
+    : MsgSender<ExecuteRequest, Result<ExecuteResult?, ErrorReport>>
+{
 
     /**
      * This works like this:
@@ -46,14 +46,19 @@ class CodeExecutionSender internal constructor(
     override suspend fun send(
         message: ExecuteRequest,
         dispatcher: CoroutineDispatcher,
-    ): Result<ExecuteResult?, Exception> {
+    ): Result<ExecuteResult?, ErrorReport> {
 
         if (kernelContext.isKernelNotRunning()) {
-            return Err(KernelIsDownException.occurAt(this))
+            val report = ErrorReport(
+                header = KernelErrors.KernelDown,
+                data = KernelErrors.KernelDown.Data(""),
+                loc = "${this.javaClass.canonicalName}.send"
+            )
+            return Err(report)
         }
 
-        val hasIoPubService = kernelContext.getIOPubListenerService()
-        val hasSenderProvider = kernelContext.getSenderProvider()
+        val hasIoPubService = kernelContext.getIOPubListenerService2()
+        val hasSenderProvider = kernelContext.getSenderProvider2()
 
         if (hasIoPubService is Err) {
             return Err(hasIoPubService.unwrapError())
@@ -64,14 +69,19 @@ class CodeExecutionSender internal constructor(
         }
 
         val ioPubListenerService: IOPubListenerServiceReadOnly = hasIoPubService.unwrap()
-        val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> =
-            hasSenderProvider.unwrap().executeRequestSender()
+        val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> =
+            hasSenderProvider.unwrap().executeRequestSender2()
 
         if (ioPubListenerService.isNotRunning()) {
-            return Err(IOPubListenerNotRunningException.occurAt(this))
+            val report = ErrorReport(
+                header = IOPubServiceErrors.IOPubServiceNotRunning,
+                data =  IOPubServiceErrors.IOPubServiceNotRunning.Data(""),
+                loc =  "${this.javaClass.canonicalName}.send"
+            )
+            return Err(report)
         }
 
-        var rt: Result<ExecuteResult, Exception>? = null
+        var rt: Result<ExecuteResult, ErrorReport>? = null
         var executionState = IOPub.Status.ExecutionState.undefined
         var state = SendingState.Start
 
@@ -96,11 +106,11 @@ class CodeExecutionSender internal constructor(
             IOPub.ExecuteError.handler { msg ->
                 val receivedMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
-                    rt = Err(
-                        ExecutionErrException(ExceptionInfo(
-                            loc = this,
-                            data = receivedMsg.content))
+                    val report = ErrorReport(
+                        header = SenderErrors.CodeError,
+                        data = SenderErrors.CodeError.Data(receivedMsg.content),
                     )
+                    rt = Err(report)
                     state = state.transit(rt, kernelContext, executionState)
                 }
             },
@@ -123,13 +133,25 @@ class CodeExecutionSender internal constructor(
                         //dont do anything, wait for result from the listener
                     }
                     MsgStatus.error->{
-                        rt = Err(CodeExecutionException.Error("${content.ename}:${content.evalue}"))
+                        val report = ErrorReport(
+                            header = SenderErrors.CodeError,
+                            data = SenderErrors.CodeError.Data(content),
+                        )
+                        rt = Err(report)
                     }
                     MsgStatus.aborted->{
-                        rt = Err(CodeExecutionException.Aborted())
+                        val report = ErrorReport(
+                            header = SenderErrors.CodeError,
+                            data = SenderErrors.CodeError.Data(content),
+                        )
+                        rt = Err(report)
                     }
                     else -> {
-                        rt = Err(UnknownException.occurAt(this))
+                        val report = ErrorReport(
+                            header=CommonErrors.Unknown,
+                            data = CommonErrors.Unknown.Data("Unknown error when executing code",null)
+                        )
+                        rt = Err(report)
                     }
                 }
                 state = state.transit(rt, kernelContext, executionState)
@@ -150,15 +172,23 @@ class CodeExecutionSender internal constructor(
 
         // x: remove temp handlers from the listener to prevent bug
         ioPubListenerService.removeHandlers(handlers)
-        val rt2 = when (state) {
+        val rt2:Result<ExecuteResult?, ErrorReport> = when (state) {
             SendingState.HasResult -> rt!!
             SendingState.DoneButNoResult -> Ok(null)
-            SendingState.KernelDieMidway -> Err(KernelIsDownException(ExceptionInfo(
-                msg = "Kernel is killed before result is returned",
-                loc = this,
-                data = Unit
-            )))
-            else -> Err(UnknownException.occurAt(this))
+            SendingState.KernelDieMidway -> {
+                val report = ErrorReport(
+                    header = KernelErrors.KernelDown,
+                    data = KernelErrors.KernelDown.Data("Kernel is killed before result is returned"),
+                    loc ="${this.javaClass.canonicalName}.send"
+                )
+                Err(report)
+            }
+            else -> Err(
+                ErrorReport(
+                    header = SenderErrors.InvalidSendState,
+                    data = SenderErrors.InvalidSendState.Data(state)
+                )
+            )
         }
         return rt2
     }
@@ -166,7 +196,7 @@ class CodeExecutionSender internal constructor(
     /**
      * state of the sending action
      */
-    private enum class SendingState {
+    enum class SendingState {
         Start {
             override fun transit(
                 hasResult: Boolean,

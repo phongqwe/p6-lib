@@ -15,7 +15,7 @@ internal class ZMQMsgSenderTest : TestOnJupyter() {
 
     @Test
     fun send_Ok() = runBlocking{
-        kernelContext.startAll()
+        kernelContext.startAll2()
         // send ok
         val t = System.currentTimeMillis()
         val o = ZMQMsgSender.send(

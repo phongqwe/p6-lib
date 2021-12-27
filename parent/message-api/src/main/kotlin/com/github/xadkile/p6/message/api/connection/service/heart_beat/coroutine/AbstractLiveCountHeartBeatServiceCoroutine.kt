@@ -7,6 +7,7 @@ import com.github.xadkile.p6.message.api.connection.service.heart_beat.exception
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.p6.exception.ExceptionInfo
 import com.github.xadkile.p6.exception.UnknownException
+import com.github.xadkile.p6.exception.error.ErrorReport
 import kotlinx.coroutines.*
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -74,6 +75,17 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
      * Stop the service thread and cleaning up resources.
      */
     override suspend fun stop(): Result<Unit,Exception> {
+        // rmd: runBlocking so that all the suspending functions are completed before returning,
+        // rmd: guaranteeing that this service is completely stopped when this function returns.
+        if(this.isServiceRunning()){
+            this.bluntStop()
+        }
+        return Ok(Unit)
+    }
+    /**
+     * Stop the service thread and cleaning up resources.
+     */
+    override suspend fun stop2(): Result<Unit, ErrorReport> {
         // rmd: runBlocking so that all the suspending functions are completed before returning,
         // rmd: guaranteeing that this service is completely stopped when this function returns.
         if(this.isServiceRunning()){

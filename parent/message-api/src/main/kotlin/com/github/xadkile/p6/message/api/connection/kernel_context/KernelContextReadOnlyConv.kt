@@ -2,6 +2,7 @@ package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
+import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.channel.ChannelInfo
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
@@ -56,6 +57,42 @@ interface KernelContextReadOnlyConv : KernelContextReadOnly {
 
     override fun getKernelConfig(): KernelConfig {
         return original().getKernelConfig()
+    }
+
+    override fun getIOPubListenerService2(): Result<IOPubListenerServiceReadOnly, ErrorReport> {
+        return original().getIOPubListenerService2()
+    }
+
+    override fun getConnectionFileContent2(): Result<KernelConnectionFileContent, ErrorReport> {
+        return original().getConnectionFileContent2()
+    }
+
+    override fun getSession2(): Result<Session, ErrorReport> {
+        return original().getSession2()
+    }
+
+    override fun getChannelProvider2(): Result<ChannelProvider, ErrorReport> {
+        return original().getChannelProvider2()
+    }
+
+    override fun getSenderProvider2(): Result<SenderProvider, ErrorReport> {
+        return original().getSenderProvider2()
+    }
+
+    override fun getMsgEncoder2(): Result<MsgEncoder, ErrorReport> {
+        return original().getMsgEncoder2()
+    }
+
+    override fun getMsgIdGenerator2(): Result<MsgIdGenerator, ErrorReport> {
+        return original().getMsgIdGenerator2()
+    }
+
+    override fun getHeartBeatService2(): Result<HeartBeatService, ErrorReport> {
+        return original().getHeartBeatService2()
+    }
+
+    override fun getSocketProvider2(): Result<SocketProvider, ErrorReport> {
+        return original().getSocketProvider2()
     }
 
     override fun areServicesRunning(): Boolean {

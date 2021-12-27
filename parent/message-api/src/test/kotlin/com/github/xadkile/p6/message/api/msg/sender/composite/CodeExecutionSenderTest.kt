@@ -1,17 +1,17 @@
 package com.github.xadkile.p6.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
+import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.test.utils.TestOnJupyter
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.SenderProvider
-import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelIsDownException
+import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelErrors
 import com.github.xadkile.p6.message.api.connection.service.iopub.HandlerContainerImp
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
-import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubListenerNotRunningException
+import com.github.xadkile.p6.message.api.connection.service.iopub.exception.IOPubServiceErrors
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.Shell
 import com.github.xadkile.p6.message.api.msg.sender.MsgSender
-import com.github.xadkile.p6.message.api.msg.sender.exception.CodeExecutionException
-import com.github.xadkile.p6.message.api.msg.sender.exception.UnableToSendMsgException
+import com.github.xadkile.p6.message.api.msg.sender.exception.SenderErrors
 import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteRequest
 import io.mockk.every
@@ -39,14 +39,14 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     fun afterEach() {
         runBlocking {
             ioPubService.stop()
-            kernelContext.stopAll()
+            kernelContext.stopAll2()
         }
     }
 
     @BeforeEach
     fun beforeEach() {
         runBlocking{
-            kernelContext.startAll()
+            kernelContext.startAll2()
             ioPubService = IOPubListenerServiceImpl(
                 kernelContext = kernelContext.conv(),
                 defaultHandler = { msg ->
@@ -194,64 +194,66 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun send_fail() {
         runBlocking {
-            kernelContext.startAll()
+            kernelContext.startAll2()
 
             // ph: mockk is horribly slow here
-            val mockSender = object : MsgSender<ExecuteRequest, Result<ExecuteReply, Exception>> {
+            val mockSender = object : MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> {
                 override suspend fun send(
                     message: ExecuteRequest,
                     dispatcher: CoroutineDispatcher,
-                ): Result<ExecuteReply, Exception> {
-                    return Err(UnableToSendMsgException(message))
+                ): Result<ExecuteReply, ErrorReport> {
+                    return Err(ErrorReport(
+                        header = SenderErrors.UnableToSendMsg,
+                        data = SenderErrors.UnableToSendMsg.Data(message)
+                    ))
                 }
             }
 
             val mockSenderProvider = mockk<SenderProvider>().also {
-                every{it.executeRequestSender()} returns mockSender
+                every{it.executeRequestSender2()} returns mockSender
             }
             val mockContext = spyk(kernelContext.conv()).also {
-                every{it.getSenderProvider()} returns Ok(mockSenderProvider)
+                every{it.getSenderProvider2()} returns Ok(mockSenderProvider)
             }
 
             val sender = CodeExecutionSender(mockContext)
             val o = sender.send(message, Dispatchers.Default)
             assertTrue(o is Err, o.toString())
-            assertTrue(o.unwrapError() is UnableToSendMsgException)
-            assertEquals(message, (o.unwrapError() as UnableToSendMsgException).getMsg())
+            assertTrue(o.unwrapError().header is SenderErrors.UnableToSendMsg)
         }
     }
 
     @Test
     fun send_kernelNotRunning() = runBlocking {
-        kernelContext.stopAll()
+        kernelContext.stopAll2()
         val sender = CodeExecutionSender(kernelContext.conv())
         val o = sender.send(message)
         assertTrue(o is Err)
-        assertTrue((o.unwrapError()) is KernelIsDownException,"should return the correct exception")
+        assertTrue((o.unwrapError().header) is KernelErrors.KernelDown,"should return the correct exception")
     }
 
     @Test
     fun send_listenerServiceIsDown() = runBlocking {
-        kernelContext.startAll()
+        kernelContext.startAll2()
         val mockListener = mockk<IOPubListenerServiceImpl>().also {
             every { it.isRunning() } returns false
             every { it.isNotRunning() } returns true
         }
 
         val mockContext:KernelContextReadOnlyConv = spyk(kernelContext.conv()).also {
-            every {it.getIOPubListenerService()} returns Ok(mockListener)
+            every {it.getIOPubListenerService2()} returns Ok(mockListener)
         }
 
         val sender = CodeExecutionSender(mockContext)
         val o = sender.send(message)
         assertTrue(o is Err)
-        assertTrue((o.unwrapError()) is IOPubListenerNotRunningException,"should return the correct exception")
+        assertTrue((o.unwrapError().header) is IOPubServiceErrors.IOPubServiceNotRunning,"should return the correct exception")
     }
 
     @Test
     fun test_sendMalformedCode() {
         runBlocking{
-            kernelContext.startAll()
+            kernelContext.startAll2()
             val malformedCodeMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
@@ -269,7 +271,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             val sender = CodeExecutionSender(kernelContext.conv())
             val o = sender.send(malformedCodeMsg,Dispatchers.IO)
             assertTrue(o is Err)
-            assertTrue(o.unwrapError() is CodeExecutionException.Error)
+//            assertTrue(o.unwrapError() i)
         }
     }
 }

@@ -20,7 +20,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     @BeforeEach
     fun beforeEach() {
         runBlocking {
-            kernelContext.startAll()
+            kernelContext.startAll2()
         }
     }
 
@@ -95,7 +95,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     fun send_fail() {
         runBlocking {
             val sender2 = ExecuteSender(kernelContext.conv())
-            kernelContext.stopAll()
+            kernelContext.stopAll2()
             val out = sender2.send(message, Dispatchers.Default)
             assertTrue(out is Err, out.toString())
             println(out)

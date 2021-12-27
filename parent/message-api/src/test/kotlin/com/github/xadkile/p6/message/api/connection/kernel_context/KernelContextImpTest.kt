@@ -1,9 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelConfig
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextImp
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelTimeOut
+import com.github.xadkile.p6.message.api.connection.kernel_context.exception.KernelErrors
 import com.github.xadkile.p6.test.utils.TestResources
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -36,7 +34,7 @@ internal class KernelContextImpTest {
     @AfterEach
     fun afterAll(){
         runBlocking {
-            pm.stopAll()
+            pm.stopAll2()
         }
     }
 
@@ -47,7 +45,7 @@ internal class KernelContextImpTest {
             start = true
         }
         runBlocking{
-            pm.startAll()
+            pm.startAll2()
         }
         assertTrue(start)
         var afterStop = false
@@ -60,7 +58,7 @@ internal class KernelContextImpTest {
         }
 
         runBlocking {
-            pm.stopAll()
+            pm.stopAll2()
             delay(1000)
             assertTrue(afterStop)
             assertTrue(beforeStop)
@@ -69,12 +67,12 @@ internal class KernelContextImpTest {
 
     @Test
     fun startIPython_FromNotStartedYet() =runBlocking{
-        assertTrue(pm.getKernelProcess() is Err)
-        val rs = pm.startAll()
+        assertTrue(pm.getKernelProcess2() is Err)
+        val rs = pm.startAll2()
         assertTrue(rs is Ok,rs.toString())
         assertTrue(pm.isKernelRunning())
-        assertTrue(pm.getKernelProcess() is Ok,pm.getKernelProcess().toString())
-        assertTrue(pm.getKernelProcess().get()?.isAlive ?: false)
+        assertTrue(pm.getKernelProcess2() is Ok,pm.getKernelProcess2().toString())
+        assertTrue(pm.getKernelProcess2().get()?.isAlive ?: false)
         assertTrue(pm.getConnectionFileContent() is Ok,pm.getConnectionFileContent().toString())
         assertTrue(pm.getChannelProvider() is Ok,pm.getChannelProvider().toString())
         assertTrue(pm.getSession() is Ok,pm.getSession().toString())
@@ -87,22 +85,22 @@ internal class KernelContextImpTest {
 
     @Test
     fun startIPython_FromAlreadyStarted() =runBlocking {
-        val rs0 = pm.startAll()
+        val rs0 = pm.startAll2()
         assertTrue(rs0 is Ok)
-        val rs = pm.startAll()
+        val rs = pm.startAll2()
         assertTrue(rs is Ok)
     }
 
     @Test
     fun stopIPython() =runBlocking{
-        pm.startAll()
+        pm.startAll2()
         runBlocking {
-            val rs = pm.stopAll()
+            val rs = pm.stopAll2()
             assertTrue(rs is Ok)
         }
         assertTrue(pm.isKernelNotRunning())
-        assertTrue(pm.getKernelProcess() is Err)
-        assertFalse(pm.getKernelProcess().get()?.isAlive ?: false)
+        assertTrue(pm.getKernelProcess2() is Err)
+        assertFalse(pm.getKernelProcess2().get()?.isAlive ?: false)
         assertTrue(pm.getConnectionFileContent() is Err)
         assertTrue(pm.getSession() is Err)
         assertTrue(pm.getChannelProvider() is Err)
@@ -113,22 +111,22 @@ internal class KernelContextImpTest {
     }
     @Test
     fun stopIPython_onAlreadyStopped()=runBlocking {
-        pm.startAll()
+        pm.startAll2()
         runBlocking {
-            val rs = pm.stopAll()
+            val rs = pm.stopAll2()
             assertTrue(rs is Ok, rs.toString())
-            val rs2 = pm.stopAll()
+            val rs2 = pm.stopAll2()
             assertTrue(rs2 is Ok, rs.toString())
         }
     }
 
     @Test
     fun restartIPython()=runBlocking {
-        pm.startAll()
+        pm.startAll2()
         val oldConnectionFile = pm.getConnectionFileContent().get()
         assertNotNull(oldConnectionFile)
         runBlocking {
-            val rs = pm.restartKernel()
+            val rs = pm.restartKernel2()
             val newConnectionFile = pm.getConnectionFileContent().get()
             assertTrue(rs is Ok, rs.toString())
             assertNotNull(newConnectionFile)
@@ -138,12 +136,12 @@ internal class KernelContextImpTest {
 
     @Test
     fun restartIPython_OnStopped() =runBlocking{
-        pm.startAll()
+        pm.startAll2()
         runBlocking {
-            pm.stopAll()
-            val rs = pm.restartKernel()
+            pm.stopAll2()
+            val rs = pm.restartKernel2()
             assertTrue(rs is Err)
-            assertTrue(rs.getError() is IllegalStateException)
+            assertTrue(rs.error.header is KernelErrors.KernelContextIllegalState)
         }
     }
 }

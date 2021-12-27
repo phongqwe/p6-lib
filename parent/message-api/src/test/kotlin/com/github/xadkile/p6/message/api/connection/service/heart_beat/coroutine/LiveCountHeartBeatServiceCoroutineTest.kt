@@ -14,7 +14,7 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     @BeforeEach
     fun beforeEach() {
         runBlocking {
-            kernelContext.startKernel()
+            kernelContext.startKernel2()
         }
         hbService = LiveCountHeartBeatServiceCoroutine(
             zcontext,
@@ -31,7 +31,7 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
         fun afterEach() {
             runBlocking {
                 hbService.stop()
-                kernelContext.stopAll()
+                kernelContext.stopAll2()
             }
         }
 
@@ -45,7 +45,7 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
 
         @Test
         fun isAlive() = runBlocking {
-            kernelContext.startAll()
+            kernelContext.startAll2()
             hbService.start()
             Thread.sleep(1000)
             assertTrue(hbService.isHBAlive())

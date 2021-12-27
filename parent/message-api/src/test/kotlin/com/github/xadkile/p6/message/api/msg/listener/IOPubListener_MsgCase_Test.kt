@@ -25,14 +25,14 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
     @AfterEach
     fun ae() {
         runBlocking {
-            kernelContext.stopAll()
+            kernelContext.stopAll2()
         }
     }
 
     @Test
     fun errMsg() {
         runBlocking {
-            kernelContext.startAll()
+            kernelContext.startAll2()
             val errMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
@@ -63,7 +63,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             )
 
             listener.start()
-            val o = kernelContext.getSenderProvider().unwrap().executeRequestSender().send(errMsg)
+            val o = kernelContext.getSenderProvider().unwrap().executeRequestSender2().send(errMsg)
             delay(1000)
             listener.stop()
             assertEquals(1,errHandlerWasTrigger, "error handler should be triggered exactly once")
@@ -88,7 +88,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 ),
                 "msg_id_abc_123"
             )
-            kernelContext.startAll()
+            kernelContext.startAll2()
 
             var handlerWasTriggered = 0
 
@@ -112,7 +112,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             listener.start()
 
             // rmd: send message
-            kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
+            kernelContext.getSenderProvider().unwrap().executeRequestSender2().also {
                 it.send(okMsg, Dispatchers.Default)
             }
 

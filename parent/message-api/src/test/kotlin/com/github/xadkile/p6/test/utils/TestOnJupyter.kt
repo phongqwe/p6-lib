@@ -32,7 +32,7 @@ abstract class TestOnJupyter {
     @AfterAll
     open fun afterAll() {
         runBlocking {
-            kernelContext.stopAll()
+            kernelContext.stopAll2()
             Dispatchers.resetMain()
             mainThreadSurrogate.close()
         }
