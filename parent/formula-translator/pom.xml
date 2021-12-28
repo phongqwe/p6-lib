@@ -11,6 +11,10 @@
 
     <artifactId>formula-translator</artifactId>
     <description>module for translating spreadsheet formula into python code</description>
+    <properties>
+        <antlr.version>4.9.3</antlr.version>
+    </properties>
+
 
     <dependencies>
         <dependency>
@@ -22,8 +26,28 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4</artifactId>
-            <version>4.9.3</version>
+            <version>${antlr.version}</version>
         </dependency>
 
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>${antlr.version}</version>
+                <executions>
+                    <execution>
+                        <id>antlr</id>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                        <configuration>
+                            <visitor>true</visitor>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
