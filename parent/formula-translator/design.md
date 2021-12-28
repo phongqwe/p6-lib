@@ -4,7 +4,7 @@
 <FORMULA> -> =<EXPR>
 
 <EXPR> -> <FUNC_CALL>
-<EXPR> -> <LITERA>
+<EXPR> -> <LITERAL>
 <EXPR> -> <RANGE_ADDRESS>
 <EXPR> -> (<EXPR>)
 
