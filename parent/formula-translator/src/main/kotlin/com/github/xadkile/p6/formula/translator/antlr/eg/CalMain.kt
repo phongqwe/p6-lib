@@ -1,7 +1,6 @@
-package com.github.xadkile.p6.formula.translator
+package com.github.xadkile.p6.formula.translator.antlr.eg
 
-import qwe.*
-import qwe.CalParser.*
+import com.github.xadkile.p6.formula.translator.antlr.eg.CalParser.*
 import org.antlr.v4.runtime.CharStream
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
@@ -16,7 +15,6 @@ object CalMain {
             193
             a=5
             b=6
-            clear
             a+b*2
             (1+2)*3
 

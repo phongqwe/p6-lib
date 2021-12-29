@@ -44,6 +44,16 @@
                         </goals>
                         <configuration>
                             <visitor>true</visitor>
+                            <outputDirectory>
+                                ${project.build.directory}/generated-sources/antlr4/com/github/xadkile/p6/formula/translator/antlr
+                            </outputDirectory>
+                            <libDirectory>
+                                ${project.basedir}/src/main/antlr4/imports
+                            </libDirectory>
+                            <arguments>
+                                <argument>-package</argument>
+                                <argument>${groupId}.formula.translator.antlr</argument>
+                            </arguments>
                         </configuration>
                     </execution>
                 </executions>
