@@ -1,8 +1,10 @@
 grammar Formula;
 
+// a formula always start with '='
 formula: '='expr
         |lit;
 
+// an expression always returns something
 expr: functionCall #funCall
     | '('expr')' #parenExpr
     | lit #literal
@@ -12,8 +14,12 @@ expr: functionCall #funCall
     ;
 
 functionCall: functionName'('(functionArgs)?(','functionArgs)* ','?')';
-functionArgs:expr|rangeAddress|sheetRangeAddress;
-functionName:ID INT* ID*;
+functionName:ID(INT|ID)*;
+
+functionArgs:expr
+            |rangeAddress
+            |sheetRangeAddress
+            ;
 
 rangeAddress:cellAddress':'cellAddress
             | cellAddress
@@ -21,9 +27,9 @@ rangeAddress:cellAddress':'cellAddress
             | wholeRowAddress
             |'('rangeAddress')'
             ;
+
 // 'Sheet123'!A1:A2, Sheet123!A1:A2
-sheetRangeAddress: sheetPrefix?rangeAddress;
-sheetPrefix:('\''ID' '* INT*' '* '\''|ID INT*) '!';
+sheetRangeAddress: SHEET_PREFIX?rangeAddress;
 
 // A1,A123, ABC123
 cellAddress: ID INT;
@@ -35,8 +41,10 @@ wholeColAddress: ID':'ID;
 wholeRowAddress: INT':'INT;
 
 // literal
-lit: (FLOAT_NUMBER | STRING|INT);
+lit: (FLOAT_NUMBER | STRING | INT);
 
+//FUNCTION_NAME:ID(INT|ID)*;
+SHEET_PREFIX:'\'' ID(' '|INT|ID)*? '\''   '!';
 ID:ID_LETTER(ID_LETTER)*;
 fragment ID_LETTER:'a'..'z'|'A'..'Z'|'_';
 
@@ -60,4 +68,4 @@ MOD: '%'; //modulo
 EXP: '^'; //exponential
 
 NEWLINE:'\r'? '\n';
-WS: [ \t]+ -> skip;
+//WS: [ \t]+ -> skip;
