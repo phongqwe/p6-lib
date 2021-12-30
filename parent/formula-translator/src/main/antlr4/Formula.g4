@@ -9,8 +9,10 @@ expr: functionCall #funCall
     | '('expr')' #parenExpr
     | lit #literal
     | op=('-'|'+') expr #unExpr
-    | expr op=('-'|'+'|'*'|'/'|'%') expr #binExpr
-    | sheetRangeAddress #sheetRangeAddr
+    | expr op='^' expr # powExpr
+    | expr op=('*'|'/'|'%') expr #mulDivModExpr
+    | expr op=('+'|'-') expr #addSubExpr
+    | sheetRangeAddress #sheetRangeAddrExpr
     ;
 
 functionCall: functionName'('(expr)?(','expr)* ','?')';
