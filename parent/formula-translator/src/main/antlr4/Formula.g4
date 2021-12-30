@@ -13,14 +13,12 @@ expr: functionCall #funCall
     | sheetRangeAddress #sheetRangeAddr
     ;
 
-functionCall: functionName'('(functionArgs)?(','functionArgs)* ','?')';
+functionCall: functionName'('(expr)?(','expr)* ','?')';
 functionName:ID(INT|ID)*;
 
-functionArgs:expr
-            |rangeAddress
-            |sheetRangeAddress
-            ;
+sheetRangeAddress: SHEET_PREFIX?rangeAddress;
 
+// 'Sheet123'!A1:A2, Sheet123!A1:A2
 rangeAddress:cellAddress':'cellAddress
             | cellAddress
             | wholeColAddress
@@ -28,14 +26,11 @@ rangeAddress:cellAddress':'cellAddress
             |'('rangeAddress')'
             ;
 
-// 'Sheet123'!A1:A2, Sheet123!A1:A2
-sheetRangeAddress: SHEET_PREFIX?rangeAddress;
-
 // A1,A123, ABC123
 cellAddress: ID INT;
 
 // A:A, A:B
-wholeColAddress: ID':'ID;
+wholeColAddress: ID ':' ID;
 
 //1:1, 1:123
 wholeRowAddress: INT':'INT;
@@ -44,7 +39,8 @@ wholeRowAddress: INT':'INT;
 lit: (FLOAT_NUMBER | STRING | INT);
 
 //FUNCTION_NAME:ID(INT|ID)*;
-SHEET_PREFIX:'\'' ID(' '|INT|ID)*? '\''   '!';
+SHEET_PREFIX:'\'' ID(' '|INT|ID)*? '\''   '!'
+            | ID(' '|INT|ID)* '!';
 ID:ID_LETTER(ID_LETTER)*;
 fragment ID_LETTER:'a'..'z'|'A'..'Z'|'_';
 
@@ -68,4 +64,4 @@ MOD: '%'; //modulo
 EXP: '^'; //exponential
 
 NEWLINE:'\r'? '\n';
-//WS: [ \t]+ -> skip;
+WS: [ \t]+ -> skip;
