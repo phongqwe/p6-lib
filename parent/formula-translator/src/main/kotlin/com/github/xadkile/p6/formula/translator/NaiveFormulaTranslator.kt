@@ -4,11 +4,8 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
-import com.github.xadkile.p6.exception.error.ErrorHeader
 import com.github.xadkile.p6.exception.error.ErrorReport
-import com.github.xadkile.p6.formula.translator.exception.FailToParseFormulaException
 import com.github.xadkile.p6.formula.translator.exception.TranslatorErrors
-import com.github.xadkile.p6.formula.translator.static.Py
 import java.util.regex.Pattern
 
 class NaiveFormulaTranslator : FormulaTranslator {
@@ -20,7 +17,7 @@ class NaiveFormulaTranslator : FormulaTranslator {
     override fun translate(formula: String): Result<String,ErrorReport> {
         val rangeAddress = this.extractAddress(formula)
         val rt = rangeAddress.map {
-            "${Py.WorksheetFunctions}.SUM(getRange(\"@$it\"))"
+            "${PyLibConst}.SUM(getRange(\"@$it\"))"
         }
         return rt
     }

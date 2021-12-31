@@ -8,7 +8,7 @@ import com.github.xadkile.p6.formula.translator.antlr.FormulaParser
  */
 class PythonFormularVisitor : FormulaBaseVisitor<String>() {
     companion object {
-        val flib = LanguageConst.wsfunction
+        val flib = PyLibConst.wsfunctionPrefix
     }
 
     override fun visitFormula(ctx: FormulaParser.FormulaContext?): String {

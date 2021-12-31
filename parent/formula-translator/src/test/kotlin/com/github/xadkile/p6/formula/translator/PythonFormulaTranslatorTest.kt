@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 
-internal class FormulaTranslatorImpTest {
+internal class PythonFormulaTranslatorTest {
 
     @Test
     fun translate() {
-        val f = LanguageConst.wsfunction
+        val f = PyLibConst.wsfunctionPrefix
 
         val literalInput = mapOf(
             "=123" to "123",
@@ -61,8 +61,14 @@ internal class FormulaTranslatorImpTest {
             """=f1(f2(),f3(f4(),f5()))""" to """${f}.f1(${f}.f2(),${f}.f3(${f}.f4(),${f}.f5()))""",
             """=f1(f2(1,2^7*9,"A1"),f3(f4(1+f9()),f5("az"+f9())))""" to """${f}.f1(${f}.f2(1,2**7*9,"A1"),${f}.f3(${f}.f4(1+${f}.f9()),${f}.f5("az"+${f}.f9())))""",
         )
-        val all = literalInput + functionLiteralInput + range +composite
-        val translator = FormulaTranslatorImp()
+
+        val scripts = mapOf(
+            """=SCRIPT(my f1() script 123)""" to """my f1() script 123""",
+            """=script(my f1() script 123)""" to """my f1() script 123""",
+            """=sCriPT(my f1() script 123)""" to """my f1() script 123"""
+        )
+        val all = literalInput + functionLiteralInput + range +composite+scripts
+        val translator = PythonFormulaTranslator()
         for ((i, o) in all) {
             val ors = translator.translate(i)
             assertTrue(ors is Ok)
