@@ -12,30 +12,29 @@ expr: functionCall #funCall
     | expr op='^' expr # powExpr
     | expr op=('*'|'/'|'%') expr #mulDivModExpr
     | expr op=('+'|'-') expr #addSubExpr
-    | sheetRangeAddress #sheetRangeAddrExpr
+    | SHEET_PREFIX?rangeAddress #sheetRangeAddrExpr
     ;
 
 functionCall: functionName'('(expr)?(','expr)* ','?')';
 functionName:ID(INT|ID)*;
 
-sheetRangeAddress: SHEET_PREFIX?rangeAddress;
+//sheetRangeAddress: SHEET_PREFIX?rangeAddress;
 
-// 'Sheet123'!A1:A2, Sheet123!A1:A2
-rangeAddress:cellAddress':'cellAddress
-            | cellAddress
-            | wholeColAddress
-            | wholeRowAddress
-            |'('rangeAddress')'
+rangeAddress:cellAddress':'cellAddress  #pairCellAddress
+            | cellAddress  #oneCellAddress
+            | ID ':' ID  #colAddress
+            | INT':'INT #rowAddress
+            |'('rangeAddress')' #parensAddress
             ;
 
 // A1,A123, ABC123
 cellAddress: ID INT;
 
 // A:A, A:B
-wholeColAddress: ID ':' ID;
+//wholeColAddress: ID ':' ID;
 
 //1:1, 1:123
-wholeRowAddress: INT':'INT;
+//wholeRowAddress: INT':'INT;
 
 // literal
 lit: (FLOAT_NUMBER | STRING | INT);
