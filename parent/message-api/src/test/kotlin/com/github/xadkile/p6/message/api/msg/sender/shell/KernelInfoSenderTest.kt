@@ -1,8 +1,8 @@
 package com.github.xadkile.p6.message.api.msg.sender.shell
 
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.p6.test.utils.TestOnJupyter
 import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.Shell
+import com.github.xadkile.p6.test.utils.TestOnJupyter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test

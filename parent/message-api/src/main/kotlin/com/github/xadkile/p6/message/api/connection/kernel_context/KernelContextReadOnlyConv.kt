@@ -2,7 +2,7 @@ package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.channel.ChannelInfo
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
@@ -24,27 +24,27 @@ interface KernelContextReadOnlyConv : KernelContextReadOnly {
         return this.getHeartBeatChannel().map { it.makeAddress() }
     }
 
-    fun getShellChannel():Result<ChannelInfo,ErrorReport>{
+    fun getShellChannel():Result<ChannelInfo, ErrorReport>{
         return this.getChannelProvider().map { it.shellChannel() }
     }
 
-    fun getShellAddress():Result<String,ErrorReport>{
+    fun getShellAddress():Result<String, ErrorReport>{
         return this.getChannelProvider().map { it.shellAddress() }
     }
 
-    fun getIOPubChannel():Result<ChannelInfo,ErrorReport>{
+    fun getIOPubChannel():Result<ChannelInfo, ErrorReport>{
         return this.getChannelProvider().map { it.ioPubChannel() }
     }
 
-    fun getIOPubAddress():Result<String,ErrorReport>{
+    fun getIOPubAddress():Result<String, ErrorReport>{
         return this.getChannelProvider().map { it.ioPubAddress() }
     }
 
-    fun getControlChannel():Result<ChannelInfo,ErrorReport>{
+    fun getControlChannel():Result<ChannelInfo, ErrorReport>{
         return this.getChannelProvider().map { it.controlChannel() }
     }
 
-    fun getControlAddress():Result<String,ErrorReport>{
+    fun getControlAddress():Result<String, ErrorReport>{
         return this.getChannelProvider().map { it.controlAddress() }
     }
 

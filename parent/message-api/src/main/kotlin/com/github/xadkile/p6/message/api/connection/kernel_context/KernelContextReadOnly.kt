@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
@@ -18,7 +18,7 @@ interface KernelContextReadOnly {
 
     fun getKernelConfig(): KernelConfig
 
-    fun getIOPubListenerService():Result<IOPubListenerServiceReadOnly,ErrorReport>
+    fun getIOPubListenerService():Result<IOPubListenerServiceReadOnly, ErrorReport>
 
     /**
      * Return content of connection file .
@@ -37,9 +37,9 @@ interface KernelContextReadOnly {
 
     fun getMsgIdGenerator(): Result<MsgIdGenerator, ErrorReport>
 
-    fun getHeartBeatService():Result<HeartBeatService,ErrorReport>
+    fun getHeartBeatService():Result<HeartBeatService, ErrorReport>
 
-    fun getSocketProvider():Result<SocketProvider,ErrorReport>
+    fun getSocketProvider():Result<SocketProvider, ErrorReport>
 
     fun zContext(): ZContext
     /**

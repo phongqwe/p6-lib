@@ -11,6 +11,10 @@
 
     <artifactId>formula-translator</artifactId>
     <description>module for translating spreadsheet formula into python code</description>
+    <properties>
+        <antlr.version>4.9.3</antlr.version>
+    </properties>
+
 
     <dependencies>
         <dependency>
@@ -18,12 +22,42 @@
             <artifactId>exception-lib</artifactId>
             <version>1.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.poi/poi -->
+        <!-- https://mvnrepository.com/artifact/org.antlr/antlr4 -->
         <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi</artifactId>
-            <version>5.1.0</version>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4</artifactId>
+            <version>${antlr.version}</version>
         </dependency>
 
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>${antlr.version}</version>
+                <executions>
+                    <execution>
+                        <id>antlr</id>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                        <configuration>
+                            <visitor>true</visitor>
+                            <outputDirectory>
+                                ${project.build.directory}/generated-sources/antlr4/com/github/xadkile/p6/formula/translator/antlr
+                            </outputDirectory>
+                            <libDirectory>
+                                ${project.basedir}/src/main/antlr4/imports
+                            </libDirectory>
+                            <arguments>
+                                <argument>-package</argument>
+                                <argument>${groupId}.formula.translator.antlr</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

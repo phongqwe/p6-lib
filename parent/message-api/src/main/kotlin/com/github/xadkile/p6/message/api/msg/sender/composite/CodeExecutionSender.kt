@@ -1,8 +1,8 @@
 package com.github.xadkile.p6.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.exception.error.CommonErrors
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.CommonErrors
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
@@ -123,7 +123,7 @@ class CodeExecutionSender internal constructor(
 
         // x: sending the computing request
         withContext(dispatcher) {
-            val sendStatus:Result<ExecuteReply,ErrorReport> = executeSender.send(message, dispatcher)
+            val sendStatus:Result<ExecuteReply, ErrorReport> = executeSender.send(message, dispatcher)
             if (sendStatus is Ok) {
                 val content:Shell.Execute.Reply.Content? = sendStatus.get()?.content
                 val st:MsgStatus? = content?.status

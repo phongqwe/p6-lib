@@ -3,7 +3,7 @@ package com.github.xadkile.p6.message.api.msg.protocol
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.msg.protocol.errors.MsgProtocolErrors
 import com.github.xadkile.p6.message.api.other.HmacMaker
 import com.google.gson.GsonBuilder

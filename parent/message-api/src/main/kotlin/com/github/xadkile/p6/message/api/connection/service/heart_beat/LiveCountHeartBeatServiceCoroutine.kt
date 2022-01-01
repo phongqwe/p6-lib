@@ -1,9 +1,9 @@
 package com.github.xadkile.p6.message.api.connection.service.heart_beat
 
 import com.github.michaelbull.result.*
+import com.github.xadkile.p6.exception.lib.error.CommonErrors
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.SocketProvider
-import com.github.xadkile.p6.exception.error.CommonErrors
-import com.github.xadkile.p6.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.errors.HBServiceErrors
 import com.github.xadkile.p6.message.api.other.Sleeper
 import kotlinx.coroutines.*

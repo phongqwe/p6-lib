@@ -1,11 +1,10 @@
 package com.github.xadkile.p6.message.api.connection.service.process_watcher
 
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import kotlinx.coroutines.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import kotlin.concurrent.thread
 
 /**
  * Watch a process from a separated thread and react on StdErr stream

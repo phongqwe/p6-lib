@@ -2,7 +2,7 @@ package com.github.xadkile.p6.message.api.msg.protocol
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 
 
 class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
@@ -47,8 +47,8 @@ class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
             )
         }
 
-        inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent> fromPayload(payload:List<ByteArray>):Result<JPMessage<META, CONTENT>,ErrorReport>{
-            val rawMsg:Result<JPRawMessage,ErrorReport> = JPRawMessage.fromPayload2(payload.map { it })
+        inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent> fromPayload(payload:List<ByteArray>):Result<JPMessage<META, CONTENT>, ErrorReport>{
+            val rawMsg:Result<JPRawMessage, ErrorReport> = JPRawMessage.fromPayload2(payload.map { it })
             return rawMsg.map { it.toModel() }
         }
     }

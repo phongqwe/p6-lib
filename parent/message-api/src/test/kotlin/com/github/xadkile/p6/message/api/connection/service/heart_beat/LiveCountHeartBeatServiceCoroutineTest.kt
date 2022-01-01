@@ -2,10 +2,16 @@ package com.github.xadkile.p6.message.api.connection.service.heart_beat
 
 import com.github.michaelbull.result.unwrap
 import com.github.xadkile.p6.test.utils.TestOnJupyter
-import kotlinx.coroutines.*
-import org.junit.jupiter.api.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
