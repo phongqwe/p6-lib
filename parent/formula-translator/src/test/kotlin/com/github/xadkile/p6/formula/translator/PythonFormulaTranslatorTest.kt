@@ -1,7 +1,9 @@
 package com.github.xadkile.p6.formula.translator
 
-import com.github.michaelbull.result.Ok
-import com.github.michaelbull.result.get
+import com.github.michaelbull.result.*
+import com.github.xadkile.p6.formula.translator.antlr.FormulaLexer
+import com.github.xadkile.p6.formula.translator.errors.TranslatorErrors
+import org.antlr.v4.runtime.Token
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -9,9 +11,8 @@ import org.junit.jupiter.api.Test
 internal class PythonFormulaTranslatorTest {
 
     @Test
-    fun translate() {
+    fun translate_Ok() {
         val f = PythonLangElements.wsfunctionPrefix
-
         val literalInput = mapOf(
             "=123" to "123",
             "=123.123" to "123.123",
@@ -73,6 +74,27 @@ internal class PythonFormulaTranslatorTest {
             val ors = translator.translate(i)
             assertTrue(ors is Ok)
             assertEquals(o, ors.get())
+        }
+    }
+
+    @Test
+    fun translate_Fail(){
+        val scripts = listOf(
+            "a",
+            "abc",
+            "=f(123",
+            """=f(1,"a")2+3""",
+            """1+1+2""",
+            "\"a\"",
+            "123",
+            "---",
+            "@#$123",
+            "=23!"
+        )
+        val translator = PythonFormulaTranslator()
+        for (i in scripts) {
+            val ors = translator.translate(i)
+            assertTrue(ors is Err,i)
         }
     }
 }

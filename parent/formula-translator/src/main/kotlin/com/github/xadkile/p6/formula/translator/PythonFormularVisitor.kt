@@ -13,7 +13,8 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
     }
 
     override fun visitFormula(ctx: FormulaParser.FormulaContext?): String {
-        val rt: String = ctx?.expr().let { this.visit(it) } ?: ""
+        val z = ctx?.expr()
+        val rt: String = ctx?.expr()?.let { this.visit(it) } ?: ""
         return rt
     }
 
@@ -32,7 +33,7 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
     }
 
     override fun visitUnExpr(ctx: FormulaParser.UnExprContext?): String {
-        val expr: String = this.visit(ctx?.expr())
+        val expr: String = ctx?.expr()?.let { this.visit(it) } ?: ""
         return "${ctx?.op?.text ?: ""}${expr}"
     }
 

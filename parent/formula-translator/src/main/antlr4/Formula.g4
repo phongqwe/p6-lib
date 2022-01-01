@@ -1,8 +1,7 @@
 grammar Formula;
 
 // a formula always start with '='
-formula: '='expr
-        |lit;
+formula: '='expr EOF;
 
 // an expression always returns something
 expr: functionCall #funCall

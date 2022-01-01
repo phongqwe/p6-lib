@@ -20,8 +20,8 @@ class ScriptFormulaTranslator : FormulaTranslator {
             return Ok(rt)
         }else {
             val report = ErrorReport(
-                header = TranslatorErrors.FailToParseFormulaErr,
-                data = TranslatorErrors.FailToParseFormulaErr.Data(formula,"")
+                header = TranslatorErrors.NotAScriptCall,
+                data = TranslatorErrors.NotAScriptCall.Data(formula)
             )
             return Err(report)
         }
