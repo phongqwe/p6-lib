@@ -2,9 +2,9 @@ package com.github.xadkile.p6.formula.translator
 
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.get
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 
 internal class ScriptFormulaTranslatorTest {
 

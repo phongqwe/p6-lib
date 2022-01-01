@@ -2,7 +2,7 @@ package com.github.xadkile.p6.formula.translator
 
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.formula.translator.antlr.FormulaLexer
 import com.github.xadkile.p6.formula.translator.antlr.FormulaParser
 import org.antlr.v4.runtime.CharStreams

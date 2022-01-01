@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.exception
+package com.github.xadkile.p6.exception.lib
 
 
 
@@ -9,10 +9,12 @@ class UnknownException(val exceptionInfo: ExceptionInfo<*>) : Exception(exceptio
         }
     }
 
-    constructor(msg:String):this(ExceptionInfo(
+    constructor(msg:String):this(
+        ExceptionInfo(
         msg=msg,
         loc="",
         data =null
-    ))
+    )
+    )
 }
 

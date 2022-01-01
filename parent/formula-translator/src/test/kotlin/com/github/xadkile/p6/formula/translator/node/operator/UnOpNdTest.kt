@@ -2,7 +2,7 @@ package com.github.xadkile.p6.formula.translator.node.operator
 
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 internal class UnOpNdTest {

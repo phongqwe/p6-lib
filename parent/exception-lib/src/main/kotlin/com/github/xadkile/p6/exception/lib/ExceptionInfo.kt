@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.exception
+package com.github.xadkile.p6.exception.lib
 
 
 /**

@@ -3,7 +3,9 @@ package com.github.xadkile.p6.test.utils
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.zeromq.*
+import org.zeromq.SocketType
+import org.zeromq.ZContext
+import org.zeromq.ZMQ
 import java.math.BigInteger
 import java.util.*
 import kotlin.concurrent.thread

@@ -8,7 +8,8 @@ import com.github.xadkile.p6.formula.translator.antlr.FormulaParser
  */
 class PythonFormularVisitor : FormulaBaseVisitor<String>() {
     companion object {
-        val flib = PyLibConst.wsfunctionPrefix
+        val le = PythonLangElements
+        val flib:String = le.wsfunctionPrefix
     }
 
     override fun visitFormula(ctx: FormulaParser.FormulaContext?): String {
@@ -60,7 +61,7 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
         val getSheet = if(sheetName.isEmpty()){
             ""
         }else{
-            "getSheet(\"${sheetName}\")."
+            "${le.getSheet}(\"${sheetName}\")."
         }
         val rangeObj = this.visit(ctx.rangeAddress())
         return "${getSheet}${rangeObj}"
@@ -81,19 +82,19 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
     override fun visitPairCellAddress(ctx: FormulaParser.PairCellAddressContext): String {
         val cell0 = ctx.cellAddress(0).text
         val cell1 = ctx.cellAddress(1).text
-        return "range(\"@${cell0}:${cell1}\")"
+        return "${le.getRange}(\"@${cell0}:${cell1}\")"
     }
 
     override fun visitOneCellAddress(ctx: FormulaParser.OneCellAddressContext): String {
-        return "cell(\"@${ctx.cellAddress().text}\").value"
+        return "${le.getCell}(\"@${ctx.cellAddress().text}\").value"
     }
 
     override fun visitColAddress(ctx: FormulaParser.ColAddressContext): String {
-        return "range(\"@${ctx.text}\")"
+        return "${le.getRange}(\"@${ctx.text}\")"
     }
 
     override fun visitRowAddress(ctx: FormulaParser.RowAddressContext): String {
-        return "range(\"@${ctx.text}\")"
+        return "${le.getRange}(\"@${ctx.text}\")"
     }
 
     override fun visitParensAddress(ctx: FormulaParser.ParensAddressContext): String {

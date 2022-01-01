@@ -1,10 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.service.process_watcher
 
-import com.github.michaelbull.result.Err
-import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.UnknownException
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import kotlinx.coroutines.*
 
 /**

@@ -7,7 +7,7 @@
     <groupId>com.github.xadkile.p6</groupId>
     <artifactId>bom</artifactId>
     <packaging>pom</packaging>
-    <version>${revision}</version>
+    <version>1.0</version>
 
     <properties>
         <revision>1.0</revision>
@@ -28,11 +28,6 @@
             <dependency>
                 <groupId>com.github.xadkile.p6</groupId>
                 <artifactId>exception-lib</artifactId>
-                <version>${revision}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.xadkile.p6</groupId>
-                <artifactId>p6-app</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>

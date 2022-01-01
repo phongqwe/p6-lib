@@ -1,8 +1,7 @@
 package com.github.xadkile.p6.message.api.msg.sender.composite
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.exception.error.ErrorReport
-import com.github.xadkile.p6.test.utils.TestOnJupyter
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.SenderProvider
 import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
@@ -14,14 +13,17 @@ import com.github.xadkile.p6.message.api.msg.sender.MsgSender
 import com.github.xadkile.p6.message.api.msg.sender.exception.SenderErrors
 import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteReply
 import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteRequest
+import com.github.xadkile.p6.test.utils.TestOnJupyter
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Test
-
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.system.measureTimeMillis
@@ -202,10 +204,12 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                     message: ExecuteRequest,
                     dispatcher: CoroutineDispatcher,
                 ): Result<ExecuteReply, ErrorReport> {
-                    return Err(ErrorReport(
+                    return Err(
+                        ErrorReport(
                         header = SenderErrors.UnableToSendMsg,
                         data = SenderErrors.UnableToSendMsg.Data(message)
-                    ))
+                    )
+                    )
                 }
             }
 

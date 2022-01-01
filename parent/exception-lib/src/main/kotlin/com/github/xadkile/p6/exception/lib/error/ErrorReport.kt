@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.exception.error
+package com.github.xadkile.p6.exception.lib.error
 
 class ErrorReport(
     val header: ErrorHeader,
@@ -11,6 +11,14 @@ class ErrorReport(
 
     fun toException(): ErrorException {
         return ErrorException(this)
+    }
+
+    override fun toString(): String {
+        return """
+            ${header.toString()}
+            data: ${this.data.toString()}
+            loc: ${this.loc}
+        """.trimIndent()
     }
 }
 

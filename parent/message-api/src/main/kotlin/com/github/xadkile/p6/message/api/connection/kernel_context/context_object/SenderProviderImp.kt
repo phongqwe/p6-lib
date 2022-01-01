@@ -1,11 +1,8 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context.context_object
 
 import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.unwrap
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerService
-import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
 import com.github.xadkile.p6.message.api.msg.sender.MsgSender
 import com.github.xadkile.p6.message.api.msg.sender.composite.CodeExecutionSender
 import com.github.xadkile.p6.message.api.msg.sender.composite.ExecuteResult

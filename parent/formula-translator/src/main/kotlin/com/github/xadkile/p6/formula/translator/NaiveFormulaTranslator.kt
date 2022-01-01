@@ -4,8 +4,8 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
-import com.github.xadkile.p6.exception.error.ErrorReport
-import com.github.xadkile.p6.formula.translator.exception.TranslatorErrors
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.formula.translator.errors.TranslatorErrors
 import java.util.regex.Pattern
 
 class NaiveFormulaTranslator : FormulaTranslator {
@@ -14,15 +14,15 @@ class NaiveFormulaTranslator : FormulaTranslator {
 
         val addressPattern = Pattern.compile("[A-Za-z]+[1-9][0-9]*:?([A-Za-z]+[1-9][0-9]*)")
     }
-    override fun translate(formula: String): Result<String,ErrorReport> {
+    override fun translate(formula: String): Result<String, ErrorReport> {
         val rangeAddress = this.extractAddress(formula)
         val rt = rangeAddress.map {
-            "${PyLibConst}.SUM(getRange(\"@$it\"))"
+            "${PythonLangElements}.SUM(getRange(\"@$it\"))"
         }
         return rt
     }
 
-    private fun extractAddress(fo:String):Result<String,ErrorReport>{
+    private fun extractAddress(fo:String):Result<String, ErrorReport>{
         val o2 = addressPattern.matcher(fo)
         val found = o2.find()
         if(found){

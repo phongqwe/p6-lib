@@ -3,10 +3,11 @@ package com.github.xadkile.p6.message.api.connection.service.process_watcher
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.error.CommonErrors
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.CommonErrors
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.service.process_watcher.exception.ProcessWatcherErrors
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.runBlocking
 
 /**
  * A process watcher that run on a coroutine
@@ -28,16 +29,20 @@ sealed class CoroutineWatcher : ProcessWatcher {
                 return Err(report)
             }
             if (!process.isAlive) {
-                return Err(ErrorReport(
+                return Err(
+                    ErrorReport(
                     header =  ProcessWatcherErrors.DeadProcess,
                     data = Unit
-                ))
+                )
+                )
             }
         }
-        return Err(ErrorReport(
+        return Err(
+            ErrorReport(
             header = CommonErrors.Unknown,
             data = CommonErrors.Unknown.Data("unknow",null)
-        ))
+        )
+        )
     }
 
     override fun stopWatching(): Result<Unit, ErrorReport> {

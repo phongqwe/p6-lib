@@ -3,10 +3,9 @@ package com.github.xadkile.p6.message.api.msg.listener
 import com.github.xadkile.p6.message.api.connection.service.iopub.HandlerContainerImp
 import com.github.xadkile.p6.message.api.connection.service.iopub.MsgHandlers
 import com.github.xadkile.p6.message.api.msg.protocol.MsgType
-import org.junit.jupiter.api.Test
-
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 internal class HandlerContainerImpTest {
 

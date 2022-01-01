@@ -1,13 +1,13 @@
 package com.github.xadkile.p6.message.api.connection.service.process_watcher.exception
 
-import com.github.xadkile.p6.exception.error.ErrorHeader
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorHeader
 
 object ProcessWatcherErrors {
-    object IllegalState : ErrorHeader("ProcessWatcherErrors.IllegalState".hashCode(),"process watcher is in an illegal state"){
+    private const val prefix = "Process Watcher error "
+    object IllegalState : ErrorHeader("${prefix}1","process watcher is in an illegal state"){
         class Data(val currentState:String, val correctState:String)
     }
 
-    object DeadProcess : ErrorHeader("ProcessWatcherErrors.DeadProcess".hashCode(),"process is dead"){
+    object DeadProcess : ErrorHeader("${prefix}2","process is dead"){
     }
 }

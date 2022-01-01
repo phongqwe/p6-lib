@@ -3,11 +3,9 @@ package com.github.xadkile.p6.message.api.connection.service.heart_beat
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
+import com.github.xadkile.p6.exception.lib.error.CommonErrors
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.errors.HBServiceCrashException
-import com.github.xadkile.p6.exception.ExceptionInfo
-import com.github.xadkile.p6.exception.UnknownException
-import com.github.xadkile.p6.exception.error.CommonErrors
-import com.github.xadkile.p6.exception.error.ErrorReport
 import kotlinx.coroutines.*
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
@@ -70,8 +68,8 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
             }
         } catch (e: Exception) {
             val report = ErrorReport(
-                header = CommonErrors.ExceptError,
-                data = CommonErrors.ExceptError.Data(e)
+                header = CommonErrors.ExceptionError,
+                data = CommonErrors.ExceptionError.Data(e)
             )
             return Err(report)
         }

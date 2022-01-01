@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.service.process_watcher
 
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
 
 /**
  * watch a process, do something while watching.
@@ -13,12 +13,12 @@ interface ProcessWatcher {
      * start watching.
      * return Err if this function is called on already started watcher
      */
-    fun startWatching(process:Process):Result<Unit,ErrorReport>
+    fun startWatching(process:Process):Result<Unit, ErrorReport>
 
     /**
      * stop watching. Calling stopWatching() on already stopped watcher should not have any affect and return Ok.
      */
-    fun stopWatching():Result<Unit,ErrorReport>
+    fun stopWatching():Result<Unit, ErrorReport>
     fun isWatching():Boolean
 }
 
