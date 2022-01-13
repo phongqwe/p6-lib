@@ -46,18 +46,18 @@ internal class PythonFormulaTranslatorTest {
         val range = mapOf(
             "=f(A1)" to """${f}.f(cell("@A1").value)""",
             "=f(AB1123)" to """${f}.f(cell("@AB1123").value)""",
-            "=f(A1:C4)" to """${f}.f(range("@A1:C4"))""",
-            "=f(AK11:CX34)" to """${f}.f(range("@AK11:CX34"))""",
-            "=f(1:123)" to """${f}.f(range("@1:123"))""",
-            "=f(A:b)" to """${f}.f(range("@A:b"))""",
-            "=f(sheet1!A:b)" to """${f}.f(getSheet("sheet1").range("@A:b"))""",
+            "=f(A1:C4)" to """${f}.f(getRange("@A1:C4"))""",
+            "=f(AK11:CX34)" to """${f}.f(getRange("@AK11:CX34"))""",
+            "=f(1:123)" to """${f}.f(getRange("@1:123"))""",
+            "=f(A:b)" to """${f}.f(getRange("@A:b"))""",
+            "=f(sheet1!A:b)" to """${f}.f(getSheet("sheet1").getRange("@A:b"))""",
             "=f(sheet1!A123)" to """${f}.f(getSheet("sheet1").cell("@A123").value)""",
             "=f('sheet1 23'!A123)" to """${f}.f(getSheet("sheet1 23").cell("@A123").value)""",
         )
 
         val composite = mapOf(
             """=f1(1,A1,B34:z9, "zzz",-234,1+2*3,C1)""" to """
-                ${f}.f1(1,cell("@A1").value,range("@B34:z9"),"zzz",-234,1+2*3,cell("@C1").value)
+                ${f}.f1(1,cell("@A1").value,getRange("@B34:z9"),"zzz",-234,1+2*3,cell("@C1").value)
             """.trimIndent(),
             """=f1(f2(),f3(f4(),f5()))""" to """${f}.f1(${f}.f2(),${f}.f3(${f}.f4(),${f}.f5()))""",
             """=f1(f2(1,2^7*9,"A1"),f3(f4(1+f9()),f5("az"+f9())))""" to """${f}.f1(${f}.f2(1,2**7*9,"A1"),${f}.f3(${f}.f4(1+${f}.f9()),${f}.f5("az"+${f}.f9())))""",
@@ -66,13 +66,19 @@ internal class PythonFormulaTranslatorTest {
         val scripts = mapOf(
             """=SCRIPT(my f1() script 123)""" to """my f1() script 123""",
             """=script(my f1() script 123)""" to """my f1() script 123""",
-            """=sCriPT(my f1() script 123)""" to """my f1() script 123"""
+            """=sCriPT(my f1() script 123)""" to """my f1() script 123""",
+            """
+                =SCRIPT(x=1;
+                while x < 10:
+                    x= x+1
+                x)
+            """.trimIndent() to "x=1;\n"+"while x < 10:\n"+"    x= x+1\n"+"x"
         )
         val all = literalInput + functionLiteralInput + range +composite+scripts
         val translator = PythonFormulaTranslator()
         for ((i, o) in all) {
             val ors = translator.translate(i)
-            assertTrue(ors is Ok)
+            assertTrue(ors is Ok, ors.getError().toString())
             assertEquals(o, ors.get())
         }
     }

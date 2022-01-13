@@ -11,13 +11,15 @@ import java.util.regex.Pattern
  * A special translator to handle Python script wrapped inside SCRIPT function
  */
 class ScriptFormulaTranslator : FormulaTranslator {
-    val codePattern = Pattern.compile("=SCRIPT\\(.*\\)",Pattern.CASE_INSENSITIVE)
+    // TODO add pattern to match heading and trailing white space + new line
+    val codePattern = Pattern.compile("=SCRIPT\\(.*\\)",Pattern.CASE_INSENSITIVE or Pattern.DOTALL or Pattern.MULTILINE)
 
     override fun translate(formula: String): Result<String, ErrorReport> {
-
-        if(codePattern.matcher(formula.uppercase()).matches()){
+        val z = codePattern.matcher(formula.uppercase())
+        val isMatch = codePattern.matcher(formula.uppercase()).matches()
+        if(isMatch){
             val rt = formula.substring(8,formula.length-1)
-            return Ok(rt)
+            return Ok(rt.trim())
         }else {
             val report = ErrorReport(
                 header = TranslatorErrors.NotAScriptCall,

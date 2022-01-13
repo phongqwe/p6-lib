@@ -13,6 +13,10 @@
         <revision>1.0</revision>
     </properties>
 
+    <modules>
+        <module>parent</module>
+    </modules>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -33,7 +37,5 @@
         </dependencies>
     </dependencyManagement>
 
-    <modules>
-        <module>parent</module>
-    </modules>
+
 </project>
