@@ -13,7 +13,7 @@ import java.util.regex.Pattern
 class ScriptFormulaTranslator : FormulaTranslator {
     // TODO add pattern to match heading and trailing white space + new line
     companion object{
-        val codePattern = Pattern.compile("\\s*=\\s*SCRIPT\\s*\\(.*\\)\\s*",Pattern.CASE_INSENSITIVE or Pattern.DOTALL or Pattern.MULTILINE)
+        val codePattern = Pattern.compile("\\s*=\\s*SCRIPT\\s*\\(.*\\)\\s*",Pattern.CASE_INSENSITIVE or Pattern.DOTALL or Pattern.MULTILINE or Pattern.UNICODE_CASE or Pattern.UNICODE_CHARACTER_CLASS or Pattern.UNIX_LINES)
     }
 
     override fun translate(formula: String): Result<String, ErrorReport> {

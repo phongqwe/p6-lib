@@ -12,12 +12,7 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
         val mapper:FormulaMapper = PythonMapper
     }
 
-//    override fun visitScriptFunctionExpr(ctx: FormulaParser.ScriptFunctionExprContext?): String {
-//        val rt=ctx?.SCRIPT_CONTENT()?.text ?: ""
-//        return rt
-//    }
-
-    override fun visitFormula(ctx: FormulaParser.FormulaContext?): String {
+    override fun visitZFormula(ctx: FormulaParser.ZFormulaContext?): String {
         val rt: String = ctx?.expr()?.let { this.visit(it) } ?: ""
         return rt
     }

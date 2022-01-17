@@ -1,7 +1,10 @@
 grammar Formula;
 
 // a formula always start with '='
-formula: '='expr EOF;
+formula: '='expr EOF #zFormula
+//        | lit EOF #directLiteral
+//        | (~('='))+ .*? EOF #any
+        ;
 
 // an expression always returns something
 expr: functionCall #funCall
@@ -17,7 +20,6 @@ expr: functionCall #funCall
 functionCall: functionName'('(expr)?(','expr)* ','?')';
 functionName:ID(INT|ID)*;
 
-
 rangeAddress:cellAddress':'cellAddress  #pairCellAddress
             | cellAddress  #oneCellAddress
             | ID ':' ID  #colAddress
@@ -27,12 +29,6 @@ rangeAddress:cellAddress':'cellAddress  #pairCellAddress
 
 // A1,A123, ABC123
 cellAddress: ID INT;
-
-// A:A, A:B
-//wholeColAddress: ID ':' ID;
-
-//1:1, 1:123
-//wholeRowAddress: INT':'INT;
 
 // literal
 lit: (FLOAT_NUMBER | STRING | INT);
