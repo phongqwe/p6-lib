@@ -8,18 +8,17 @@ import com.github.xadkile.p6.formula.translator.antlr.FormulaParser
  */
 class PythonFormularVisitor : FormulaBaseVisitor<String>() {
     companion object {
-        val le = PythonLangElements
-        val flib:String = le.wsfunctionPrefix
+        val functionLib:String = PythonLangElements.wsfunctionPrefix
+        val mapper:FormulaMapper = PythonMapper
     }
 
     override fun visitFormula(ctx: FormulaParser.FormulaContext?): String {
-        val z = ctx?.expr()
         val rt: String = ctx?.expr()?.let { this.visit(it) } ?: ""
         return rt
     }
 
     override fun visitFunCall(ctx: FormulaParser.FunCallContext?): String {
-        val name = "${flib}.${visit(ctx?.functionCall()?.functionName())}"
+        val name = "${functionLib}.${visit(ctx?.functionCall()?.functionName())}"
         val args: List<String> = ctx?.functionCall()?.expr()?.map { visit(it) } ?: emptyList()
         return "$name(${args.joinToString(",")})"
     }
@@ -62,7 +61,7 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
         val getSheet = if(sheetName.isEmpty()){
             ""
         }else{
-            "${le.getSheet}(\"${sheetName}\")."
+            mapper.getSheet(sheetName)+"."
         }
         val rangeObj = this.visit(ctx.rangeAddress())
         return "${getSheet}${rangeObj}"
@@ -73,7 +72,7 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
         val args = ctx.expr()?.map {
             this.visit(it)
         }?.joinToString(", ") ?: emptyList<String>()
-        return "${flib}.${functionName}(${args})"
+        return "${functionLib}.${functionName}(${args})"
     }
 
     override fun visitFunctionName(ctx: FormulaParser.FunctionNameContext): String {
@@ -83,19 +82,20 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
     override fun visitPairCellAddress(ctx: FormulaParser.PairCellAddressContext): String {
         val cell0 = ctx.cellAddress(0).text
         val cell1 = ctx.cellAddress(1).text
-        return "${le.getRange}(\"@${cell0}:${cell1}\")"
+        val rangeAddress = mapper.rangeAddress("${cell0}:${cell1}")
+        return mapper.getRange(rangeAddress)
     }
 
     override fun visitOneCellAddress(ctx: FormulaParser.OneCellAddressContext): String {
-        return "${le.getCell}(\"@${ctx.cellAddress().text}\").value"
+        return mapper.getCell(mapper.rangeAddress(ctx.cellAddress().text))+".value"
     }
 
     override fun visitColAddress(ctx: FormulaParser.ColAddressContext): String {
-        return "${le.getRange}(\"@${ctx.text}\")"
+        return mapper.getRange(mapper.rangeAddress(ctx.text))
     }
 
     override fun visitRowAddress(ctx: FormulaParser.RowAddressContext): String {
-        return "${le.getRange}(\"@${ctx.text}\")"
+        return mapper.getRange(mapper.rangeAddress(ctx.text))
     }
 
     override fun visitParensAddress(ctx: FormulaParser.ParensAddressContext): String {

@@ -1,17 +1,19 @@
 package com.github.xadkile.p6.formula.translator
 
-/**
- * Map certain formula syntax to the equivalence in python
- */
-object PythonMapper {
-    fun mapRangeAddress(rangeAddr:String):String{
-        return  "@${rangeAddr}"
+
+object PythonMapper:FormulaMapper {
+    override fun rangeAddress(rangeAddress:String):String{
+        return  "\"@${rangeAddress}\""
     }
-    fun mapGetSheet(sheetName:String):String{
+    override fun getSheet(sheetName:String):String{
         return "getSheet(\"${sheetName}\")"
     }
 
-//    fun getCellFromSheet(sheetName: String,cellAddr:String):String{
-//        return mapGetSheet()
-//    }
+    override fun getRange(rangeAddress: String): String {
+        return "getRange(${rangeAddress})"
+    }
+
+    override fun getCell(cellAddress: String): String {
+        return "cell(${cellAddress})"
+    }
 }
