@@ -1,6 +1,8 @@
 package com.github.xadkile.p6.formula.translator
 
-
+/**
+ * Map formula syntax to the equivalence in Python
+ */
 object PythonMapper:FormulaMapper {
     override fun rangeAddress(rangeAddress:String):String{
         return  "\"@${rangeAddress}\""
