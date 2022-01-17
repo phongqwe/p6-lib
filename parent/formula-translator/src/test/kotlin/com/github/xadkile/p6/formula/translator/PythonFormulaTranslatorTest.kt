@@ -76,7 +76,7 @@ internal class PythonFormulaTranslatorTest {
         )
         val all = literalInput + functionLiteralInput + range +composite+scripts
         val translator = PythonFormulaTranslator()
-        for ((i, o) in all) {
+        for ((i, o) in scripts) {
             val ors = translator.translate(i)
             assertTrue(ors is Ok, ors.getError().toString())
             assertEquals(o, ors.get())

@@ -12,13 +12,22 @@ import java.util.regex.Pattern
  */
 class ScriptFormulaTranslator : FormulaTranslator {
     // TODO add pattern to match heading and trailing white space + new line
-    val codePattern = Pattern.compile("=SCRIPT\\(.*\\)",Pattern.CASE_INSENSITIVE or Pattern.DOTALL or Pattern.MULTILINE)
+    companion object{
+        val codePattern = Pattern.compile("\\s*=\\s*SCRIPT\\s*\\(.*\\)\\s*",Pattern.CASE_INSENSITIVE or Pattern.DOTALL or Pattern.MULTILINE)
+    }
 
     override fun translate(formula: String): Result<String, ErrorReport> {
-        val z = codePattern.matcher(formula.uppercase())
         val isMatch = codePattern.matcher(formula.uppercase()).matches()
         if(isMatch){
-            val rt = formula.substring(8,formula.length-1)
+            val trimmed = formula.trim()
+            var startIndex = 0
+            for (c in trimmed){
+                startIndex+=1
+                if (c=='('){
+                    break
+                }
+            }
+            val rt = trimmed.substring(startIndex,trimmed.length-1)
             return Ok(rt.trim())
         }else {
             val report = ErrorReport(

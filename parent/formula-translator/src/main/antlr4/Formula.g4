@@ -17,7 +17,6 @@ expr: functionCall #funCall
 functionCall: functionName'('(expr)?(','expr)* ','?')';
 functionName:ID(INT|ID)*;
 
-//sheetRangeAddress: SHEET_PREFIX?rangeAddress;
 
 rangeAddress:cellAddress':'cellAddress  #pairCellAddress
             | cellAddress  #oneCellAddress
@@ -38,7 +37,6 @@ cellAddress: ID INT;
 // literal
 lit: (FLOAT_NUMBER | STRING | INT);
 
-//FUNCTION_NAME:ID(INT|ID)*;
 SHEET_PREFIX:'\'' ID(' '|INT|ID)*? '\''   '!'
             | ID(' '|INT|ID)* '!';
 ID:ID_LETTER(ID_LETTER)*;
