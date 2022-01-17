@@ -8,4 +8,6 @@ interface FormulaMapper {
     fun getSheet(sheetName:String):String
     fun getRange(rangeAddress: String):String
     fun getCell(cellAddress:String):String
+    fun getWorkbook(workbookName:String):String
+    fun getWorkbook(index: Int): String
 }

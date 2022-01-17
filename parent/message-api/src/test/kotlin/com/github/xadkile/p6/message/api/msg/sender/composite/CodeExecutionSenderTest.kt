@@ -59,7 +59,8 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 },
                 handlerContainer = HandlerContainerImp(),
                 externalScope =  GlobalScope,
-                dispatcher = Dispatchers.Default
+                dispatcher = Dispatchers.Default,
+                startTimeOut = 50000
             )
             ioPubService.start()
         }

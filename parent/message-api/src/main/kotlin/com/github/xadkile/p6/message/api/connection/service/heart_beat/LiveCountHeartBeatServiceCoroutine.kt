@@ -22,7 +22,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
     private val socketProvider: SocketProvider,
     liveCount: Int = 10,
     pollTimeout: Long = 1000,
-    val startTimeOut: Long = 5000,
+    val startTimeOut: Long = 50_000,
     cScope: CoroutineScope,
     cDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : AbstractLiveCountHeartBeatServiceCoroutine(zContext, liveCount, pollTimeout, cScope, cDispatcher) {

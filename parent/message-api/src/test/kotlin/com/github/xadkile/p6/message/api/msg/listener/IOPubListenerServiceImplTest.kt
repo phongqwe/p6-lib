@@ -183,7 +183,8 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
                 exceptionHandlerTriggerCount++
             }, HandlerContainerImp(),
             externalScope = GlobalScope,
-            dispatcher = Dispatchers.Default
+            dispatcher = Dispatchers.Default,
+            startTimeOut = 50000
         )
 
         listener.start()

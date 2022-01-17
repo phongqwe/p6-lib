@@ -167,7 +167,8 @@ class KernelContextImp @Inject internal constructor(
                 socketProvider = this.socketProvider!!,
                 zContext = this.zcontext,
                 cScope = appCScope,
-                cDispatcher = this.networkServiceDispatcher
+                cDispatcher = this.networkServiceDispatcher,
+                startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
             )
 
             val hbStartRs = this.hbService!!.start()
@@ -180,7 +181,8 @@ class KernelContextImp @Inject internal constructor(
             this.ioPubService = IOPubListenerServiceImpl(
                 kernelContext = this,
                 externalScope = appCScope,
-                dispatcher = this.networkServiceDispatcher
+                dispatcher = this.networkServiceDispatcher,
+                startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
             )
 
             val ioPubStartRs = this.ioPubService!!.start()

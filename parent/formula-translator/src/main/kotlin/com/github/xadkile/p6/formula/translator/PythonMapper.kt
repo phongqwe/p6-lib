@@ -16,4 +16,11 @@ object PythonMapper:FormulaMapper {
     override fun getCell(cellAddress: String): String {
         return "cell(${cellAddress})"
     }
+
+    override fun getWorkbook(workbookName: String): String {
+        return "getWorkbook(\"${workbookName}\")"
+    }
+    override fun getWorkbook(index: Int): String {
+        return "getWorkbook(${index})"
+    }
 }

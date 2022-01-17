@@ -26,7 +26,7 @@ class IOPubListenerServiceImpl internal constructor(
     private val handlerContainer: MsgHandlerContainer,
     private val externalScope: CoroutineScope,
     private val dispatcher: CoroutineDispatcher,
-    private val startTimeOut:Long=5000
+    private val startTimeOut:Long
 ) : IOPubListenerService {
 
     internal constructor(
@@ -36,8 +36,9 @@ class IOPubListenerServiceImpl internal constructor(
         handlerContainer: MsgHandlerContainer = HandlerContainerImp(),
         externalScope: CoroutineScope,
         dispatcher: CoroutineDispatcher,
+        startTimeOut: Long = 50_000
     ) : this(
-        kernelContext.conv(), defaultHandler, parseExceptionHandler, handlerContainer, externalScope, dispatcher
+        kernelContext.conv(), defaultHandler, parseExceptionHandler, handlerContainer, externalScope, dispatcher,startTimeOut
     )
 
     private var job: Job? = null
