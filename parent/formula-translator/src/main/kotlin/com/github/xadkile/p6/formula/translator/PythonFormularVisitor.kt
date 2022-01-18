@@ -12,7 +12,7 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
         val mapper:FormulaMapper = PythonMapper
     }
 
-    override fun visitFormula(ctx: FormulaParser.FormulaContext?): String {
+    override fun visitZFormula(ctx: FormulaParser.ZFormulaContext?): String {
         val rt: String = ctx?.expr()?.let { this.visit(it) } ?: ""
         return rt
     }
@@ -74,6 +74,7 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
         }?.joinToString(", ") ?: emptyList<String>()
         return "${functionLib}.${functionName}(${args})"
     }
+
 
     override fun visitFunctionName(ctx: FormulaParser.FunctionNameContext): String {
         return ctx.text

@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.formula.translator
 
 /**
- * Map certain formula syntax to the equivalence in python
+ * Map formula syntax to the equivalence in some output syntax
  */
 interface FormulaMapper {
     fun rangeAddress(rangeAddress:String):String

@@ -1,14 +1,11 @@
 package com.github.xadkile.p6.formula.translator
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.formula.translator.antlr.FormulaLexer
-import com.github.xadkile.p6.formula.translator.errors.TranslatorErrors
-import org.antlr.v4.runtime.Token
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-internal class PythonFormulaTranslatorTest {
+internal class FormulaTranslatorFinalTest {
 
     @Test
     fun translate_Ok() {
@@ -32,6 +29,16 @@ internal class PythonFormulaTranslatorTest {
             "=2^3^4" to "2**3**4",
             "=2^(2+3-1)*9" to "2**(2+3-1)*9",
             "=2^(-1)" to "2**(-1)",
+        )
+
+        val directLiteral = mapOf(
+            "123" to "123",
+            "123abc" to "\"123abc\"",
+            "\"abc\"" to "\"abc\"",
+            "abc" to "\"abc\"",
+            "\"abc" to "\"\"abc\"",
+            "     abc" to "\"     abc\"",
+            "abc\nccc\n\t" to "\"abc\nccc\n\t\"",
         )
 
         val functionLiteralInput = mapOf(
@@ -74,9 +81,9 @@ internal class PythonFormulaTranslatorTest {
                 x)
             """.trimIndent() to "x=1;\n"+"while x < 10:\n"+"    x= x+1\n"+"x"
         )
-        val all = literalInput + functionLiteralInput + range +composite+scripts
-        val translator = PythonFormulaTranslator()
-        for ((i, o) in all) {
+        val all = literalInput + functionLiteralInput + range +composite+scripts + directLiteral
+        val translator = FormulaTranslatorFinal()
+        for ((i, o) in directLiteral) {
             val ors = translator.translate(i)
             assertTrue(ors is Ok, ors.getError().toString())
             assertEquals(o, ors.get())
@@ -99,6 +106,8 @@ internal class PythonFormulaTranslatorTest {
             """=f1(f2(1,2^7*9,"A1"),f3(f4(1+f9(),f5("az"+f9())))""",
             "f(sheet1!A123)",
             """=sum(1,2,3.3,abc)""",
+            """=sum(1,2,3.3,abc")""",
+            """=sum(1,2,3.3,"abc)""",
         )
         val translator = PythonFormulaTranslator()
         for (i in scripts) {
