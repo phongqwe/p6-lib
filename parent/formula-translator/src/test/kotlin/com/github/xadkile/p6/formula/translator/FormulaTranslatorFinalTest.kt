@@ -33,12 +33,12 @@ internal class FormulaTranslatorFinalTest {
 
         val directLiteral = mapOf(
             "123" to "123",
-            "123abc" to "\"123abc\"",
-            "\"abc\"" to "\"abc\"",
-            "abc" to "\"abc\"",
-            "\"abc" to "\"\"abc\"",
-            "     abc" to "\"     abc\"",
-            "abc\nccc\n\t" to "\"abc\nccc\n\t\"",
+            "123abc" to "\"\"\"123abc\"\"\"",
+            "\"abc\"" to "\"\"\"abc\"\"\"",
+            "abc" to "\"\"\"abc\"\"\"",
+            "\"abc" to "\"\"\"\"abc\"\"\"",
+            "     abc" to "\"\"\"     abc\"\"\"",
+            "abc\nccc\n\t" to "\"\"\"abc\nccc\n\t\"\"\"",
         )
 
         val functionLiteralInput = mapOf(
@@ -86,7 +86,7 @@ internal class FormulaTranslatorFinalTest {
         for ((i, o) in directLiteral) {
             val ors = translator.translate(i)
             assertTrue(ors is Ok, ors.getError().toString())
-            assertEquals(o, ors.get())
+            assertEquals(o, ors.get(),i)
         }
     }
 

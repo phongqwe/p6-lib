@@ -5,14 +5,14 @@ import com.github.xadkile.p6.exception.lib.error.ErrorReport
 
 class FormulaTranslatorFinal : FormulaTranslator {
     val pythonTranslator = PythonFormulaTranslator()
-    val nonFormulaTranslator = NonFormulaTranslator()
+    val directLiteralTranslator = DirectLiteralTranslator()
     override fun translate(formula: String): Result<String, ErrorReport> {
         val trimmed = formula.trim()
         val isFormula = trimmed.startsWith("=")
         if(isFormula){
             return pythonTranslator.translate(formula)
         }else{
-            return nonFormulaTranslator.translate(formula)
+            return directLiteralTranslator.translate(formula)
         }
     }
 }
