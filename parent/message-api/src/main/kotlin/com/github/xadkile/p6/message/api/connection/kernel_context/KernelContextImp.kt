@@ -95,7 +95,7 @@ class KernelContextImp @Inject internal constructor(
             return Ok(Unit)
         } else {
 
-            val skrs = this.startKernelProcess2()
+            val skrs = this.startKernelProcess()
             if (skrs is Err) {
                 return Err(skrs.unwrapError())
             } else {
@@ -136,7 +136,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
 
-    private suspend fun startKernelProcess2(): Result<Process, ErrorReport> {
+    private suspend fun startKernelProcess(): Result<Process, ErrorReport> {
         val processBuilder = ProcessBuilder(this.kernelConfig.makeCompleteLaunchCmmd())
         try {
             val p: Process = processBuilder.inheritIO().start()
@@ -163,29 +163,31 @@ class KernelContextImp @Inject internal constructor(
     override suspend fun startServices(): Result<Unit, ErrorReport> {
         if (this.isKernelRunning()) {
 
-            this.hbService = LiveCountHeartBeatServiceCoroutine(
+            val hbSv = LiveCountHeartBeatServiceCoroutine(
                 socketProvider = this.socketProvider!!,
                 zContext = this.zcontext,
                 cScope = appCScope,
                 cDispatcher = this.networkServiceDispatcher,
                 startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
             )
+            this.hbService = hbSv
 
-            val hbStartRs = this.hbService!!.start()
+            val hbStartRs:Result<Unit,ErrorReport> = hbSv.start()
             if (hbStartRs is Err) {
                 this.hbService?.stop()
                 this.hbService = null
                 return hbStartRs
             }
 
-            this.ioPubService = IOPubListenerServiceImpl(
+            val ioPubSv = IOPubListenerServiceImpl(
                 kernelContext = this,
                 externalScope = appCScope,
                 dispatcher = this.networkServiceDispatcher,
                 startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
             )
+            this.ioPubService=ioPubSv
 
-            val ioPubStartRs = this.ioPubService!!.start()
+            val ioPubStartRs:Result<Unit,ErrorReport> = ioPubSv.start()
             if (ioPubStartRs is Err) {
                 this.ioPubService?.stop()
                 this.ioPubService = null

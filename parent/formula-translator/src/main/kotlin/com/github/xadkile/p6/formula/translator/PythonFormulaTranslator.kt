@@ -28,7 +28,7 @@ class PythonFormulaTranslator : FormulaTranslator {
 
             val charStream: CharStream = CharStreams.fromString(formula)
             val lexer = FormulaLexer(charStream)
-
+            /////////
             lexer.removeErrorListeners()
             lexer.addErrorListener( object : BaseErrorListener(){
                 override fun syntaxError(

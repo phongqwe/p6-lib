@@ -20,7 +20,7 @@ import org.zeromq.ZMQ
 internal class LiveCountHeartBeatServiceCoroutine constructor(
     zContext: ZContext,
     private val socketProvider: SocketProvider,
-    liveCount: Int = 10,
+    liveCount: Int = 100,
     pollTimeout: Long = 1000,
     val startTimeOut: Long = 50_000,
     cScope: CoroutineScope,
@@ -56,7 +56,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
                 }
             }
         }
-        val rt = this.waitToLive2()
+        val rt = this.waitTillLive()
         if (rt is Err) {
             bluntStop()
             val report = ErrorReport(
@@ -68,9 +68,9 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
         return rt
     }
 
-    private suspend fun waitToLive2(): Result<Unit, ErrorReport> {
+    private suspend fun waitTillLive(): Result<Unit, ErrorReport> {
         val waitRs = Sleeper.delayUntil(50, startTimeOut) { this.isRunning() }
-        val loc = "${this.javaClass.canonicalName}:waitToLive"
+        val loc = "${this.javaClass.canonicalName}:waitTillLive"
         val rt = waitRs.mapError {
             ErrorReport(
                 header = CommonErrors.TimeOut,
