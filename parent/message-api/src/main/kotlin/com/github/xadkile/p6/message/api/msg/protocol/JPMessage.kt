@@ -48,7 +48,7 @@ class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(
         }
 
         inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent> fromPayload(payload:List<ByteArray>):Result<JPMessage<META, CONTENT>, ErrorReport>{
-            val rawMsg:Result<JPRawMessage, ErrorReport> = JPRawMessage.fromPayload2(payload.map { it })
+            val rawMsg:Result<JPRawMessage, ErrorReport> = JPRawMessage.fromPayload(payload.map { it })
             return rawMsg.map { it.toModel() }
         }
     }

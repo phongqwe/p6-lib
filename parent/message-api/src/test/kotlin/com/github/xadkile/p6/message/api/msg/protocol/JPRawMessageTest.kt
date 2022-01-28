@@ -34,7 +34,7 @@ internal class JPRawMessageTest {
         ).map { it.toByteArray(Charsets.UTF_8) }
         val facade =
             JPRawMessage
-                .fromPayload2(payload)
+                .fromPayload(payload)
                 .unwrap()
         val model: JPMessage<Meta, Content> = facade.toModel<Meta, Content>(
         )
@@ -66,7 +66,7 @@ internal class JPRawMessageTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromPayload2(payload).get()
+        val facade = JPRawMessage.fromPayload(payload).get()
         assertTrue(facade?.verifyHmac(key) ?: false)
     }
 
@@ -79,7 +79,7 @@ internal class JPRawMessageTest {
             "header_123",
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromPayload2(payload)
+        val facade = JPRawMessage.fromPayload(payload)
         assertTrue(facade is Err)
         facade.onFailure {
             assertTrue(it.header is MsgProtocolErrors.InvalidPayloadSizeError)
@@ -99,7 +99,7 @@ internal class JPRawMessageTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromPayload2(payload)
+        val facade = JPRawMessage.fromPayload(payload)
         assertTrue(facade is Err)
         facade.onFailure {
             assertTrue(it.header is MsgProtocolErrors.DelimiterNotFound)
@@ -119,7 +119,7 @@ internal class JPRawMessageTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromPayload2(payload).unwrap()
+        val facade = JPRawMessage.fromPayload(payload).unwrap()
         assertEquals(input[0], facade.identities)
         assertEquals(input[1], facade.delimiter)
         assertEquals(input[2], facade.hmacSig)
@@ -142,7 +142,7 @@ internal class JPRawMessageTest {
             "buffer_123"
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromPayload2(payload).unwrap()
+        val facade = JPRawMessage.fromPayload(payload).unwrap()
         assertEquals("", facade.identities)
         assertEquals(input[0], facade.delimiter)
         assertEquals(input[1], facade.hmacSig)
@@ -164,7 +164,7 @@ internal class JPRawMessageTest {
             "content_123",
         )
         val payload = input.map { it.toByteArray(Charsets.UTF_8) }
-        val facade = JPRawMessage.fromPayload2(payload).unwrap()
+        val facade = JPRawMessage.fromPayload(payload).unwrap()
         assertEquals("", facade.identities)
         assertEquals("", facade.identities)
         assertEquals(input[0], facade.delimiter)

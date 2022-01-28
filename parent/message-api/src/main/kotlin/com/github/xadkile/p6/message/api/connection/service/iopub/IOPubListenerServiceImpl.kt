@@ -71,7 +71,7 @@ class IOPubListenerServiceImpl internal constructor(
                     if (kernelContext.isKernelRunning()) {
                         val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
                         if (msg != null) {
-                            val parseResult = JPRawMessage.fromPayload2(msg.map { f -> f.data })
+                            val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
                             when (parseResult) {
                                 is Ok -> {
                                     val rawMsg: JPRawMessage = parseResult.unwrap()

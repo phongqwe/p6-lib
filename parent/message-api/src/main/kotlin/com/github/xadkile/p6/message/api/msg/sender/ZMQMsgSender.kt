@@ -25,10 +25,9 @@ internal class ZMQMsgSender {
 
     companion object {
         /**
-         * wrapper function allowing calling [send] function on [JPMessage]
-         * [zContext] is for creating poller
+         * Send a JPMessage.
          */
-        fun sendJPMsg2(
+        fun sendJPMsg(
             message: JPMessage<*, *>,
             socket: ZMQ.Socket,
             encoder: MsgEncoder,
@@ -36,22 +35,23 @@ internal class ZMQMsgSender {
             zContext: ZContext,
             interval: Long = SenderConstant.defaultPollingDuration,
         ): Result<JPRawMessage, ErrorReport> {
-            val out: Result<ZMsg, ErrorReport> = send2(encoder.encodeMessage(message), socket, hbs, zContext, interval)
-            val rt: Result<JPRawMessage, ErrorReport> = out.andThen { msg ->
-                val rt: List<ByteArray> = msg.map { frame -> frame.data }
-                JPRawMessage.fromPayload2(rt)
+            val out: Result<ZMsg, ErrorReport> =
+                ZMQMsgSender.send(encoder.encodeMessage(message), socket, hbs, zContext, interval)
+            val rt: Result<JPRawMessage, ErrorReport> = out.andThen { msg: ZMsg ->
+                val byteArrays: List<ByteArray> = msg.map { frame: ZFrame -> frame.data }
+                JPRawMessage.fromPayload(byteArrays)
             }
             return rt
         }
 
         /**
-         * Send a message with this flow:
+         * Send a byte array message with this flow:
          * - check heart beat service, only send if hb is alive
          * - send the message
          * - wait for a response using Poller with a timeout
          * [zContext] is for creating poller
          */
-        fun send2(
+        fun send(
             message: List<ByteArray>,
             socket: ZMQ.Socket,
             hbs: HeartBeatService,
@@ -80,6 +80,53 @@ internal class ZMQMsgSender {
                             )
                         )
                     }
+                } else {
+                    val report = ErrorReport(
+                        header = SenderErrors.UnableToQueueZMsg,
+                        data = SenderErrors.UnableToQueueZMsg.Data(zmsg)
+                    )
+                    return Err(report)
+                }
+            } else {
+                val report = ErrorReport(
+                    header = HBServiceErrors.HBIsDead,
+                    data = HBServiceErrors.HBIsDead.Data("ZMQMsgSender can't send msg because hb service is not running")
+                )
+                return Err(report)
+            }
+        }
+
+        /**
+         * send a [message] but don't wait for reply.
+         */
+        fun sendJPMsgNoReply(
+            message: JPMessage<*, *>,
+            socket: ZMQ.Socket,
+            encoder: MsgEncoder,
+            hbs: HeartBeatService,
+        ): Result<Unit, ErrorReport> {
+            val out: Result<Unit, ErrorReport> = ZMQMsgSender.sendNoReply(encoder.encodeMessage(message), socket, hbs)
+            return out
+        }
+
+        /**
+         * send a [message] but don't wait for reply.
+         */
+        fun sendNoReply(
+            message: List<ByteArray>,
+            socket: ZMQ.Socket,
+            hbs: HeartBeatService,
+        ): Result<Unit, ErrorReport> {
+            // x: if heart beat service is not running, then
+            // x: there is no way to ensure that zmq is running
+            // x: => don't send any message if hb service is dead
+            if (hbs.isServiceUpAndHBLive()) {
+                val payload: List<ZFrame> = message.map { ZFrame(it) }
+                val zmsg: ZMsg = ZMsg().also { it.addAll(payload) }
+                val queueOk: Boolean = zmsg.send(socket)
+                if (queueOk) {
+                    return Ok(Unit)
+
                 } else {
                     val report = ErrorReport(
                         header = SenderErrors.UnableToQueueZMsg,

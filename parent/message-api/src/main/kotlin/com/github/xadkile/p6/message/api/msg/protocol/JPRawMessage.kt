@@ -27,7 +27,7 @@ class JPRawMessage(
          *
          * Detect the delimiter and use it as a pivot point to locate other elements
          */
-        fun fromPayload2(payload: List<ByteArray>): Result<JPRawMessage, ErrorReport> {
+        fun fromPayload(payload: List<ByteArray>): Result<JPRawMessage, ErrorReport> {
             if (payload.size < 6) {
                 val report = ErrorReport(
                     header = MsgProtocolErrors.InvalidPayloadSizeError,
@@ -36,7 +36,7 @@ class JPRawMessage(
                 return Err(report)
             } else {
                 // find the delimiter's index
-                val delimiterIndexEither = findDelimiterIndex2(payload)
+                val delimiterIndexEither = findDelimiterIndex(payload)
                 when (delimiterIndexEither) {
                     is Ok -> {
                         val delimiterIndex = delimiterIndexEither.value
@@ -67,7 +67,7 @@ class JPRawMessage(
             }
         }
 
-        private fun findDelimiterIndex2(
+        private fun findDelimiterIndex(
             payload: List<ByteArray>,
         ): Result<Int, ErrorReport> {
             try {

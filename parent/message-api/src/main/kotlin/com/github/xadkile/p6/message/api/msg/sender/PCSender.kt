@@ -27,7 +27,7 @@ internal class PCSender<I: JPMessage<*, *>,O: JPMessage<*, *>> internal construc
             send2(message: I): Result<O, ErrorReport> {
         return socket.use {
             val out: Result<JPRawMessage, ErrorReport> =
-                ZMQMsgSender.sendJPMsg2(message, socket, msgEncoder, hbService, zContext,interval)
+                ZMQMsgSender.sendJPMsg(message, socket, msgEncoder, hbService, zContext,interval)
             val rt: Result<O, ErrorReport> = out.map { msg ->
                 val parsedOutput: JPMessage<*, *> = msg.toModel<META,CONTENT>()
                 parsedOutput as O
