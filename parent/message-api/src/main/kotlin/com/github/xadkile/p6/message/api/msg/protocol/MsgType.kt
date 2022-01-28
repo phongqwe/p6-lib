@@ -7,90 +7,81 @@ import com.google.gson.annotations.SerializedName
  * https://jupyter-client.readthedocs.io/en/latest/messaging.html
  */
 enum class MsgType {
+    // CONTROL
     @SerializedName("interrupt_request")
     Control_interrupt_request {
-        override fun text(): String {
-           return "interrupt_request"
-        }
+        override val text: String = "interrupt_request"
     },
 
     @SerializedName("interrupt_reply")
     Control_interrupt_reply {
-        override fun text(): String {
-            return "interrupt_reply"
-        }
+        override val text: String = "interrupt_reply"
     },
 
     @SerializedName("shutdown_request")
     Control_shutdown_request {
-        override fun text(): String {
-            return "shutdown_request"
-        }
+        override val text: String = "shutdown_request"
     },
     @SerializedName("shutdown_reply")
     Control_shutdown_reply {
-        override fun text(): String {
-            return "shutdown_reply"
-        }
+        override val text: String = "shutdown_reply"
+    },
+
+    // SHELL
+    @SerializedName("comm_msg")
+    Shell_comm_msg {
+        override val text: String = "comm_msg"
+    },
+    @SerializedName("comm_close")
+    Shell_comm_close {
+        override val text: String = "comm_close"
+    },
+    @SerializedName("comm_open")
+    Shell_comm_open {
+        override val text: String = "comm_open"
     },
     @SerializedName("execute_request")
     Shell_execute_request {
-        override fun text(): String {
-            return "execute_request"
-        }
+        override val text: String = "execute_request"
     },
     @SerializedName("execute_reply")
     Shell_execute_reply {
-        override fun text(): String {
-            return "execute_reply"
-        }
+        override val text: String = "execute_reply"
     },
     @SerializedName("kernel_info_request")
     Shell_kernel_info_request {
-        override fun text(): String {
-            return "kernel_info_request"
-        }
+        override val text: String = "kernel_info_request"
     },
     @SerializedName("kernel_info_reply")
     Shell_kernel_info_reply {
-        override fun text(): String {
-            return "kernel_info_reply"
-        }
+        override val text: String = "kernel_info_reply"
     },
+
+    //IOPUB
     @SerializedName("display_data")
     IOPub_display_data {
-        override fun text(): String {
-            return "display_data"
-        }
+        override val text: String = "display_data"
     },
     @SerializedName("execute_result")
     IOPub_execute_result {
-        override fun text(): String {
-            return "execute_result"
-        }
+        override val text: String = "execute_result"
     },
     @SerializedName("status")
     IOPub_status {
-        override fun text(): String {
-            return "status"
-        }
+        override val text: String ="status"
     },
 
     @SerializedName("error")
     IOPub_error{
-        override fun text(): String {
-            return "error"
-        }
+        override val text: String = "error"
     },
 
 
     DEFAULT {
-        override fun text(): String {
-            return "DEFAULT"
-        }
+        override val text: String = "DEFAULT"
     }
 
     ;
 
-    abstract fun text():String
+    abstract val text:String
 }

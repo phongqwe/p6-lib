@@ -114,8 +114,6 @@ object Shell{
                 @SerializedName("nbconvert_exporter")
                 val nbConvertExporter:String
             )
-
-
         }
     }
 
@@ -136,20 +134,49 @@ object Shell{
     }
 
     object Comm{
-        // comm_open, comm_close,comm_msg
 
+        /**
+         * comm_open
+         */
         object Open :MsgDefinitionEncapsulation{
-            // TODO later
-
-            override val msgType: MsgType
-                get() = TODO("Not yet implemented")
+            override val msgType: MsgType = MsgType.Shell_comm_open
+            class MetaData: MsgMetaData
+            class Content(
+                @SerializedName("comm_id")
+                val commId:String,
+                @SerializedName("target_name")
+                val targetName:String,
+                // data = any json for init the comm
+                val data:Any
+            ) : MsgContent
 
         }
-        object Close{
-            // TODO later
+
+        /**
+         * comm_close
+         */
+        object Close:MsgDefinitionEncapsulation{
+            override val msgType: MsgType = MsgType.Shell_comm_close
+            class MetaData: MsgMetaData
+            class Content(
+                @SerializedName("comm_id")
+                val commId:String,
+                @SerializedName("target_name")
+                val data:Any
+            ) : MsgContent
         }
-        object Msg{
-            // TODO later
+        /**
+         * comm_msg
+         */
+        object Msg:MsgDefinitionEncapsulation{
+            override val msgType: MsgType = MsgType.Shell_comm_msg
+            class MetaData: MsgMetaData
+            class Content(
+                @SerializedName("comm_id")
+                val commId:String,
+                @SerializedName("target_name")
+                val data:Any
+            ) : MsgContent
         }
     }
 }
