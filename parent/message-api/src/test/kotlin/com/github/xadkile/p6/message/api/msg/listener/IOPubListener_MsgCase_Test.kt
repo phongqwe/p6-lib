@@ -39,7 +39,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             val errMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
-                msgType = Shell.Execute.Request.getMsgType(),
+                msgType = Shell.Execute.Request.msgType,
                 msgContent = Shell.Execute.Request.Content(
                     code = "x=1+1/*2;y=x*2;y",
                     silent = false,
@@ -80,7 +80,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
-                msgType = Shell.Execute.Request.getMsgType(),
+                msgType = Shell.Execute.Request.msgType,
                 msgContent = Shell.Execute.Request.Content(
                     code = "x=1+1*2;y=x*2;y",
                     silent = false,

@@ -1,6 +1,15 @@
 package com.github.xadkile.p6.test.utils
 
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.unwrap
+import com.github.xadkile.p6.message.api.connection.service.iopub.HandlerContainerImp
+import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
+import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.Shell
+import com.github.xadkile.p6.message.api.msg.sender.composite.CodeExecutionSender
+import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteRequest
 import kotlinx.coroutines.*
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
@@ -10,14 +19,75 @@ import java.math.BigInteger
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.system.measureTimeMillis
+import kotlin.test.assertTrue
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
 
-    @Test
-    fun bench() {
+    lateinit var ioPubService: IOPubListenerServiceImpl
+
+    @AfterEach
+    fun afterEach() {
+        runBlocking {
+            ioPubService.stop()
+            kernelContext.stopAll()
+        }
     }
+
+    @BeforeEach
+    fun beforeEach() {
+        runBlocking {
+            kernelContext.startAll()
+            ioPubService = IOPubListenerServiceImpl(
+                kernelContext = kernelContext.conv(),
+                defaultHandler = { msg ->
+//                    println(msg)
+                },
+                parseExceptionHandler = { e ->
+//                    println(e)
+                },
+                handlerContainer = HandlerContainerImp(),
+                externalScope = GlobalScope,
+                dispatcher = Dispatchers.Default,
+                startTimeOut = 50000
+            )
+            ioPubService.start()
+        }
+    }
+
+    /**
+     * See if it is feasible to bombard kernel with many request at the same time
+     */
+    @Test
+    fun stressTest() {
+        runBlocking {
+            val time = measureTimeMillis {
+                val message: ExecuteRequest = ExecuteRequest.autoCreate(
+                    sessionId = "session_id",
+                    username = "user_name",
+                    msgType = Shell.Execute.Request.msgType,
+                    msgContent = Shell.Execute.Request.Content(
+                        code = "x=1+1*2;y=x*2;y",
+                        silent = false,
+                        storeHistory = true,
+                        userExpressions = mapOf(),
+                        allowStdin = false,
+                        stopOnError = true
+                    ),
+                    kernelContext.getMsgIdGenerator().unwrap().next()
+                )
+
+                val sender = CodeExecutionSender(
+                    kernelContext = kernelContext.conv(),
+                )
+
+                val o = sender.send(message, Dispatchers.IO)
+                assertTrue(o is Ok, o.toString())
+            }
+        }
+    }
+
 
     suspend fun fs() {
         withContext(Dispatchers.Default) {

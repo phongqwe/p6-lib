@@ -16,7 +16,7 @@ class KernelInfoSenderTest : TestOnJupyter() {
             val message:KernelInfoInput = KernelInfoInput.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
-                msgType = Shell.KernelInfo.Request.getMsgType(),
+                msgType = Shell.KernelInfo.Request.msgType,
                 msgContent = Shell.KernelInfo.Request.Content(),
                 "msg_id_abc_123"
             )

@@ -8,7 +8,7 @@ import com.google.gson.annotations.SerializedName
 object IOPub {
 
     object ExecuteError : MsgDefinitionEncapsulation {
-        val _msgType = MsgType.IOPub_error
+        override val msgType = MsgType.IOPub_error
 
         class Content(
             val traceback: List<String>,
@@ -18,13 +18,10 @@ object IOPub {
 
         class MetaData : MsgMetaData
 
-        override fun getMsgType(): MsgType {
-            return _msgType
-        }
     }
 
     object Status: MsgDefinitionEncapsulation {
-        val _msgType = MsgType.IOPub_status
+        override val msgType = MsgType.IOPub_status
 
         /**
          * busy: When the kernel starts to handle a message.
@@ -42,13 +39,10 @@ object IOPub {
             busy, idle, starting, undefined
         }
 
-        override fun getMsgType(): MsgType {
-            return _msgType
-        }
     }
     object ExecuteResult: MsgDefinitionEncapsulation {
 
-        val _msgType = MsgType.IOPub_execute_result
+        override val msgType = MsgType.IOPub_execute_result
 
         data class Content(
             val data: Map<String, Any>,
@@ -65,14 +59,11 @@ object IOPub {
 
         class MetaData: MsgMetaData
 
-        override fun getMsgType(): MsgType {
-            return _msgType
-        }
     }
 
     object DisplayData: MsgDefinitionEncapsulation {
 
-        val _msgType = MsgType.IOPub_display_data
+        override val msgType = MsgType.IOPub_display_data
 
         class Content(
             val data: Map<String, Any>,
@@ -81,9 +72,6 @@ object IOPub {
             val transient: Map<String, Any>
         ) : MsgContent
 
-        override fun getMsgType(): MsgType {
-            return _msgType
-        }
     }
 
     object Stream {

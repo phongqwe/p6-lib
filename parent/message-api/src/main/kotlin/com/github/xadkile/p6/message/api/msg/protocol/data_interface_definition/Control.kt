@@ -11,55 +11,41 @@ object Control {
         // TODO later
     }
 
-    object KernelInterrupt{
+    object KernelInterrupt {
         object Request : MsgDefinitionEncapsulation {
 
-            val _msgType = MsgType.Control_interrupt_request
+            override val msgType = MsgType.Control_interrupt_request
 
             class Content : MsgContent
 
             class MetaData : MsgMetaData
-
-            override fun getMsgType(): MsgType {
-                return _msgType
-            }
         }
 
         object Reply : MsgDefinitionEncapsulation {
 
-            val _msgType = MsgType.Control_interrupt_reply
+            override val msgType = MsgType.Control_interrupt_reply
 
             class Content(
                 status: MsgStatus,
                 traceback: List<String>,
-                ename:String,
-                evalue:String
+                ename: String,
+                evalue: String,
             ) : MsgContent, CommonReplyContent(status, traceback, ename, evalue)
 
             class MetaData : MsgMetaData {}
-
-            override fun getMsgType(): MsgType {
-                return _msgType
-            }
         }
     }
 
     object KernelShutdown {
 
-        object Request: MsgDefinitionEncapsulation {
-
-            val _msgType = MsgType.Control_shutdown_request
+        object Request : MsgDefinitionEncapsulation {
+            override val msgType = MsgType.Control_shutdown_request
 
             class Content constructor(val restart: Boolean) : MsgContent
-
-            override fun getMsgType(): MsgType {
-                return _msgType
-            }
         }
 
-        object Reply: MsgDefinitionEncapsulation {
-
-            val _msgType = MsgType.Control_shutdown_reply
+        object Reply : MsgDefinitionEncapsulation {
+            override val msgType = MsgType.Control_shutdown_reply
 
             class Content(
                 status: MsgStatus,
@@ -68,10 +54,6 @@ object Control {
                 evalue: String,
                 val restart: Boolean,
             ) : MsgContent, CommonReplyContent(status, traceback, ename, evalue)
-
-            override fun getMsgType(): MsgType {
-                return _msgType
-            }
         }
     }
 

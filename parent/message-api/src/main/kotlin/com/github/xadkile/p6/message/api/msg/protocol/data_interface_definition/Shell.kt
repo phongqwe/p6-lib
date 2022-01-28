@@ -11,7 +11,7 @@ object Shell{
     object Execute{
         object Request : MsgDefinitionEncapsulation {
 
-            val _msgType = MsgType.Shell_execute_request
+            override val msgType = MsgType.Shell_execute_request
 
             data class Content(
                 val code: String,
@@ -28,14 +28,12 @@ object Shell{
 
             class MetaData : MsgMetaData {}
 
-            override fun getMsgType(): MsgType {
-                return _msgType
-            }
+
         }
 
         object Reply: MsgDefinitionEncapsulation {
 
-            val _msgType = MsgType.Shell_execute_reply
+            override val msgType = MsgType.Shell_execute_reply
 
             class Content(
                 status: MsgStatus,
@@ -58,9 +56,7 @@ object Shell{
                 val status: MsgStatus,
             ) : MsgMetaData
 
-            override fun getMsgType(): MsgType {
-                return _msgType
-            }
+
         }
     }
 
@@ -68,19 +64,17 @@ object Shell{
 
         object Request: MsgDefinitionEncapsulation {
 
-            val _msgType = MsgType.Shell_kernel_info_request
+            override val msgType = MsgType.Shell_kernel_info_request
 
             class Content : MsgContent
 
             class MetaData: MsgMetaData
 
-            override fun getMsgType(): MsgType {
-                return _msgType
-            }
+
         }
         object Reply: MsgDefinitionEncapsulation {
 
-            val _msgType = MsgType.Shell_kernel_info_reply
+            override val msgType = MsgType.Shell_kernel_info_reply
 
             class Content(
                 status: MsgStatus,
@@ -121,9 +115,7 @@ object Shell{
                 val nbConvertExporter:String
             )
 
-            override fun getMsgType(): MsgType {
-                return _msgType
-            }
+
         }
     }
 
@@ -145,6 +137,19 @@ object Shell{
 
     object Comm{
         // comm_open, comm_close,comm_msg
-        // TODO later
+
+        object Open :MsgDefinitionEncapsulation{
+            // TODO later
+
+            override val msgType: MsgType
+                get() = TODO("Not yet implemented")
+
+        }
+        object Close{
+            // TODO later
+        }
+        object Msg{
+            // TODO later
+        }
     }
 }
