@@ -16,6 +16,8 @@ import org.zeromq.ZContext
  */
 interface KernelContextReadOnly {
 
+//    fun getUpdateServicePort():Result<UpdateListenerService,ErrorReport>
+
     fun getKernelConfig(): KernelConfig
 
     fun getIOPubListenerService():Result<IOPubListenerServiceReadOnly, ErrorReport>
