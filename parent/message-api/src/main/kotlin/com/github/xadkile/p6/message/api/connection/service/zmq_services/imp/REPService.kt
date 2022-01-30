@@ -29,6 +29,8 @@ internal class REPService (
             listenerMap.values.forEach {
                 it.handleMessage(data)
             }
+            // x: must send a dummy reply
+            socket.send("")
         }
     }
     override val socketType: SocketType = SocketType.REP

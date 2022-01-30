@@ -4,7 +4,7 @@ import com.github.xadkile.p6.message.api.connection.service.Service
 import org.zeromq.SocketType
 
 /**
- * A service that hosts a SUB socket
+ * A service that listen to message, could be any type of socket.
  */
 interface ZMQSocketListenerService : Service {
     fun addListener(listener: MessageHandler)
