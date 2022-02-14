@@ -60,7 +60,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
         if (rt is Err) {
             bluntStop()
             val report = ErrorReport(
-                header = CommonErrors.TimeOut,
+                type = CommonErrors.TimeOut,
                 data = CommonErrors.TimeOut.Data("Time out when trying to start IOPub service")
             )
             return Err(report)
@@ -73,7 +73,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
         val loc = "${this.javaClass.canonicalName}:waitTillLive"
         val rt = waitRs.mapError {
             ErrorReport(
-                header = CommonErrors.TimeOut,
+                type = CommonErrors.TimeOut,
                 data = CommonErrors.TimeOut.Data("Time out when trying to start heart beat service"),
                 loc = loc
             )
@@ -87,7 +87,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
 
         val rt2 = waitRs2.mapError {
             ErrorReport(
-                header = HBServiceErrors.CantStartHBService,
+                type = HBServiceErrors.CantStartHBService,
                 data = HBServiceErrors.CantStartHBService.Data("Time out when waiting for HB to come live"),
                 loc = loc
             )

@@ -32,7 +32,7 @@ class KernelInfoSender internal constructor(
         if (kernelContext.isKernelNotRunning()) {
             return Err(
                 ErrorReport(
-                header = KernelErrors.KernelDown,
+                type = KernelErrors.KernelDown,
                 data = KernelErrors.KernelDown.Data(""),
                 loc = "${this.javaClass.canonicalName}.send"
             )

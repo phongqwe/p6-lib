@@ -6,7 +6,7 @@ import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.github.xadkile.p6.message.api.connection.service.Service
-import com.github.xadkile.p6.message.api.connection.service.exception.ServiceErrors
+import com.github.xadkile.p6.message.api.connection.service.errors.ServiceErrors
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.LiveCountHeartBeatServiceCoroutine
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerService
@@ -72,7 +72,7 @@ class KernelContextImp @Inject internal constructor(
 
     companion object {
         private val kernelDownReport = ErrorReport(
-            header = KernelErrors.KernelDown,
+            type = KernelErrors.KernelDown,
             data = KernelErrors.KernelDown.Data(""),
             loc = "${this::class.java.canonicalName}:getSession",
         )
@@ -151,7 +151,7 @@ class KernelContextImp @Inject internal constructor(
         } catch (e: Exception) {
             this.destroyResource()
             val report = ErrorReport(
-                header = CommonErrors.Unknown,
+                type = CommonErrors.Unknown,
                 data = CommonErrors.Unknown.Data("calling KernelContextImp.startKernelProcess()", e)
             )
             return Err(report)
@@ -197,7 +197,7 @@ class KernelContextImp @Inject internal constructor(
 
         } else {
             val report = ErrorReport(
-                header = KernelErrors.KernelDown,
+                type = KernelErrors.KernelDown,
                 data = KernelErrors.KernelDown.Data(this::class.java.canonicalName)
             )
             return Err(report)
@@ -220,7 +220,7 @@ class KernelContextImp @Inject internal constructor(
                 Sleeper.delayUntil(50, kernelTimeOut.processStopTimeout) { this.process?.isAlive == false }
             val rs = stopRs.mapError {
                 ErrorReport(
-                    header = KernelErrors.CantStopKernelProcess,
+                    type = KernelErrors.CantStopKernelProcess,
                     data = KernelErrors.CantStopKernelProcess.Data(this.process?.pid())
                 )
             }
@@ -274,7 +274,7 @@ class KernelContextImp @Inject internal constructor(
             return Ok(Unit)
         } catch (e: Exception) {
             val report = ErrorReport(
-                header = CommonErrors.Unknown,
+                type = CommonErrors.Unknown,
                 data = CommonErrors.Unknown.Data("calling KernelContextImp.stopKernel()", e)
             )
             return Err(report)
@@ -308,7 +308,7 @@ class KernelContextImp @Inject internal constructor(
             return Ok(this.process!!)
         } else {
             val report = ErrorReport(
-                header = KernelErrors.KernelDown,
+                type = KernelErrors.KernelDown,
                 data = KernelErrors.KernelDown.Data("getKernelProcess")
             )
             return Err(report)
@@ -332,7 +332,7 @@ class KernelContextImp @Inject internal constructor(
             return rt
         } else {
             val report = ErrorReport(
-                header = KernelErrors.KernelContextIllegalState,
+                type = KernelErrors.KernelContextIllegalState,
                 data = KernelErrors.KernelContextIllegalState.Data(
                     currentState = "not running",
                     actionToPerform = "restart kernel"
@@ -385,7 +385,7 @@ class KernelContextImp @Inject internal constructor(
             return Ok(that())
         } else {
             val report = ErrorReport(
-                header = KernelErrors.GetKernelObjectError,
+                type = KernelErrors.GetKernelObjectError,
                 data = KernelErrors.GetKernelObjectError.Data(objectName),
                 loc = "${this.javaClass.canonicalName}:checkKernelRunningAndGet"
             )
@@ -478,14 +478,14 @@ class KernelContextImp @Inject internal constructor(
                 return Ok(service as T)
             } else {
                 val report = ErrorReport(
-                    header = IOPubServiceErrors.IOPubServiceNotRunning,
+                    type = IOPubServiceErrors.IOPubServiceNotRunning,
                     data = IOPubServiceErrors.IOPubServiceNotRunning.Data("${this.javaClass.canonicalName}:getService")
                 )
                 return Err(report)
             }
         } else {
             val report = ErrorReport(
-                header = ServiceErrors.ServiceNull,
+                type = ServiceErrors.ServiceNull,
                 data = ServiceErrors.ServiceNull.Data(serviceName)
             )
             return Err(report)

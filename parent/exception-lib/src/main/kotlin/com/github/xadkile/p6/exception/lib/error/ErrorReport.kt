@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.exception.lib.error
 
 class ErrorReport(
-    val header: ErrorHeader,
+    val type: ErrorType,
     val data: Any,
     val loc:String="",
 ) {
@@ -15,10 +15,13 @@ class ErrorReport(
 
     override fun toString(): String {
         return """
-            ${header.toString()}
+            ${type.toString()}
             data: ${this.data.toString()}
             loc: ${this.loc}
         """.trimIndent()
+    }
+    fun isType(errorType: ErrorType):Boolean{
+        return this.type.isType(errorType)
     }
 }
 

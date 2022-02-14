@@ -54,21 +54,21 @@ internal sealed class AbstractLiveCountHeartBeatServiceCoroutine constructor(
                     return Ok(Unit)
                 } else {
                     val report = ErrorReport(
-                        header = CommonErrors.Unknown,
+                        type = CommonErrors.Unknown,
                         data = CommonErrors.Unknown.Data("output of heartbeat zmq channel is null", null)
                     )
                     return Err(report)
                 }
             } else {
                 val report = ErrorReport(
-                    header = CommonErrors.Unknown,
+                    type = CommonErrors.Unknown,
                     data = CommonErrors.Unknown.Data("not receiving heart beat signal", null)
                 )
                 return Err(report)
             }
         } catch (e: Exception) {
             val report = ErrorReport(
-                header = CommonErrors.ExceptionError,
+                type = CommonErrors.ExceptionError,
                 data = CommonErrors.ExceptionError.Data(e)
             )
             return Err(report)

@@ -1,15 +1,9 @@
 package com.github.xadkile.p6.test.utils
 
-import com.github.michaelbull.result.Ok
-import com.github.michaelbull.result.unwrap
-import com.github.xadkile.p6.message.api.connection.service.iopub.HandlerContainerImp
-import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
-import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.Shell
-import com.github.xadkile.p6.message.api.msg.sender.composite.CodeExecutionSender
-import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteRequest
+import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.exception.lib.error.ErrorType
+import com.github.xadkile.p6.message.api.connection.service.errors.ServiceErrors
 import kotlinx.coroutines.*
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
@@ -18,13 +12,20 @@ import org.zeromq.ZMQ
 import java.math.BigInteger
 import java.util.*
 import kotlin.concurrent.thread
+import kotlin.reflect.typeOf
 import kotlin.system.measureTimeMillis
-import kotlin.test.assertTrue
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
-
+    @Test
+    fun bb(){
+        val report = ErrorReport(
+            ServiceErrors.ServiceNull,
+            data =ServiceErrors.ServiceNull.Data("error exyz"),
+            loc = "abc"
+        )
+    }
     suspend fun fs() {
         withContext(Dispatchers.Default) {
             var x = 0
