@@ -18,7 +18,7 @@ interface MsgHandler {
     /**
      * unique id
      */
-    fun id(): String
-    fun msgType(): MsgType
+    val id: String
+    val msgType: MsgType
 }
 

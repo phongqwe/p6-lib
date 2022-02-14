@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services.imp
 
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQSocketListenerServiceImp
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.AbstractZMQSocketService
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import org.zeromq.SocketType
@@ -15,7 +15,7 @@ internal class SUBService(
     private val kernelContext: KernelContextReadOnly,
     coroutineScope: CoroutineScope,
     coroutineDispatcher: CoroutineDispatcher,
-) : ZMQSocketListenerServiceImp(coroutineScope,coroutineDispatcher) {
+) : AbstractZMQSocketService(coroutineScope,coroutineDispatcher) {
 
 
     override fun makeSocket(): ZMQ.Socket {

@@ -1,5 +1,6 @@
 package com.github.xadkile.p6.message.api.msg.protocol
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
@@ -11,9 +12,9 @@ import java.time.ZonedDateTime
 object ProtocolUtils {
 
     /**
-     * A gson instance for parsing zmq message
+     * A gson instance configured for parsing zmq message
      */
-    val msgGson = GsonBuilder()
+    val msgGson: Gson = GsonBuilder()
         .registerTypeAdapter(LocalDateTime::class.java, object : TypeAdapter<LocalDateTime?>() {
             @Throws(IOException::class)
             override fun read(jsonReader: JsonReader): LocalDateTime? {

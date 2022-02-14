@@ -24,9 +24,9 @@ internal class HandlerContainerImpTest {
     fun containHandler() {
         hContainer.addHandler(h1)
         assertTrue(hContainer.containHandler(h1))
-        assertTrue(hContainer.containHandler(h1.id()))
+        assertTrue(hContainer.containHandler(h1.id))
         assertFalse(hContainer.containHandler(h2))
-        assertFalse(hContainer.containHandler(h2.id()))
+        assertFalse(hContainer.containHandler(h2.id))
     }
 
     @Test
@@ -34,7 +34,7 @@ internal class HandlerContainerImpTest {
         hContainer.addHandler(h1)
         assertFalse(hContainer.isEmpty())
 
-        hContainer.removeHandler(h1.id())
+        hContainer.removeHandler(h1.id)
         assertTrue(hContainer.isEmpty())
 
         hContainer.addHandler(h1)
@@ -45,19 +45,19 @@ internal class HandlerContainerImpTest {
     @Test
     fun addHandler_getHandlers(){
 
-        hContainer.getHandlers(h1.msgType()).also {
+        hContainer.getHandlers(h1.msgType).also {
             assertTrue(it.isEmpty())
         }
         // handlers are grouped by their MsgType correctly
         hContainer.addHandler(h1)
         hContainer.addHandler(h4)
         hContainer.addHandler(h2)
-        hContainer.getHandlers(h1.msgType()).also {
+        hContainer.getHandlers(h1.msgType).also {
             assertEquals(2,it.size)
             assertEquals(h1,it[0])
             assertEquals(h4,it[1])
         }
-        hContainer.getHandlers(h2.msgType()).also {
+        hContainer.getHandlers(h2.msgType).also {
             assertEquals(1,it.size)
             assertEquals(h2,  it[0])
         }

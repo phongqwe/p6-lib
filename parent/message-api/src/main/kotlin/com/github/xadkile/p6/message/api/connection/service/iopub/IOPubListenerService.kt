@@ -33,7 +33,7 @@ interface IOPubListenerService : IOPubListenerServiceReadOnly, Service{
 
 interface IOPubListenerServiceReadOnly : MsgHandlerContainer,RunningState{
     fun addDefaultHandler(handler:MsgHandler){
-        if(handler.msgType() == MsgType.DEFAULT){
+        if(handler.msgType == MsgType.DEFAULT){
             this.addHandler(handler)
         }else{
             throw RuntimeException("only used this method to add default handler")

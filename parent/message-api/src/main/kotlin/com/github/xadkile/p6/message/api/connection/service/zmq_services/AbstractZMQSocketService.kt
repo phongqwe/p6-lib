@@ -7,7 +7,7 @@ import kotlinx.coroutines.*
 import org.zeromq.*
 import java.net.ServerSocket
 
-abstract class ZMQSocketListenerServiceImp(
+abstract class AbstractZMQSocketService(
     private val coroutineScope: CoroutineScope,
     private val coroutineDispatcher: CoroutineDispatcher,
 ) : ZMQSocketListenerService {
@@ -23,13 +23,17 @@ abstract class ZMQSocketListenerServiceImp(
     }
 
     protected abstract fun makeSocket(): ZMQ.Socket
+
+    /**
+     * implement this method to provde code to receive messages
+     */
     protected abstract fun receiveMessage(socket:ZMQ.Socket)
 
     override suspend fun start(): Result<Unit, ErrorReport> {
         if (this.isRunning()) return Ok(Unit)
-        val socket = makeSocket()
+        val socket:ZMQ.Socket = makeSocket()
         this.job = coroutineScope.launch(coroutineDispatcher) {
-            socket.use { sk ->
+            socket.use { sk:ZMQ.Socket ->
                 while (isActive) {
                     receiveMessage(sk)
                 }
@@ -38,16 +42,16 @@ abstract class ZMQSocketListenerServiceImp(
         return Ok(Unit)
     }
 
-    override fun addListener(listener: MessageHandler) {
-        this.listenerMap = this.listenerMap + (listener.id to listener)
+    override fun addHandler(handler: MessageHandler) {
+        this.listenerMap = this.listenerMap + (handler.id to handler)
     }
 
-    override fun removeListener(id: String): Boolean {
+    override fun removeHandler(id: String): Boolean {
         this.listenerMap = this.listenerMap - id
         return true
     }
 
-    override fun getListener(id: String): MessageHandler? {
+    override fun getHandler(id: String): MessageHandler? {
         return this.listenerMap[id]
     }
 
