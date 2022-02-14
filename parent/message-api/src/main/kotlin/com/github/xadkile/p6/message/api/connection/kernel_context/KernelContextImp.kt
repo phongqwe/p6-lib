@@ -11,12 +11,11 @@ import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeat
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.LiveCountHeartBeatServiceCoroutine
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
-import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
 import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
-import com.github.xadkile.p6.message.api.msg.protocol.KernelConnectionFileContent
-import com.github.xadkile.p6.message.api.msg.protocol.other.MsgCounterImp
-import com.github.xadkile.p6.message.api.msg.protocol.other.MsgIdGenerator
-import com.github.xadkile.p6.message.api.msg.protocol.other.RandomMsgIdGenerator
+import com.github.xadkile.p6.message.api.message.protocol.KernelConnectionFileContent
+import com.github.xadkile.p6.message.api.message.protocol.other.MsgCounterImp
+import com.github.xadkile.p6.message.api.message.protocol.other.MsgIdGenerator
+import com.github.xadkile.p6.message.api.message.protocol.other.RandomMsgIdGenerator
 import com.github.xadkile.p6.message.api.other.Sleeper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -67,8 +66,6 @@ class KernelContextImp @Inject internal constructor(
     private var onBeforeStopListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
     private var onAfterStopListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
     private var onKernelStartedListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
-
-    private val convInstance = KernelContextReadOnlyConvImp(this)
 
     companion object {
         private val kernelDownReport = ErrorReport(
@@ -128,7 +125,7 @@ class KernelContextImp @Inject internal constructor(
             this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
             this.msgCounter = MsgCounterImp()
             this.msgIdGenerator = RandomMsgIdGenerator()
-            this.senderProvider = SenderProviderImp(this.conv())
+            this.senderProvider = SenderProviderImp(this)
 
             this.onKernelStartedListener.run(this)
             return Ok(Unit)
@@ -461,7 +458,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
 
-    override fun getIOPubListenerService(): Result<IOPubListenerServiceReadOnly, ErrorReport> {
+    override fun getIOPubListenerService(): Result<IOPubListenerService,ErrorReport> {
         val sv = getService2<IOPubListenerService>(this.ioPubService, "IO Pub service")
         return sv
     }
@@ -490,10 +487,6 @@ class KernelContextImp @Inject internal constructor(
             )
             return Err(report)
         }
-    }
-
-    override fun conv(): KernelContextReadOnlyConv {
-        return this.convInstance
     }
 
     override fun zContext(): ZContext {

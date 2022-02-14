@@ -5,7 +5,7 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
-import com.github.xadkile.p6.message.api.msg.protocol.ProtocolUtils
+import com.github.xadkile.p6.message.api.message.protocol.ProtocolUtils
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path

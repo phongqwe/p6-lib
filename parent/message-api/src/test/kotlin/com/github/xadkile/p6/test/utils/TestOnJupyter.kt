@@ -15,7 +15,7 @@ import org.zeromq.ZContext
 abstract class TestOnJupyter {
     lateinit var ipythonConfig: KernelConfig
     lateinit var kernelContext: KernelContext
-    lateinit var iPythonContextConv: KernelContextReadOnlyConv
+    lateinit var iPythonContextConv: KernelContextReadOnly
     lateinit var zcontext: ZContext
     lateinit var mainThreadSurrogate: ExecutorCoroutineDispatcher
 
@@ -24,7 +24,7 @@ abstract class TestOnJupyter {
         this.zcontext = ZContext()
         this.ipythonConfig = TestResources.kernelConfigForTest()
         this.kernelContext = KernelContextImp(this.ipythonConfig, zcontext, GlobalScope, Dispatchers.IO)
-        this.iPythonContextConv = this.kernelContext.conv()
+        this.iPythonContextConv = this.kernelContext
         mainThreadSurrogate = newSingleThreadContext("Test Thread")
         Dispatchers.setMain(mainThreadSurrogate)
     }

@@ -1,6 +1,6 @@
 package com.github.xadkile.p6.message.api.connection.service.iopub
 
-import com.github.xadkile.p6.message.api.msg.protocol.MsgType
+import com.github.xadkile.p6.message.api.message.protocol.MsgType
 
 /**
  * A container of [MsgHandler]

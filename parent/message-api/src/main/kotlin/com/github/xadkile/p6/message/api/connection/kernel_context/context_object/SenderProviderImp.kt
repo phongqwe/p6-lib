@@ -2,14 +2,14 @@ package com.github.xadkile.p6.message.api.connection.kernel_context.context_obje
 
 import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.exception.lib.error.ErrorReport
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
-import com.github.xadkile.p6.message.api.msg.sender.MsgSender
-import com.github.xadkile.p6.message.api.msg.sender.composite.CodeExecutionSender
-import com.github.xadkile.p6.message.api.msg.sender.composite.ExecuteResult
-import com.github.xadkile.p6.message.api.msg.sender.shell.*
+import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
+import com.github.xadkile.p6.message.api.message.sender.MsgSender
+import com.github.xadkile.p6.message.api.message.sender.composite.CodeExecutionSender
+import com.github.xadkile.p6.message.api.message.sender.composite.ExecuteResult
+import com.github.xadkile.p6.message.api.message.sender.shell.*
 
 class SenderProviderImp internal constructor(
-    val kernelContext: KernelContextReadOnlyConv,
+    val kernelContext: KernelContextReadOnly,
 ) : SenderProvider {
 
     override fun executeRequestSender(): MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> {

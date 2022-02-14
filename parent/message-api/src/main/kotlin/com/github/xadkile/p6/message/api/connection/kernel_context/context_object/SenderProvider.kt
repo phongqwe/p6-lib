@@ -2,12 +2,12 @@ package com.github.xadkile.p6.message.api.connection.kernel_context.context_obje
 
 import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.exception.lib.error.ErrorReport
-import com.github.xadkile.p6.message.api.msg.sender.MsgSender
-import com.github.xadkile.p6.message.api.msg.sender.composite.ExecuteResult
-import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteReply
-import com.github.xadkile.p6.message.api.msg.sender.shell.ExecuteRequest
-import com.github.xadkile.p6.message.api.msg.sender.shell.KernelInfoInput
-import com.github.xadkile.p6.message.api.msg.sender.shell.KernelInfoOutput
+import com.github.xadkile.p6.message.api.message.sender.MsgSender
+import com.github.xadkile.p6.message.api.message.sender.composite.ExecuteResult
+import com.github.xadkile.p6.message.api.message.sender.shell.ExecuteReply
+import com.github.xadkile.p6.message.api.message.sender.shell.ExecuteRequest
+import com.github.xadkile.p6.message.api.message.sender.shell.KernelInfoInput
+import com.github.xadkile.p6.message.api.message.sender.shell.KernelInfoOutput
 
 /**
  * provide instances of sender

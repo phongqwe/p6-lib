@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context.context_object
 
 import com.github.xadkile.p6.message.api.channel.ChannelInfo
-import com.github.xadkile.p6.message.api.msg.protocol.KernelConnectionFileContent
+import com.github.xadkile.p6.message.api.message.protocol.KernelConnectionFileContent
 
 class ChannelProviderImp internal constructor(private val connectFile: KernelConnectionFileContent) :
     ChannelProvider {

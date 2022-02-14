@@ -16,4 +16,7 @@ interface Service {
      */
     suspend fun stop(): Result<Unit, ErrorReport>
     fun isRunning():Boolean
+    fun isNotRunning():Boolean{
+        return !this.isRunning()
+    }
 }

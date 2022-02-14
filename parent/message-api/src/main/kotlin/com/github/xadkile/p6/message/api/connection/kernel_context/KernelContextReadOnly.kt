@@ -1,26 +1,26 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.map
 import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.message.api.channel.ChannelInfo
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
-import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceReadOnly
-import com.github.xadkile.p6.message.api.msg.protocol.KernelConnectionFileContent
-import com.github.xadkile.p6.message.api.msg.protocol.other.MsgIdGenerator
+import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerService
+import com.github.xadkile.p6.message.api.message.protocol.KernelConnectionFileContent
+import com.github.xadkile.p6.message.api.message.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
 
 /**
- * Limiting interface to safely access context-bound objects.
+ * Limiting interface that provide read-only access to context objects.
  *
- * This is for preventing mistakenly changing IPython context state, such as calling start, stop in a sender.
+ * This is for preventing changing kernel context state by mistake
  */
 interface KernelContextReadOnly {
 
-//    fun getUpdateServicePort():Result<UpdateListenerService,ErrorReport>
-
     fun getKernelConfig(): KernelConfig
 
-    fun getIOPubListenerService():Result<IOPubListenerServiceReadOnly, ErrorReport>
+    fun getIOPubListenerService(): Result<IOPubListenerService, ErrorReport>
 
     /**
      * Return content of connection file .
@@ -44,10 +44,6 @@ interface KernelContextReadOnly {
     fun getSocketProvider():Result<SocketProvider, ErrorReport>
 
     fun zContext(): ZContext
-    /**
-     * convert this to a more convenient but more dangerous to use interface
-     */
-    fun conv():KernelContextReadOnlyConv
 
     /**
      * kernel process and all context-related objects are on and safe to get
@@ -67,6 +63,39 @@ interface KernelContextReadOnly {
      * A stopped context guarantees that all context-related objects and services are stopped and null
      */
     fun isKernelNotRunning():Boolean
+
+    fun getHeartBeatChannel(): Result<ChannelInfo, ErrorReport> {
+        return this.getChannelProvider().map { it.heartbeatChannel() }
+    }
+
+    fun getHeartBeatAddress(): Result<String, ErrorReport> {
+        return this.getHeartBeatChannel().map { it.makeAddress() }
+    }
+
+    fun getShellChannel():Result<ChannelInfo, ErrorReport>{
+        return this.getChannelProvider().map { it.shellChannel() }
+    }
+
+    fun getShellAddress():Result<String, ErrorReport>{
+        return this.getChannelProvider().map { it.shellAddress() }
+    }
+
+    fun getIOPubChannel():Result<ChannelInfo, ErrorReport>{
+        return this.getChannelProvider().map { it.ioPubChannel() }
+    }
+
+    fun getIOPubAddress():Result<String, ErrorReport>{
+        return this.getChannelProvider().map { it.ioPubAddress() }
+    }
+
+    fun getControlChannel():Result<ChannelInfo, ErrorReport>{
+        return this.getChannelProvider().map { it.controlChannel() }
+    }
+
+    fun getControlAddress():Result<String, ErrorReport>{
+        return this.getChannelProvider().map { it.controlAddress() }
+    }
+
 
 }
 

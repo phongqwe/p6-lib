@@ -3,12 +3,12 @@ package com.github.xadkile.p6.message.api.connection.service.iopub
 import com.github.michaelbull.result.*
 import com.github.xadkile.p6.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContext
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnlyConv
+import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
-import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
-import com.github.xadkile.p6.message.api.msg.protocol.MsgType
-import com.github.xadkile.p6.message.api.msg.protocol.data_interface_definition.IOPub
+import com.github.xadkile.p6.message.api.message.protocol.JPRawMessage
+import com.github.xadkile.p6.message.api.message.protocol.MsgType
+import com.github.xadkile.p6.message.api.message.protocol.data_interface_definition.IOPub
 import com.github.xadkile.p6.message.api.other.Sleeper
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ
@@ -20,26 +20,14 @@ import org.zeromq.ZMsg
  * [parseExceptionHandler] to handle exception of unable to parse zmq message.
  */
 class IOPubListenerServiceImpl internal constructor(
-    private val kernelContext: KernelContextReadOnlyConv,
-    private val defaultHandler: (msg: JPRawMessage) -> Unit,
-    private val parseExceptionHandler: suspend (exception: ErrorReport) -> Unit,
-    private val handlerContainer: MsgHandlerContainer,
+    private val kernelContext: KernelContextReadOnly,
+    private val defaultHandler: ((msg: JPRawMessage) -> Unit)? = { /*do nothing*/ },
+    private val parseExceptionHandler: suspend (exception: ErrorReport) -> Unit= { /*do nothing*/ },
+    private val handlerContainer: MsgHandlerContainer = HandlerContainerImp(),
     private val externalScope: CoroutineScope,
     private val dispatcher: CoroutineDispatcher,
-    private val startTimeOut:Long
+    private val startTimeOut:Long = 50_000
 ) : IOPubListenerService {
-
-    internal constructor(
-        kernelContext: KernelContext,
-        defaultHandler: (msg: JPRawMessage) -> Unit = { /*do nothing*/ },
-        parseExceptionHandler: suspend (exception: ErrorReport) -> Unit = {  /*do nothing*/ },
-        handlerContainer: MsgHandlerContainer = HandlerContainerImp(),
-        externalScope: CoroutineScope,
-        dispatcher: CoroutineDispatcher,
-        startTimeOut: Long = 50_000
-    ) : this(
-        kernelContext.conv(), defaultHandler, parseExceptionHandler, handlerContainer, externalScope, dispatcher,startTimeOut
-    )
 
     private var job: Job? = null
 
@@ -61,7 +49,9 @@ class IOPubListenerServiceImpl internal constructor(
 
         val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
         // x: add default handler
-        this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
+        if(defaultHandler!=null){
+            this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
+        }
         job = externalScope.launch(dispatcher) {
             socket.use {
                 // x: start the service loop
@@ -74,9 +64,9 @@ class IOPubListenerServiceImpl internal constructor(
                             val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
                             when (parseResult) {
                                 is Ok -> {
-                                    val rawMsg: JPRawMessage = parseResult.unwrap()
+                                    val rawMsg: JPRawMessage = parseResult.value
                                     val msgType: MsgType = extractMsgType(rawMsg.identities)
-                                    dispatch(msgType, rawMsg)
+                                    dispatchMsgToHandlers(msgType, rawMsg)
                                 }
                                 else -> {
                                     parseExceptionHandler(parseResult.unwrapError())
@@ -101,6 +91,9 @@ class IOPubListenerServiceImpl internal constructor(
         }
     }
 
+    /**
+     * [msgIdentity] always ends with msg type
+     */
     private fun extractMsgType(msgIdentity: String): MsgType {
         val msgType: MsgType = when {
 
@@ -135,7 +128,10 @@ class IOPubListenerServiceImpl internal constructor(
         return this.job?.isActive == true
     }
 
-    private fun dispatch(
+    /**
+     * dispatch a parsed message to handlers
+     */
+    private fun dispatchMsgToHandlers(
         msgType: MsgType,
         msg: JPRawMessage,
     ) {
