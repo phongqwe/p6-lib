@@ -14,7 +14,6 @@ import com.github.xadkile.p6.message.api.message.protocol.MsgStatus
 import com.github.xadkile.p6.message.api.message.protocol.MsgType
 import com.github.xadkile.p6.message.api.message.protocol.data_interface_definition.IOPub
 import com.github.xadkile.p6.message.api.message.protocol.data_interface_definition.Shell
-import com.github.xadkile.p6.message.api.message.protocol.data_interface_definition.handler
 import com.github.xadkile.p6.message.api.message.sender.MsgSender
 import com.github.xadkile.p6.message.api.message.sender.exception.SenderErrors
 import com.github.xadkile.p6.message.api.message.sender.shell.ExecuteReply
@@ -128,17 +127,17 @@ class CodeExecutionSender internal constructor(
                 val content: Shell.Execute.Reply.Content? = sendStatus.get()?.content
                 val st: MsgStatus? = content?.status
                 when (st) {
-                    MsgStatus.ok -> {
+                    MsgStatus.OK -> {
                         //dont do anything, wait for result from the listener
                     }
-                    MsgStatus.error -> {
+                    MsgStatus.ERROR -> {
                         val report = ErrorReport(
                             type = SenderErrors.CodeError,
                             data = SenderErrors.CodeError.Data(content),
                         )
                         rt = Err(report)
                     }
-                    MsgStatus.aborted -> {
+                    MsgStatus.ABORTED -> {
                         val report = ErrorReport(
                             type = SenderErrors.CodeError,
                             data = SenderErrors.CodeError.Data(content),

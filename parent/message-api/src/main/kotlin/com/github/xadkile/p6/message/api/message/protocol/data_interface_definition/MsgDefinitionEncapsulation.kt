@@ -7,10 +7,10 @@ import com.github.xadkile.p6.message.api.message.protocol.MsgType
 
 interface MsgDefinitionEncapsulation {
     val msgType:MsgType
+    fun handler(
+        handlerFunction:  (msg: JPRawMessage) -> Unit)
+            : MsgHandler {
+        return MsgHandlers.withUUID(msgType, handlerFunction)
+    }
 }
 
-fun MsgDefinitionEncapsulation.handler(
-    handlerFunction:  (msg: JPRawMessage) -> Unit)
-: MsgHandler {
-    return MsgHandlers.withUUID(msgType, handlerFunction)
-}

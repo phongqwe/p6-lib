@@ -63,7 +63,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
             val out = sender2.send(message, Dispatchers.Default)
 
             assertTrue { out is Ok }
-            assertEquals(MsgStatus.ok, out.unwrap().content.status)
+            assertEquals(MsgStatus.OK, out.unwrap().content.status)
             println("==OUT==\n${out.unwrap()}\n====")
         }
 
@@ -82,7 +82,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
             val out = sender2.send(malformedCodeMsg, Dispatchers.Default)
 
             assertTrue { out is Ok }
-            assertEquals(MsgStatus.error, out.unwrap().content.status)
+            assertEquals(MsgStatus.ERROR, out.unwrap().content.status)
             println("==OUT==\n${out.unwrap()}\n====")
         }
 

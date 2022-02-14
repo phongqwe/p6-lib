@@ -8,7 +8,6 @@ import com.github.xadkile.p6.message.api.message.protocol.JPRawMessage
 import com.github.xadkile.p6.message.api.message.protocol.MsgType
 import com.github.xadkile.p6.message.api.message.protocol.data_interface_definition.IOPub
 import com.github.xadkile.p6.message.api.message.protocol.data_interface_definition.Shell
-import com.github.xadkile.p6.message.api.message.protocol.data_interface_definition.handler
 import com.github.xadkile.p6.message.api.message.sender.shell.ExecuteRequest
 import com.github.xadkile.p6.test.utils.TestOnJupyter
 import kotlinx.coroutines.Dispatchers

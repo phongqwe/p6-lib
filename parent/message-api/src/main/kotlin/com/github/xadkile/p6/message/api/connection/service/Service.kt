@@ -2,8 +2,9 @@ package com.github.xadkile.p6.message.api.connection.service
 
 import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.message.api.other.RunningState
 
-interface Service {
+interface Service : RunningState{
     /**
      * Start a service. After this function returns, it is guaranteed that this instance of service is fully functional.
      * Calling start() on an already started listener doesn't do anything.
@@ -15,8 +16,4 @@ interface Service {
      * Calling stop on an already stop service doesn't do anything.
      */
     suspend fun stop(): Result<Unit, ErrorReport>
-    fun isRunning():Boolean
-    fun isNotRunning():Boolean{
-        return !this.isRunning()
-    }
 }

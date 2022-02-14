@@ -46,7 +46,7 @@ interface KernelContextReadOnly {
     fun zContext(): ZContext
 
     /**
-     * kernel process and all context-related objects are on and safe to get
+     * when a kernel is in "running" state, kernel process and all context-related objects are running and not null
      */
     fun isKernelRunning():Boolean
 
