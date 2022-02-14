@@ -1,7 +1,5 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context.context_object
 
-import com.github.xadkile.p6.message.api.channel.ChannelInfo
-
 /**
  * provide channel info with the up-to-date connection info
  */

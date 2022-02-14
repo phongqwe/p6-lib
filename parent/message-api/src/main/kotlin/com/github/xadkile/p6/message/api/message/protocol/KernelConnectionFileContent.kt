@@ -4,7 +4,7 @@ import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.exception.lib.error.ErrorReport
-import com.github.xadkile.p6.message.api.channel.ChannelInfo
+import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.ChannelInfo
 import com.github.xadkile.p6.message.api.message.protocol.errors.MsgProtocolErrors
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName

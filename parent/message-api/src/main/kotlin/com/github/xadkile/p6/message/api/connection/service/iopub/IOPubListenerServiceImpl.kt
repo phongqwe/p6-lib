@@ -2,7 +2,6 @@ package com.github.xadkile.p6.message.api.connection.service.iopub
 
 import com.github.michaelbull.result.*
 import com.github.xadkile.p6.exception.lib.error.ErrorReport
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContext
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors

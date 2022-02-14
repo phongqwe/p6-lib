@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.message.api.channel
+package com.github.xadkile.p6.message.api.connection.kernel_context.context_object
 
 /**
  * Hold channel profile info that can be used for establishing connection
