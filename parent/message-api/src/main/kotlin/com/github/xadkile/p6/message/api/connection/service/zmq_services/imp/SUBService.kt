@@ -29,9 +29,7 @@ internal class SUBService(
         val msg:ZMsg? = ZMsg.recvMsg(socket)
         if (msg!=null){
             val data:List<ByteArray> = msg.map { it.data }
-            listenerMap.values.forEach {
-                it.handleMessage(data)
-            }
+            // TODO
         }
     }
     override val socketType: SocketType = SocketType.SUB

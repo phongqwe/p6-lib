@@ -1,30 +1,32 @@
 package com.github.xadkile.p6.test.utils
 
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
-import com.github.xadkile.p6.exception.lib.error.ErrorType
-import com.github.xadkile.p6.message.api.connection.service.errors.ServiceErrors
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.zeromq.SocketType
-import org.zeromq.ZContext
-import org.zeromq.ZMQ
+import org.zeromq.*
 import java.math.BigInteger
 import java.util.*
 import kotlin.concurrent.thread
-import kotlin.reflect.typeOf
 import kotlin.system.measureTimeMillis
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
-    @Test
+//    @Test
     fun bb(){
-        val report = ErrorReport(
-            ServiceErrors.ServiceNull,
-            data =ServiceErrors.ServiceNull.Data("error exyz"),
-            loc = "abc"
-        )
+        val context = ZContext()
+        val repSocket = context.createSocket(SocketType.REP)
+        repSocket.bind("tcp://localhost:6000")
+
+        while(true){
+            println(">>>>")
+            val str = repSocket.recvStr()
+            if(str!=null){
+                println("Receive: $str")
+            }
+            repSocket.send("ok")
+
+        }
     }
     suspend fun fs() {
         withContext(Dispatchers.Default) {

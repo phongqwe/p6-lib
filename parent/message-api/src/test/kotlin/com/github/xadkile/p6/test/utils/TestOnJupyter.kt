@@ -25,16 +25,16 @@ abstract class TestOnJupyter {
         this.ipythonConfig = TestResources.kernelConfigForTest()
         this.kernelContext = KernelContextImp(this.ipythonConfig, zcontext, GlobalScope, Dispatchers.IO)
         this.iPythonContextConv = this.kernelContext
-        mainThreadSurrogate = newSingleThreadContext("Test Thread")
-        Dispatchers.setMain(mainThreadSurrogate)
+//        mainThreadSurrogate = newSingleThreadContext("Test Thread")
+//        Dispatchers.setMain(mainThreadSurrogate)
     }
 
     @AfterAll
     open fun afterAll() {
         runBlocking {
             kernelContext.stopAll()
-            Dispatchers.resetMain()
-            mainThreadSurrogate.close()
+//            Dispatchers.resetMain()
+//            mainThreadSurrogate.close()
         }
     }
 }
