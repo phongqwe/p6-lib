@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.service.iopub
 
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.service.Service
 import com.github.xadkile.p6.message.api.message.protocol.MsgType
 

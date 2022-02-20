@@ -1,7 +1,6 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services.imp
 
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MessageHandler
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MessageHandlers
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MsgHandlers
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6MsgType
 import com.github.xadkile.p6.test.utils.TestOnJupyter
@@ -12,7 +11,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
-import zmq.ZMQ
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class REPServiceTest : TestOnJupyter(){
@@ -23,7 +21,7 @@ internal class REPServiceTest : TestOnJupyter(){
             sv.start()
             var x = 0
             var parsedMsg:P6Message? = null
-            val handler = P6MessageHandlers.makeHandler { msg:P6Message->
+            val handler = P6MsgHandlers.makeHandler { msg:P6Message->
                 x+=1
                 parsedMsg =msg
             }

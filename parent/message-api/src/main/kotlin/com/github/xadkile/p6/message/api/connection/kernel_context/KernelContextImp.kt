@@ -1,8 +1,8 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.exception.lib.error.CommonErrors
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.lib.error.CommonErrors
+import com.github.xadkile.p6.common.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.ChannelProvider
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.ChannelProviderImp

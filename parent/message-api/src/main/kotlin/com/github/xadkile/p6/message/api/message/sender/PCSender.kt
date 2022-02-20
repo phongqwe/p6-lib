@@ -2,7 +2,7 @@ package com.github.xadkile.p6.message.api.message.sender
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.MsgEncoder
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.p6.message.api.message.protocol.JPMessage

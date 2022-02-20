@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.message.api.message.sender.composite
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.lib.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.SenderProvider
 import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors

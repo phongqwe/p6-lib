@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.formula.translator
 
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.lib.error.ErrorReport
 
 class FormulaTranslatorFinal : FormulaTranslator {
     val pythonTranslator = PythonFormulaTranslator()

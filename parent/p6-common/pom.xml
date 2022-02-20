@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>exception-lib</artifactId>
+    <artifactId>p6-common</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

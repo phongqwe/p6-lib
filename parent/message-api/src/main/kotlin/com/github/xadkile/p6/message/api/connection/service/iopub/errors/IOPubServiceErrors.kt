@@ -1,6 +1,6 @@
 package com.github.xadkile.p6.message.api.connection.service.iopub.errors
 
-import com.github.xadkile.p6.exception.lib.error.ErrorType
+import com.github.xadkile.p6.common.exception.lib.error.ErrorType
 
 object IOPubServiceErrors {
     private const val prefix = "IOPub service error "

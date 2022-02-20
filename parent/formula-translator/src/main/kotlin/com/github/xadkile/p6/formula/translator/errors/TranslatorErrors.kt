@@ -1,6 +1,6 @@
 package com.github.xadkile.p6.formula.translator.errors
 
-import com.github.xadkile.p6.exception.lib.error.ErrorType
+import com.github.xadkile.p6.common.exception.lib.error.ErrorType
 import org.antlr.v4.runtime.RecognitionException
 import org.antlr.v4.runtime.Recognizer
 

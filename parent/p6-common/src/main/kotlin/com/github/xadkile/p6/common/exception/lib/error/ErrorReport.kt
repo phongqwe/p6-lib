@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.exception.lib.error
+package com.github.xadkile.p6.common.exception.lib.error
 
 class ErrorReport(
     val type: ErrorType,
