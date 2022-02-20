@@ -1,5 +1,6 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services.imp
 
+import com.github.michaelbull.result.Ok
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MsgHandlers
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6MsgType
@@ -15,7 +16,7 @@ import org.zeromq.SocketType
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class REPServiceTest : TestOnJupyter(){
     @Test
-    fun testZmqPort(){
+    fun testStandardFlow(){
         runBlocking {
             val sv = REPService(kernelContext,GlobalScope, Dispatchers.IO)
             sv.start()
@@ -45,7 +46,8 @@ internal class REPServiceTest : TestOnJupyter(){
                     """.trimIndent()
                 ,parsedMsg?.content?.data
             )
-
+            val stopRs = sv.stop()
+            assertTrue(stopRs is Ok)
         }
     }
 }

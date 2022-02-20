@@ -23,48 +23,64 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
             kernelContext.startKernel()
         }
         hbService = LiveCountHeartBeatServiceCoroutine(
-            zcontext,
-            kernelContext.getSocketProvider().unwrap(),
+            kernelContext=kernelContext,
             liveCount = 3,
-            pollTimeout = 1000,
+            pollTimeOut = 1000,
             startTimeOut = 5000,
             cScope = GlobalScope,
             cDispatcher = Dispatchers.IO
         )
     }
 
-        @AfterEach
-        fun afterEach() {
-            runBlocking {
-                hbService.stop()
-                kernelContext.stopAll()
-            }
-        }
-
-        @Test
-        fun start() {
-            runBlocking {
-                hbService.start()
-                assertTrue(hbService.isServiceRunning())
-            }
-        }
-
-        @Test
-        fun isAlive() = runBlocking {
-            kernelContext.startAll()
-            hbService.start()
-            Thread.sleep(1000)
-            assertTrue(hbService.isHBAlive())
-        }
-
-        @Test
-        fun stop() {
-            runBlocking {
-                hbService.start()
-                delay(1000)
-                hbService.stop()
-                assertFalse(hbService.isServiceRunning())
-            }
+    @AfterEach
+    fun afterEach() {
+        runBlocking {
+            hbService.stop()
+            kernelContext.stopAll()
         }
     }
+
+    @Test
+    fun start() {
+        runBlocking {
+            hbService.start()
+            assertTrue(hbService.isServiceRunning())
+        }
+    }
+
+    @Test
+    fun isAlive() = runBlocking {
+        kernelContext.startAll()
+        hbService.start()
+        Thread.sleep(1000)
+        assertTrue(hbService.isHBAlive())
+    }
+
+    @Test
+    fun stop() {
+        runBlocking {
+            hbService.start()
+            delay(1000)
+            hbService.stop()
+            assertFalse(hbService.isServiceRunning())
+        }
+    }
+
+    @Test
+    fun testDeadThenAlive(){
+        runBlocking {
+            hbService.start()
+            assertTrue(hbService.isServiceRunning())
+            assertTrue(hbService.isHBAlive())
+            kernelContext.stopAll()
+            delay(6000)
+            assertTrue(hbService.isServiceRunning())
+            assertFalse(hbService.isHBAlive())
+            kernelContext.startAll()
+            delay(2000)
+            assertTrue(hbService.isServiceRunning())
+            assertTrue(hbService.isHBAlive())
+        }
+    }
+}
 
