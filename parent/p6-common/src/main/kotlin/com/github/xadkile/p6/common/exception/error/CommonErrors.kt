@@ -22,4 +22,8 @@ object CommonErrors {
     object ExceptionError : ErrorType("${prefix}3","Exception error"){
         data class Data(val exception:Exception)
     }
+
+    object MultipleErrors: ErrorType("$prefix 3","Multiple errors"){
+        data class Data(val errorList:List<ErrorReport>)
+    }
 }

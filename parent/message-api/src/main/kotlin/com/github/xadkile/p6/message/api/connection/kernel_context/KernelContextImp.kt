@@ -14,6 +14,8 @@ import com.github.xadkile.p6.message.api.connection.service.heart_beat.LiveCount
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQListenerService
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.imp.REPService
 import com.github.xadkile.p6.message.api.message.protocol.KernelConnectionFileContent
 import com.github.xadkile.p6.message.api.message.protocol.other.MsgCounterImp
 import com.github.xadkile.p6.message.api.message.protocol.other.MsgIdGenerator
@@ -37,7 +39,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class KernelContextImp @Inject internal constructor(
-    // x: _kernelConfig is created from an external file.
+    // x: kernelConfig is created from an external file.
     private val kernelConfig: KernelConfig,
     private val zcontext: ZContext,
     @ApplicationCScope
@@ -63,6 +65,7 @@ class KernelContextImp @Inject internal constructor(
     // x: Context-related services
     private var hbService: HeartBeatService? = null
     private var ioPubService: IOPubListenerService? = null
+    private var zmqREPService:ZMQListenerService? = null
 
     // x: events listeners
     private var onBeforeStopListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
@@ -75,6 +78,11 @@ class KernelContextImp @Inject internal constructor(
             data = KernelErrors.KernelDown.Data(""),
             loc = "${this::class.java.canonicalName}:getSession",
         )
+    }
+
+    override fun getZmqREPService(): Result<ZMQListenerService,ErrorReport> {
+        val sv = getService<ZMQListenerService>(this.zmqREPService, "ZMQ REP listener service")
+        return sv
     }
 
     override suspend fun startAll(): Result<Unit, ErrorReport> {
@@ -163,7 +171,7 @@ class KernelContextImp @Inject internal constructor(
         if (this.isKernelRunning()) {
 
             val hbSv = LiveCountHeartBeatServiceCoroutine(
-                socketProvider = this.socketFactory!!,
+                socketFactory = this.socketFactory!!,
                 zContext = this.zcontext,
                 cScope = appCScope,
                 cDispatcher = this.networkServiceDispatcher,
@@ -192,6 +200,20 @@ class KernelContextImp @Inject internal constructor(
                 this.ioPubService = null
                 return ioPubStartRs
             }
+
+            val zmqREPService = REPService(
+                kernelContext = this,
+                coroutineScope = this.appCScope,
+                coroutineDispatcher = this.networkServiceDispatcher
+            )
+            this.zmqREPService = zmqREPService
+            val zmqListenerServiceStartRs = zmqREPService.start()
+            if(zmqListenerServiceStartRs is Err){
+                this.zmqREPService?.stop()
+                this.zmqREPService = null
+                return zmqListenerServiceStartRs
+            }
+
             return Ok(Unit)
 
         } else {
@@ -243,19 +265,38 @@ class KernelContextImp @Inject internal constructor(
 
 
     override suspend fun stopServices(): Result<Unit, ErrorReport> {
+
+        val errorList = mutableListOf<ErrorReport>()
         val ioPubStopRs = this.ioPubService?.stop() ?: Ok(Unit)
         if (ioPubStopRs is Err) {
-            return ioPubStopRs
+            errorList.add(ioPubStopRs.error)
+        }else{
+            this.ioPubService = null
         }
-        this.ioPubService = null
+
 
         val hbStopRs = this.hbService?.stop() ?: Ok(Unit)
         if (hbStopRs is Err) {
-            return hbStopRs
+            errorList.add(hbStopRs.error)
+        }else{
+            this.hbService = null
         }
-        this.hbService = null
 
-        return Ok(Unit)
+        val zmqRepStopRs = this.zmqREPService?.stop() ?: Ok(Unit)
+        if(zmqRepStopRs is Err){
+            errorList.add(zmqRepStopRs.error)
+        }else{
+            this.zmqREPService = null
+        }
+
+        if(errorList.isNotEmpty()){
+            return Err(ErrorReport(
+                type = CommonErrors.MultipleErrors,
+                data = CommonErrors.MultipleErrors.Data(errorList)
+            ))
+        }else{
+            return Ok(Unit)
+        }
     }
 
     override suspend fun stopKernel(): Result<Unit, ErrorReport> {
@@ -461,19 +502,19 @@ class KernelContextImp @Inject internal constructor(
 
 
     override fun getIOPubListenerService(): Result<IOPubListenerService, ErrorReport> {
-        val sv = getService2<IOPubListenerService>(this.ioPubService, "IO Pub service")
+        val sv = getService<IOPubListenerService>(this.ioPubService, "IO Pub service")
         return sv
     }
 
 
     override fun getHeartBeatService(): Result<HeartBeatService, ErrorReport> {
-        val sv = getService2<HeartBeatService>(this.hbService, "heart beat service")
+        val sv = getService<HeartBeatService>(this.hbService, "heart beat service")
         return sv
     }
 
-    private fun <T> getService2(service: Service?, serviceName: String): Result<T, ErrorReport> {
+    private fun <T> getService(service: Service?, serviceName: String): Result<T, ErrorReport> {
         if (service != null) {
-            if (service.isRunning() == true) {
+            if (service.isRunning()) {
                 return Ok(service as T)
             } else {
                 val report = ErrorReport(

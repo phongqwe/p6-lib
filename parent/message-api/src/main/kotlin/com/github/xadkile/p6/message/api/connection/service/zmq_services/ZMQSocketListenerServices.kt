@@ -15,12 +15,12 @@ class ZMQSocketListenerServices(
     fun newSub(
         coroutineScope: CoroutineScope = defaultCoroutineScope,
         coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher,
-    ): ZMQSocketListenerService {
+    ): ZMQListenerService {
         return SUBService(kernelContext, coroutineScope, coroutineDispatcher)
     }
 
     fun newRep(coroutineScope: CoroutineScope = defaultCoroutineScope,
-               coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher,):ZMQSocketListenerService{
+               coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher,):ZMQListenerService{
         return REPService(kernelContext, coroutineScope, coroutineDispatcher)
     }
 

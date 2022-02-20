@@ -3,16 +3,15 @@ package com.github.xadkile.p6.message.api.connection.service.zmq_services
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.common.exception.error.ErrorReport
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6MsgType
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ
 import java.net.ServerSocket
 
-abstract class AbstractZMQSocketService(
+abstract class AbstractZMQService(
     private val coroutineScope: CoroutineScope,
     private val coroutineDispatcher: CoroutineDispatcher,
     private val handlerContainer:P6MsgHandlerContainer = P6MsgHandlerContainerMutableImp()
-) : ZMQSocketListenerService, P6MsgHandlerContainer by handlerContainer{
+) : ZMQListenerService, P6MsgHandlerContainer by handlerContainer{
 
     var job: Job? = null
 

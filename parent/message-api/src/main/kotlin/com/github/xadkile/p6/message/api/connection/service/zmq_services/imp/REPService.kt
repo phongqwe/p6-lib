@@ -1,8 +1,8 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services.imp
 
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.AbstractZMQSocketService
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQSocketListenerService
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.AbstractZMQService
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQListenerService
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
 import com.github.xadkile.p6.message.api.message.protocol.ProtocolUtils
 import kotlinx.coroutines.CoroutineDispatcher
@@ -15,7 +15,7 @@ internal class REPService (
     private val kernelContext: KernelContextReadOnly,
     coroutineScope: CoroutineScope,
     coroutineDispatcher: CoroutineDispatcher,
-) : AbstractZMQSocketService(coroutineScope,coroutineDispatcher), ZMQSocketListenerService {
+) : AbstractZMQService(coroutineScope,coroutineDispatcher), ZMQListenerService {
 
     override fun makeSocket(): ZMQ.Socket {
         val zcontext = kernelContext.zContext()
