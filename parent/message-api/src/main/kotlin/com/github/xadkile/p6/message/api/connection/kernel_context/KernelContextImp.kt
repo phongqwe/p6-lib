@@ -58,7 +58,7 @@ class KernelContextImp @Inject internal constructor(
     private var msgIdGenerator: MsgIdGenerator? = null
     private var msgCounter: MsgCounter? = null
     private var senderProvider: SenderProvider? = null
-    private var socketProvider: SocketProvider? = null
+    private var socketFactory: SocketFactory? = null
 
     // x: Context-related services
     private var hbService: HeartBeatService? = null
@@ -122,7 +122,7 @@ class KernelContextImp @Inject internal constructor(
             // x: some must be initialized first
             // x: must NOT use getters here because getters always check for kernel status before return derivative objects
             this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
-            this.socketProvider = SocketProviderImp(this.channelProvider!!, this.zcontext)
+            this.socketFactory = SocketFactoryImp(this.channelProvider!!, this.zcontext)
             this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
             this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
             this.msgCounter = MsgCounterImp()
@@ -163,7 +163,7 @@ class KernelContextImp @Inject internal constructor(
         if (this.isKernelRunning()) {
 
             val hbSv = LiveCountHeartBeatServiceCoroutine(
-                socketProvider = this.socketProvider!!,
+                socketProvider = this.socketFactory!!,
                 zContext = this.zcontext,
                 cScope = appCScope,
                 cDispatcher = this.networkServiceDispatcher,
@@ -233,9 +233,9 @@ class KernelContextImp @Inject internal constructor(
 
 
 
-    override fun getSocketProvider(): Result<SocketProvider, ErrorReport> {
+    override fun getSocketProvider(): Result<SocketFactory, ErrorReport> {
         if (this.isKernelRunning()) {
-            return Ok(this.socketProvider!!)
+            return Ok(this.socketFactory!!)
         } else {
             return Err(kernelDownReport)
         }
@@ -299,7 +299,7 @@ class KernelContextImp @Inject internal constructor(
         this.msgIdGenerator = null
         this.msgCounter = null
         this.senderProvider = null
-        this.socketProvider = null
+        this.socketFactory = null
     }
 
     override fun getKernelProcess(): Result<Process, ErrorReport> {

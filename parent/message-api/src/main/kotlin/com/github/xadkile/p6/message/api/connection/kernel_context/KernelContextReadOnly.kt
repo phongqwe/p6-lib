@@ -42,7 +42,7 @@ interface KernelContextReadOnly {
 
     fun getHeartBeatService():Result<HeartBeatService, ErrorReport>
 
-    fun getSocketProvider():Result<SocketProvider, ErrorReport>
+    fun getSocketProvider():Result<SocketFactory, ErrorReport>
 
     fun zContext(): ZContext
 

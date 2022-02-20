@@ -4,10 +4,10 @@ import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
 
-internal class SocketProviderImp(
+internal class SocketFactoryImp(
     private val channelProvider: ChannelProvider,
     private val zContext: ZContext
-) : SocketProvider {
+) : SocketFactory {
 
     override fun shellSocket(): ZMQ.Socket {
         return this.zContext.createSocket(SocketType.REQ).also {

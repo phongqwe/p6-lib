@@ -3,7 +3,7 @@ package com.github.xadkile.p6.message.api.connection.service.heart_beat
 import com.github.michaelbull.result.*
 import com.github.xadkile.p6.common.exception.error.CommonErrors
 import com.github.xadkile.p6.common.exception.error.ErrorReport
-import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.SocketProvider
+import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.SocketFactory
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.errors.HBServiceErrors
 import com.github.xadkile.p6.message.api.other.Sleeper
 import kotlinx.coroutines.*
@@ -19,7 +19,7 @@ import org.zeromq.ZMQ
  */
 internal class LiveCountHeartBeatServiceCoroutine constructor(
     zContext: ZContext,
-    private val socketProvider: SocketProvider,
+    private val socketFactory: SocketFactory,
     liveCount: Int = 100,
     pollTimeout: Long = 1000,
     val startTimeOut: Long = 50_000,
@@ -36,7 +36,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
             return Ok(Unit)
         }
         this.job = cScope.launch(cDispatcher) {
-            val socket = socketProvider.heartBeatSocket()
+            val socket = socketFactory.heartBeatSocket()
             socket.use { sk ->
                 val poller = zContext.createPoller(1)
                 poller.register(sk, ZMQ.Poller.POLLIN)

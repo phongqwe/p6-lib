@@ -3,9 +3,9 @@ package com.github.xadkile.p6.message.api.connection.kernel_context.context_obje
 import org.zeromq.ZMQ
 
 /**
- * provide cached and ready-to-use sockets that can be reused, and methods to create new and ready-to-use sockets.
+ * provide ready-to-use sockets that can be reused, and methods to create new and ready-to-use sockets.
  */
-interface SocketProvider {
+interface SocketFactory {
     /**
      * create a new shell socket
      */
