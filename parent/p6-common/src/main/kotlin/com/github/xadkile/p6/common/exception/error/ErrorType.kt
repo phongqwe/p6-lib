@@ -1,4 +1,4 @@
-package com.github.xadkile.p6.common.exception.lib.error
+package com.github.xadkile.p6.common.exception.error
 
 open class ErrorType(val errorCode: String, val errorDescription: String){
     override fun toString(): String {

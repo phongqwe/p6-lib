@@ -1,8 +1,8 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.*
-import com.github.xadkile.p6.common.exception.lib.error.CommonErrors
-import com.github.xadkile.p6.common.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.CommonErrors
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.*
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.ChannelProvider
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.ChannelProviderImp
@@ -171,7 +171,7 @@ class KernelContextImp @Inject internal constructor(
             )
             this.hbService = hbSv
 
-            val hbStartRs:Result<Unit,ErrorReport> = hbSv.start()
+            val hbStartRs:Result<Unit, ErrorReport> = hbSv.start()
             if (hbStartRs is Err) {
                 this.hbService?.stop()
                 this.hbService = null
@@ -186,7 +186,7 @@ class KernelContextImp @Inject internal constructor(
             )
             this.ioPubService=ioPubSv
 
-            val ioPubStartRs:Result<Unit,ErrorReport> = ioPubSv.start()
+            val ioPubStartRs:Result<Unit, ErrorReport> = ioPubSv.start()
             if (ioPubStartRs is Err) {
                 this.ioPubService?.stop()
                 this.ioPubService = null
@@ -460,7 +460,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
 
-    override fun getIOPubListenerService(): Result<IOPubListenerService,ErrorReport> {
+    override fun getIOPubListenerService(): Result<IOPubListenerService, ErrorReport> {
         val sv = getService2<IOPubListenerService>(this.ioPubService, "IO Pub service")
         return sv
     }

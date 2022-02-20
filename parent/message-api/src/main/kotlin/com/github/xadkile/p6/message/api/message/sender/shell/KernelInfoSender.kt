@@ -3,7 +3,7 @@ package com.github.xadkile.p6.message.api.message.sender.shell
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.unwrap
-import com.github.xadkile.p6.common.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.MsgEncoder
 import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors

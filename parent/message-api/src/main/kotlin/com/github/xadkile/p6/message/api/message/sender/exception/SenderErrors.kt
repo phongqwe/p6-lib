@@ -1,6 +1,6 @@
 package com.github.xadkile.p6.message.api.message.sender.exception
 
-import com.github.xadkile.p6.common.exception.lib.error.ErrorType
+import com.github.xadkile.p6.common.exception.error.ErrorType
 import com.github.xadkile.p6.message.api.message.protocol.JPMessage
 import com.github.xadkile.p6.message.api.message.protocol.MsgContent
 import com.github.xadkile.p6.message.api.message.sender.composite.CodeExecutionSender

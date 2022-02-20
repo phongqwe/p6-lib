@@ -1,6 +1,6 @@
 package com.github.xadkile.p6.message.api.message.protocol.errors
 
-import com.github.xadkile.p6.common.exception.lib.error.ErrorType
+import com.github.xadkile.p6.common.exception.error.ErrorType
 import com.github.xadkile.p6.message.api.message.protocol.ProtocolConstant
 import java.io.IOException
 

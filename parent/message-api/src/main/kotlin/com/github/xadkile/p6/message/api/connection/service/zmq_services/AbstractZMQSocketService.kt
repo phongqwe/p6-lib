@@ -2,7 +2,7 @@ package com.github.xadkile.p6.message.api.connection.service.zmq_services
 
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.common.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6MsgType
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ

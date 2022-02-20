@@ -2,7 +2,7 @@ package com.github.xadkile.p6.message.api.message.protocol
 
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.map
-import com.github.xadkile.p6.common.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 
 
 class JPMessage<META : MsgMetaData, CONTENT : MsgContent>(

@@ -3,8 +3,8 @@ package com.github.xadkile.p6.message.api.connection.service.process_watcher
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.common.exception.lib.error.CommonErrors
-import com.github.xadkile.p6.common.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.CommonErrors
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.service.process_watcher.exception.ProcessWatcherErrors
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
