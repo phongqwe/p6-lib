@@ -27,17 +27,19 @@ internal class REPServiceTest : TestOnJupyter(){
                 parsedMsg =msg
             }
             sv.addHandler(P6MsgType.cell_value_update,handler)
-            val socket = kernelContext.zContext().createSocket(SocketType.REQ)
-            socket.connect("tcp://localhost:${sv.zmqPort}")
+
+            // send message to service
+            val sendSocket = kernelContext.zContext().createSocket(SocketType.REQ)
+            sendSocket.connect("tcp://localhost:${sv.zmqPort}")
             val mss = """
                 {"header": {"msgId": "id1", "msgType": "cell_value_update"}, "content": {"data": "{\"value\": \"cell value\", \"script\": \"cell script\"}}"}}
             """.trimIndent()
-            socket.send(mss)
-            val rep = socket.recvStr()
+            sendSocket.send(mss)
+            val rep = sendSocket.recvStr()
             sv.stop()
+
             assertEquals(1,x)
             assertEquals("ok",rep)
-
             assertEquals("id1",parsedMsg?.header?.msgId)
             assertEquals(P6MsgType.cell_value_update,parsedMsg?.header?.msgType)
             assertEquals(
@@ -46,6 +48,7 @@ internal class REPServiceTest : TestOnJupyter(){
                     """.trimIndent()
                 ,parsedMsg?.content?.data
             )
+            println(parsedMsg)
             val stopRs = sv.stop()
             assertTrue(stopRs is Ok)
         }
