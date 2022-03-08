@@ -3,7 +3,7 @@ package com.github.xadkile.p6.formula.translator
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 import com.github.xadkile.p6.formula.translator.errors.TranslatorErrors
 import java.util.regex.Pattern
 
@@ -31,7 +31,7 @@ class ScriptFormulaTranslator : FormulaTranslator {
             return Ok(rt.trim())
         }else {
             val report = ErrorReport(
-                header = TranslatorErrors.NotAScriptCall,
+                type = TranslatorErrors.NotAScriptCall,
                 data = TranslatorErrors.NotAScriptCall.Data(formula)
             )
             return Err(report)

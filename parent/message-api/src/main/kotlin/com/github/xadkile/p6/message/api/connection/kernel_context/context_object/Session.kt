@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context.context_object
 
 /**
- * Provide user name, encryption key, and session id. These are for making message
+ * Provide username, encryption key, and session id. These are for making message
  */
 interface Session {
     fun getSystemUserName():String

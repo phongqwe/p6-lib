@@ -1,16 +1,15 @@
 package com.github.xadkile.p6.message.api.connection.service.iopub
 
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.service.Service
-import com.github.xadkile.p6.message.api.msg.protocol.MsgType
-import com.github.xadkile.p6.message.api.other.RunningState
+import com.github.xadkile.p6.message.api.message.protocol.MsgType
 
 /**
  * Listen for in-coming message.
  * Dispatch message to the appropriate handlers.
  */
-interface IOPubListenerService : IOPubListenerServiceReadOnly, Service{
+interface IOPubListenerService : MsgHandlerContainer, Service{
 
     /**
      * A listener may outlive the scope in which it is launch, so inject a scope in the start function.
@@ -26,17 +25,12 @@ interface IOPubListenerService : IOPubListenerServiceReadOnly, Service{
      */
     override suspend fun stop():Result<Unit, ErrorReport>
 
-    fun toReadOnly():IOPubListenerServiceReadOnly{
-        return this
-    }
-}
-
-interface IOPubListenerServiceReadOnly : MsgHandlerContainer,RunningState{
-    fun addDefaultHandler(handler:MsgHandler){
-        if(handler.msgType() == MsgType.DEFAULT){
+    fun addDefaultHandler(handler: MsgHandler){
+        if(handler.msgType == MsgType.DEFAULT){
             this.addHandler(handler)
         }else{
             throw RuntimeException("only used this method to add default handler")
         }
     }
 }
+

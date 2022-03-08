@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>com.github.xadkile.p6</groupId>
-            <artifactId>exception-lib</artifactId>
+            <artifactId>p6-common</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>

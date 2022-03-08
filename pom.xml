@@ -34,6 +34,11 @@
                 <artifactId>exception-lib</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <groupId>com.github.xadkile.p6</groupId>
+                <artifactId>p6-common</artifactId>
+                <version>${revision}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

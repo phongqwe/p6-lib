@@ -144,7 +144,7 @@ internal class KernelContextImpTest {
             pm.stopAll()
             val rs = pm.restartKernel()
             assertTrue(rs is Err)
-            assertTrue(rs.error.header is KernelErrors.KernelContextIllegalState)
+            assertTrue(rs.error.type is KernelErrors.KernelContextIllegalState)
         }
     }
 }

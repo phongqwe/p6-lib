@@ -3,9 +3,9 @@ package com.github.xadkile.p6.message.api.connection.kernel_context
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.errors.KernelErrors
-import com.github.xadkile.p6.message.api.msg.protocol.ProtocolUtils
+import com.github.xadkile.p6.message.api.message.protocol.ProtocolUtils
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -31,7 +31,7 @@ data class KernelConfig internal constructor(private val launchCmd:List<String>,
             }catch (e:IOException){
                 return Err(
                     ErrorReport(
-                    header = KernelErrors.CantCreateKernelConfig,
+                    type = KernelErrors.CantCreateKernelConfig,
                     data=KernelErrors.CantCreateKernelConfig.Data(e),
                 )
                 )

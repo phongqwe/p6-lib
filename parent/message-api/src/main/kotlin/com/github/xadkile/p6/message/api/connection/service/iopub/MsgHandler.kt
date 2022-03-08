@@ -1,11 +1,10 @@
 package com.github.xadkile.p6.message.api.connection.service.iopub
 
-import com.github.xadkile.p6.message.api.msg.protocol.JPRawMessage
-import com.github.xadkile.p6.message.api.msg.protocol.MsgType
+import com.github.xadkile.p6.message.api.message.protocol.JPRawMessage
+import com.github.xadkile.p6.message.api.message.protocol.MsgType
 
 /**
  * For use with [IOPubListenerService].
- * Hold code that reacts on certain occasion
  */
 interface MsgHandler {
     /**
@@ -18,7 +17,7 @@ interface MsgHandler {
     /**
      * unique id
      */
-    fun id(): String
-    fun msgType(): MsgType
+    val id: String
+    val msgType: MsgType
 }
 

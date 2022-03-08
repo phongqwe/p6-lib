@@ -83,20 +83,20 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
     override fun visitPairCellAddress(ctx: FormulaParser.PairCellAddressContext): String {
         val cell0 = ctx.cellAddress(0).text
         val cell1 = ctx.cellAddress(1).text
-        val rangeAddress = mapper.rangeAddress("${cell0}:${cell1}")
+        val rangeAddress = mapper.formatAddress("${cell0}:${cell1}")
         return mapper.getRange(rangeAddress)
     }
 
     override fun visitOneCellAddress(ctx: FormulaParser.OneCellAddressContext): String {
-        return mapper.getCell(mapper.rangeAddress(ctx.cellAddress().text))+".value"
+        return mapper.getCell(mapper.formatAddress(ctx.cellAddress().text))+".value"
     }
 
     override fun visitColAddress(ctx: FormulaParser.ColAddressContext): String {
-        return mapper.getRange(mapper.rangeAddress(ctx.text))
+        return mapper.getRange(mapper.formatAddress(ctx.text))
     }
 
     override fun visitRowAddress(ctx: FormulaParser.RowAddressContext): String {
-        return mapper.getRange(mapper.rangeAddress(ctx.text))
+        return mapper.getRange(mapper.formatAddress(ctx.text))
     }
 
     override fun visitParensAddress(ctx: FormulaParser.ParensAddressContext): String {

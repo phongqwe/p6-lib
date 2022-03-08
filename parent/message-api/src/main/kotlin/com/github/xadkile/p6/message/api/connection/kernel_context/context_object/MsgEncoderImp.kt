@@ -1,6 +1,6 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context.context_object
 
-import com.github.xadkile.p6.message.api.msg.protocol.JPMessage
+import com.github.xadkile.p6.message.api.message.protocol.JPMessage
 import com.github.xadkile.p6.message.api.other.HmacMaker
 
 class MsgEncoderImp internal constructor(val keyStr: String) : MsgEncoder {

@@ -3,7 +3,7 @@ package com.github.xadkile.p6.formula.translator
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 import com.github.xadkile.p6.formula.translator.antlr.FormulaLexer
 import com.github.xadkile.p6.formula.translator.antlr.FormulaParser
 import com.github.xadkile.p6.formula.translator.errors.TranslatorErrors
@@ -79,7 +79,7 @@ class PythonFormulaTranslator : FormulaTranslator {
 
             if(parserErrorData!=null || lexerErrData!=null){
                 return Err(ErrorReport(
-                    header= TranslatorErrors.TranslatingErr,
+                    type= TranslatorErrors.TranslatingErr,
                     data = TranslatorErrors.TranslatingErr.Data(
                         lexerErr = lexerErrData,
                         parserErr = parserErrorData

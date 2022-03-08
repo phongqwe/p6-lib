@@ -3,8 +3,8 @@ package com.github.xadkile.p6.message.api.other
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.lib.error.CommonErrors
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.CommonErrors
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 import kotlinx.coroutines.delay
 
 object Sleeper {
@@ -26,7 +26,7 @@ object Sleeper {
         }else{
             return Err(
                 ErrorReport(
-                header =  CommonErrors.TimeOut,
+                type =  CommonErrors.TimeOut,
                 data = CommonErrors.TimeOut.Data("timeout in Sleeper.delay()")
             )
             )

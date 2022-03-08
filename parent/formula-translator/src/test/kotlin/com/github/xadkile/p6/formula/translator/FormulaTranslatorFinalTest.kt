@@ -105,6 +105,8 @@ internal class FormulaTranslatorFinalTest {
             "=23!",
             """=f1(f2(1,2^7*9,"A1"),f3(f4(1+f9(),f5("az"+f9())))""",
             "f(sheet1!A123)",
+            "f(sheet1!A123)",
+            "=f(sheet1 23!A123)",
             """=sum(1,2,3.3,abc)""",
             """=sum(1,2,3.3,abc")""",
             """=sum(1,2,3.3,"abc)""",

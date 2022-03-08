@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.kernel_context
 
 import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.exception.lib.error.ErrorReport
+import com.github.xadkile.p6.common.exception.error.ErrorReport
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -11,6 +11,7 @@ import java.io.OutputStream
  * There is a risk of memory leak here. It is crucial that consumers of instances of this interface must not cache any derivative objects
  */
 interface KernelContext : KernelContextReadOnly {
+
     /**
      * startCore() + startServices
      */

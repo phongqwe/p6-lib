@@ -3,9 +3,7 @@ package com.github.xadkile.p6.test.utils
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.zeromq.SocketType
-import org.zeromq.ZContext
-import org.zeromq.ZMQ
+import org.zeromq.*
 import java.math.BigInteger
 import java.util.*
 import kotlin.concurrent.thread
@@ -14,11 +12,22 @@ import kotlin.system.measureTimeMillis
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
+//    @Test
+    fun bb(){
+        val context = ZContext()
+        val repSocket = context.createSocket(SocketType.REP)
+        repSocket.bind("tcp://localhost:6000")
 
-    @Test
-    fun bench() {
+        while(true){
+            println(">>>>")
+            val str = repSocket.recvStr()
+            if(str!=null){
+                println("Receive: $str")
+            }
+            repSocket.send("ok")
+
+        }
     }
-
     suspend fun fs() {
         withContext(Dispatchers.Default) {
             var x = 0
