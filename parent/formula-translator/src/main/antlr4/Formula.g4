@@ -32,9 +32,9 @@ cellAddress: ID INT;
 
 // literal
 lit: (FLOAT_NUMBER | STRING | INT);
-
+// sheet prefix may or may not encased in single quote, ends with "!". Eg: 'My Sheet'!, MySheet!
 SHEET_PREFIX:'\'' ID(' '|INT|ID)*? '\''   '!'
-            | ID(' '|INT|ID)* '!';
+            | ID(INT|ID)* '!';
 ID:ID_LETTER(ID_LETTER)*;
 fragment ID_LETTER:'a'..'z'|'A'..'Z'|'_';
 

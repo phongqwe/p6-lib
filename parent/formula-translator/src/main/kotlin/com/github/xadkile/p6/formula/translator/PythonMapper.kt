@@ -4,7 +4,10 @@ package com.github.xadkile.p6.formula.translator
  * Map formula syntax to the equivalence in Python
  */
 object PythonMapper:FormulaMapper {
-    override fun rangeAddress(rangeAddress:String):String{
+    /**
+     * Format bare address to legal address. eg: A1 -> @A1
+     */
+    override fun formatAddress(rangeAddress:String):String{
         return  "\"@${rangeAddress}\""
     }
     override fun getSheet(sheetName:String):String{
