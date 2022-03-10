@@ -79,7 +79,8 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
         }
         val rt = this.waitTillLive()
         if (rt is Err) {
-            bluntStop()
+            job?.cancel()
+//            this.bluntJoinStop()
             val report = ErrorReport(
                 type = CommonErrors.TimeOut,
                 data = CommonErrors.TimeOut.Data("Time out when trying to start IOPub service")
@@ -174,21 +175,27 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
         }
     }
 
-    /**
-     * Stop the service thread and cleaning up resources.
-     */
-    override suspend fun stop(): Result<Unit, ErrorReport> {
-        // rmd: runBlocking so that all the suspending functions are completed before returning,
-        // rmd: guaranteeing that this service is completely stopped when this function returns.
+    override suspend fun stopJoin(): Result<Unit, ErrorReport> {
         if (this.isServiceRunning()) {
-            this.bluntStop()
+            this.bluntJoinStop()
         }
         return Ok(Unit)
     }
 
-    private suspend fun bluntStop() {
-//        job?.cancelAndJoin()
+    override fun stop(): Result<Unit, ErrorReport> {
+        if (this.isServiceRunning()) {
+            this.bluntStop2()
+        }
+        return Ok(Unit)
+    }
+
+    private fun bluntStop2() {
         job?.cancel()
-        this.job = null
+//        this.job = null
+    }
+
+    private suspend fun bluntJoinStop() {
+        job?.cancelAndJoin()
+//        this.job = null
     }
 }

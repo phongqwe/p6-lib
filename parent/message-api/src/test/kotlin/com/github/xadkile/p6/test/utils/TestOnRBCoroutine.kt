@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll
 
 /**
  * For running test on runBlocking{...}
+ * @deprecated: dont use
  */
 abstract class TestOnRBCoroutine {
     lateinit var mainThreadSurrogate: ExecutorCoroutineDispatcher

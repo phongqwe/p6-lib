@@ -26,6 +26,6 @@ interface MsgSender<I : JPMessage<*, *>, O> {
      *  Sender should not outlive the scope in which it was launch, so don't inject external coroutine scope when implement this interface.
      *  Coroutine note: this function should not outlive the scope that run it, so I don't inject coroutine scope here.
      */
-    suspend fun send(message: I, dispatcher: CoroutineDispatcher = Dispatchers.IO): O
+    suspend fun send(message: I): O
 
 }

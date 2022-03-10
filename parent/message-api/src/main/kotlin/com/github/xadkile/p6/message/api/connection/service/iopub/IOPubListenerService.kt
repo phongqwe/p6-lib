@@ -23,7 +23,7 @@ interface IOPubListenerService : MsgHandlerContainer, Service{
      * Stop this listener. This method guarantees that this listener is completely stopped after this method returns.
      * Calling stop on an already stop listener doesn't do anything.
      */
-    override suspend fun stop():Result<Unit, ErrorReport>
+    override suspend fun stopJoin():Result<Unit, ErrorReport>
 
     fun addDefaultHandler(handler: MsgHandler){
         if(handler.msgType == MsgType.DEFAULT){

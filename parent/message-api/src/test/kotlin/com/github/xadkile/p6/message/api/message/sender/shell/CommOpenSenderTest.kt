@@ -51,7 +51,7 @@ internal class CommOpenSenderTest : TestOnJupyter() {
             kernelContext = kernelContext,
         )
 
-        val o = sender.send(message, Dispatchers.IO)
+        val o = sender.send(message)
         assertTrue(o is Ok, o.toString())
     }
 }

@@ -20,7 +20,6 @@ import com.github.xadkile.p6.message.api.message.sender.shell.ExecuteReply
 import com.github.xadkile.p6.message.api.message.sender.shell.ExecuteRequest
 import com.github.xadkile.p6.message.api.other.Sleeper
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 
 typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>
 
@@ -42,8 +41,7 @@ class CodeExecutionSender internal constructor(
      * - remove handlers from listener service when done
      */
     override suspend fun send(
-        message: ExecuteRequest,
-        dispatcher: CoroutineDispatcher,
+        message: ExecuteRequest
     ): Result<ExecuteResult?, ErrorReport> {
 
         if (kernelContext.isKernelNotRunning()) {
@@ -55,31 +53,30 @@ class CodeExecutionSender internal constructor(
             return Err(report)
         }
 
-        val hasIoPubService = kernelContext.getIOPubListenerService()
-        val hasSenderProvider = kernelContext.getSenderProvider()
+        val ioPubServiceRs = kernelContext.getIOPubListenerService()
+        val senderProviderRs = kernelContext.getSenderProvider()
 
-        if (hasIoPubService is Err) {
-            return Err(hasIoPubService.unwrapError())
+        if (ioPubServiceRs is Err) {
+            return Err(ioPubServiceRs.error)
         }
 
-        if (hasSenderProvider is Err) {
-            return Err(hasSenderProvider.unwrapError())
+        if (senderProviderRs is Err) {
+            return Err(senderProviderRs.error)
         }
 
-        val ioPubListenerService: IOPubListenerService = hasIoPubService.unwrap()
+        val ioPubListenerService: IOPubListenerService = ioPubServiceRs.unwrap()
         val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> =
-            hasSenderProvider.unwrap().executeRequestSender()
+            senderProviderRs.unwrap().executeRequestSender()
 
         if (ioPubListenerService.isNotRunning()) {
-            val report = ErrorReport(
+            return Err(ErrorReport(
                 type = IOPubServiceErrors.IOPubServiceNotRunning,
-                data = IOPubServiceErrors.IOPubServiceNotRunning.Data(""),
+                data = IOPubServiceErrors.IOPubServiceNotRunning.Data("occur at ${this.javaClass.canonicalName}.send"),
                 loc = "${this.javaClass.canonicalName}.send"
-            )
-            return Err(report)
+            ))
         }
 
-        var rt: Result<ExecuteResult, ErrorReport>? = null
+        var rt: Result<ExecuteResult?, ErrorReport>? = null
         var executionState = IOPub.Status.ExecutionState.undefined
         var state = SendingState.Start
 
@@ -121,56 +118,58 @@ class CodeExecutionSender internal constructor(
         ioPubListenerService.addHandlers(handlers)
 
         // x: sending the computing request
-        withContext(dispatcher) {
-            val sendStatus: Result<ExecuteReply, ErrorReport> = executeSender.send(message, dispatcher)
-            if (sendStatus is Ok) {
-                val content: Shell.Execute.Reply.Content? = sendStatus.get()?.content
-                val st: MsgStatus? = content?.status
-                when (st) {
-                    MsgStatus.OK -> {
-                        //dont do anything, wait for result from the listener
-                    }
-                    MsgStatus.ERROR -> {
-                        val report = ErrorReport(
-                            type = SenderErrors.CodeError,
-                            data = SenderErrors.CodeError.Data(content),
-                        )
-                        rt = Err(report)
-                    }
-                    MsgStatus.ABORTED -> {
-                        val report = ErrorReport(
-                            type = SenderErrors.CodeError,
-                            data = SenderErrors.CodeError.Data(content),
-                        )
-                        rt = Err(report)
-                    }
-                    else -> {
-                        val report = ErrorReport(
-                            type = CommonErrors.Unknown,
-                            data = CommonErrors.Unknown.Data("Unknown error when executing code", null)
-                        )
-                        rt = Err(report)
-                    }
+        val sendRs: Result<ExecuteReply, ErrorReport> = executeSender.send(message)
+        if (sendRs is Ok) {
+            val content: Shell.Execute.Reply.Content = sendRs.value.content
+            val msgStatus: MsgStatus = content.status
+            when (msgStatus) {
+                MsgStatus.OK -> {
+                    //dont do anything, wait for result from the listener
                 }
-                state = state.transit(rt, kernelContext, executionState)
-            } else {
-                rt = Err(sendStatus.unwrapError())
-                state = state.transit(rt, kernelContext, executionState)
+                MsgStatus.ERROR -> {
+                    val report = ErrorReport(
+                        type = SenderErrors.CodeError,
+                        data = SenderErrors.CodeError.Data(content),
+                    )
+                    rt = Err(report)
+                }
+                MsgStatus.ABORTED -> {
+                    val report = ErrorReport(
+                        type = SenderErrors.CodeError,
+                        data = SenderErrors.CodeError.Data(content),
+                    )
+                    rt = Err(report)
+                }
+                else -> {
+                    val report = ErrorReport(
+                        type = CommonErrors.Unknown,
+                        data = CommonErrors.Unknown.Data("Unknown error when executing code", null)
+                    )
+                    rt = Err(report)
+                }
             }
+            state = state.transit(rt, kernelContext, executionState)
+        } else {
+            rt = Err(sendRs.unwrapError())
+            state = state.transit(rt, kernelContext, executionState)
+        }
+
+        if (rt != null) {
+            return rt as Result<ExecuteResult?, ErrorReport>
         }
 
         // x: this ensure that this sender will wait until state reach terminal states
         Sleeper.delayUntil(10) {
             state = state.transit(rt, kernelContext, executionState)
-            val waitRt=when (state) {
+            val waitRt = when (state) {
                 SendingState.HasResult, SendingState.DoneButNoResult, SendingState.KernelDieMidway -> true
                 else -> false
             }
             waitRt
         }
 
-        // x: remove temp handlers from the listener service
         ioPubListenerService.removeHandlers(handlers)
+
         val rt2: Result<ExecuteResult?, ErrorReport> = when (state) {
             SendingState.HasResult -> rt!!
             SendingState.DoneButNoResult -> Ok(null)

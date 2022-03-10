@@ -1,8 +1,6 @@
 package com.github.xadkile.p6.message.api.message.listener
 
-import com.github.michaelbull.result.Ok
-import com.github.michaelbull.result.get
-import com.github.michaelbull.result.unwrap
+import com.github.michaelbull.result.*
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.p6.message.api.connection.service.iopub.HandlerContainerImp
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
@@ -20,13 +18,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.test.assertFalse
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IOPubListenerServiceImplTest : TestOnJupyter() {
@@ -64,20 +63,11 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
         "msg_id_abc_123_err"
     )
 
-    @AfterEach
-    fun ae() {
-        runBlocking{
-            kernelContext.stopAll()
-        }
-    }
-
     /**
      * Both Listener should be able to catch ALL pub response message from iopub channel
      */
     @Test
     fun completenessTest_MultiListeners() = runBlocking {
-
-        kernelContext.startAll()
 
         val handlerWasTriggered = AtomicInteger(0)
         val handlerWasTriggered2 = AtomicInteger(0)
@@ -140,7 +130,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
                 kernelContext.getMsgIdGenerator().get()?.next() ?: "zzZ"
             )
             val sender = kernelContext.getSenderProvider().unwrap().executeRequestSender()
-            sender.send(okMsg, Dispatchers.Default)
+            sender.send(okMsg)
         }
         delay(1000)
         listener1.stop()
@@ -204,8 +194,6 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
      */
     @Test
     fun testTriggeringDefaultHandler() = runBlocking {
-
-        kernelContext.startAll()
         var defaultHandlerTriggeredCount = 0
         var handlerTriggeredCount = 0
         val listener = IOPubListenerServiceImpl(
@@ -225,11 +213,8 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
         }
 
         listener.start()
-//        Sleeper.waitUntil { listener.isRunning() }
-        // rmd: send message
-
         kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
-            it.send(okMesg(), Dispatchers.Default)
+            it.send(okMesg())
         }
         listener.stop()
         assertEquals(1, defaultHandlerTriggeredCount, "default handler should be triggered exactly once")
@@ -239,38 +224,40 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     @Test
     fun fullLifeCycle() {
         runBlocking {
-
-            val krs = kernelContext.startAll()
-            assertTrue(krs is Ok,krs.toString())
-
             val handlerWasTriggered = AtomicInteger(0)
-            // rmd: setup listener, handler
-            val listener = IOPubListenerServiceImpl(
+//            val service = kernelContext.getIOPubListenerService().unwrap()
+            val service = IOPubListenerServiceImpl(
                 kernelContext = kernelContext,
-                externalScope = this,
+                externalScope = GlobalScope,
                 dispatcher = Dispatchers.Default
             )
-
-            listener.addHandler(
+            service.addHandler(
                 MsgHandlers.withUUID(MsgType.IOPub_execute_result) { msg: JPRawMessage ->
                     val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()
                     println(md)
                     handlerWasTriggered.incrementAndGet()
                 }
             )
-
-            val startRs = listener.start()
+//
+            val startRs = service.start()
             assertTrue(startRs is Ok, startRs.toString())
-            assertTrue(listener.isRunning(), "listener should be running")
-            // rmd: send message
-
+            assertTrue(service.isRunning(), "listener should be running")
+//
+//            // x: send message
             kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
-                it.send(okMesg(), Dispatchers.Default)
+                it.send(okMesg())
             }
-            listener.stop()
-            assertFalse(listener.isRunning(), "listener should be stopped")
+             service.stop()
+            println(service.isRunning())
+            assertFalse(service.isRunning(), "listener should be stopped")
             delay(300)
             assertEquals(1, handlerWasTriggered.get(), "handler should be triggered exactly once")
+//            kernelContext.stopAll()
+//            kernelContext.getKernelProcess().map { println(it.isAlive) }.onFailure {
+//                println("Process Already stop")
+//            }
         }
+        println("END")
     }
+
 }

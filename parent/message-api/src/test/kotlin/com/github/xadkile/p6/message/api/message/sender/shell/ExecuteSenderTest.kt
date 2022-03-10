@@ -60,7 +60,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
                 kernelContext
             )
 
-            val out = sender2.send(message, Dispatchers.Default)
+            val out = sender2.send(message)
 
             assertTrue { out is Ok }
             assertEquals(MsgStatus.OK, out.unwrap().content.status)
@@ -79,7 +79,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
                 kernelContext
             )
 
-            val out = sender2.send(malformedCodeMsg, Dispatchers.Default)
+            val out = sender2.send(malformedCodeMsg)
 
             assertTrue { out is Ok }
             assertEquals(MsgStatus.ERROR, out.unwrap().content.status)
@@ -96,7 +96,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
         runBlocking {
             val sender2 = ExecuteSender(kernelContext)
             kernelContext.stopAll()
-            val out = sender2.send(message, Dispatchers.Default)
+            val out = sender2.send(message)
             assertTrue(out is Err, out.toString())
             println(out)
         }

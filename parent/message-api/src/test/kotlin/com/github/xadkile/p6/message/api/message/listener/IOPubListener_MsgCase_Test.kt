@@ -14,27 +14,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.util.concurrent.atomic.AtomicInteger
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
 
 
-    @AfterEach
-    fun ae() {
-        runBlocking {
-            kernelContext.stopAll()
-        }
-    }
-
     @Test
     fun errMsg() {
         runBlocking {
-            kernelContext.startAll()
             val errMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
                 username = "user_name",
@@ -49,7 +41,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 ),
                 "msg_id_abc_123_err"
             )
-            var errHandlerWasTrigger = 0
+            var errHandlerWasTrigger = AtomicInteger(0)
             val listener = IOPubListenerServiceImpl(
                 kernelContext = kernelContext,
                 externalScope = GlobalScope,
@@ -58,7 +50,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
 
             listener.addHandler(
                 IOPub.ExecuteError.handler { msg ->
-                    errHandlerWasTrigger +=1
+                    errHandlerWasTrigger.incrementAndGet()
                     val jpMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
                     println(jpMsg)
                 }
@@ -68,7 +60,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             val o = kernelContext.getSenderProvider().unwrap().executeRequestSender().send(errMsg)
             delay(1000)
             listener.stop()
-            assertEquals(1,errHandlerWasTrigger, "error handler should be triggered exactly once")
+            assertEquals(1,errHandlerWasTrigger.get(), "error handler should be triggered exactly once")
         }
     }
 
@@ -90,7 +82,6 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 ),
                 "msg_id_abc_123"
             )
-            kernelContext.startAll()
 
             var handlerWasTriggered = 0
 
@@ -115,7 +106,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
 
             // rmd: send message
             kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
-                it.send(okMsg, Dispatchers.Default)
+                it.send(okMsg)
             }
 
             listener.stop()

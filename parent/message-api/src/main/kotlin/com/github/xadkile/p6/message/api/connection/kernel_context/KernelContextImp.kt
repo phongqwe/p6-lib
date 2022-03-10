@@ -234,7 +234,7 @@ class KernelContextImp @Inject internal constructor(
 
     private suspend fun stopKernelProcess2(): Result<Unit, ErrorReport> {
         if (this.process != null) {
-            this.process?.destroy()
+            this.process?.destroyForcibly()
             // x: polling until the process is completely dead
             val stopRs: Result<Unit, ErrorReport> =
                 Sleeper.delayUntil(50, kernelTimeOut.processStopTimeout) { this.process?.isAlive == false }
@@ -272,7 +272,6 @@ class KernelContextImp @Inject internal constructor(
         }else{
             this.ioPubService = null
         }
-
 
         val hbStopRs = this.hbService?.stop() ?: Ok(Unit)
         if (hbStopRs is Err) {
@@ -343,7 +342,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getKernelProcess(): Result<Process, ErrorReport> {
-        if (this.isKernelRunning()) {
+        if (this.process!=null && this.process?.isAlive == true) {
             return Ok(this.process!!)
         } else {
             val report = ErrorReport(

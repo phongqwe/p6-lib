@@ -42,38 +42,17 @@ abstract class AbstractZMQService(
         return Ok(Unit)
     }
 
-    override suspend fun stop(): Result<Unit, ErrorReport> {
-//        this.job?.cancelAndJoin()
+    override suspend fun stopJoin(): Result<Unit, ErrorReport> {
+        this.job?.cancelAndJoin()
+        return Ok(Unit)
+    }
+
+    override fun stop(): Result<Unit, ErrorReport> {
         this.job?.cancel()
-        this.job = null
         return Ok(Unit)
     }
 
     override fun isRunning(): Boolean {
         return this.job?.isActive ?: false
     }
-
-//    override fun getHandlerByMsgType(msgType: P6MsgType): List<P6MessageHandler> {
-//        return this.handlerContainer.getHandlerByMsgType(msgType)
-//    }
-//
-//    override fun addHandler(msgType: P6MsgType, handler: P6MessageHandler) {
-//        this.handlerContainer.addHandler(msgType,handler)
-//    }
-//
-//    override fun removeHandler(id: String): P6MessageHandler? {
-//        return this.handlerContainer.removeHandler(id)
-//    }
-//
-//    override fun getHandler(id: String): P6MessageHandler? {
-//        return this.handlerContainer.getHandler(id)
-//    }
-//
-//    override fun removeHandlerForMsgType(msgType: P6MsgType): List<P6MessageHandler> {
-//        return this.handlerContainer.removeHandlerForMsgType(msgType)
-//    }
-//
-//    override fun removeHandler(msgType: P6MsgType, id: String): P6MessageHandler? {
-//        return this.handlerContainer.removeHandler(msgType,id)
-//    }
 }

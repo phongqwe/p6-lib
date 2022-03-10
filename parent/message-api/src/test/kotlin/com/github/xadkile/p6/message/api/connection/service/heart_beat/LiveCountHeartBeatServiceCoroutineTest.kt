@@ -1,6 +1,5 @@
 package com.github.xadkile.p6.message.api.connection.service.heart_beat
 
-import com.github.michaelbull.result.unwrap
 import com.github.xadkile.p6.test.utils.TestOnJupyter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -19,9 +18,6 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
 
     @BeforeEach
     fun beforeEach() {
-        runBlocking {
-            kernelContext.startKernel()
-        }
         hbService = LiveCountHeartBeatServiceCoroutine(
             kernelContext=kernelContext,
             liveCount = 3,
@@ -36,13 +32,13 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     fun afterEach() {
         runBlocking {
             hbService.stop()
-            kernelContext.stopAll()
         }
     }
 
     @Test
     fun start() {
         runBlocking {
+            kernelContext.startAll()
             hbService.start()
             assertTrue(hbService.isServiceRunning())
         }
@@ -50,7 +46,6 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
 
     @Test
     fun isAlive() = runBlocking {
-        kernelContext.startAll()
         hbService.start()
         Thread.sleep(1000)
         assertTrue(hbService.isHBAlive())

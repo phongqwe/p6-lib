@@ -38,7 +38,6 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     fun afterEach() {
         runBlocking {
             ioPubService.stop()
-            kernelContext.stopAll()
         }
     }
 
@@ -111,7 +110,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                         kernelContext = kernelContext,
                     )
 
-                    val o = sender.send(message, Dispatchers.IO)
+                    val o = sender.send(message)
                     assertTrue(o is Ok, o.toString())
                     okCount.incrementAndGet()
                 }
@@ -121,14 +120,12 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         assertEquals(msgCount, okCount.get())
     }
 
-//    @Test
+    @Test
     fun send_Ok() {
         runBlocking {
             val sender = CodeExecutionSender(kernelContext)
-//            delay(3000)
-            val o = sender.send(message, Dispatchers.Default)
+            val o = sender.send(message)
             assertTrue(o is Ok, o.toString())
-            println(o.value?.content)
         }
     }
 
@@ -173,11 +170,11 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 "msg_id_abc_1"
             )
             val sender = CodeExecutionSender(kernelContext)
-            val o2 = sender.send(message2, Dispatchers.Default)
+            val o2 = sender.send(message2)
             assertTrue(o2 is Ok,o2.toString())
             assertNull(o2.value)
 
-            val o = sender.send(message,Dispatchers.Default)
+            val o = sender.send(message)
             assertTrue(o is Ok, o.toString())
             assertNotNull(o.value)
             println(o.value?.content)
@@ -187,7 +184,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     /**
      * When unable to send a message, the composite sender should return an Err indicate such condition
      */
-//    @Test
+    @Test
     fun send_fail() {
         runBlocking {
             kernelContext.startAll()
@@ -196,7 +193,6 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             val mockSender = object : MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> {
                 override suspend fun send(
                     message: ExecuteRequest,
-                    dispatcher: CoroutineDispatcher,
                 ): Result<ExecuteReply, ErrorReport> {
                     return Err(
                         ErrorReport(
@@ -215,13 +211,13 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             }
 
             val sender = CodeExecutionSender(mockContext)
-            val o = sender.send(message, Dispatchers.Default)
+            val o = sender.send(message)
             assertTrue(o is Err, o.toString())
             assertTrue(o.unwrapError().type is SenderErrors.UnableToSendMsg)
         }
     }
 
-//    @Test
+    @Test
     fun send_kernelNotRunning() = runBlocking {
         kernelContext.stopAll()
         val sender = CodeExecutionSender(kernelContext)
@@ -230,7 +226,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         assertTrue((o.unwrapError().type) is KernelErrors.KernelDown,"should return the correct exception")
     }
 
-//    @Test
+    @Test
     fun send_listenerServiceIsDown() = runBlocking {
         kernelContext.startAll()
         val mockListener = mockk<IOPubListenerServiceImpl>().also {
@@ -248,7 +244,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         assertTrue((o.unwrapError().type) is IOPubServiceErrors.IOPubServiceNotRunning,"should return the correct exception")
     }
 
-//    @Test
+    @Test
     fun test_sendMalformedCode() {
         runBlocking{
             kernelContext.startAll()
@@ -267,9 +263,8 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 "msg_id_abc_123"
             )
             val sender = CodeExecutionSender(kernelContext)
-            val o = sender.send(malformedCodeMsg,Dispatchers.IO)
+            val o = sender.send(malformedCodeMsg)
             assertTrue(o is Err)
-//            assertTrue(o.unwrapError() i)
         }
     }
 }

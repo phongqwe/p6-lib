@@ -12,8 +12,12 @@ interface Service : RunningState{
     suspend fun start(): Result<Unit, ErrorReport>
 
     /**
+     * join then stop
+     */
+    suspend fun stopJoin(): Result<Unit, ErrorReport>
+    /**
      * Stop this service. This method guarantees that this service is completely stopped after this method returns.
      * Calling stop on an already stop service doesn't do anything.
      */
-    suspend fun stop(): Result<Unit, ErrorReport>
+    fun stop(): Result<Unit, ErrorReport>
 }

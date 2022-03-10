@@ -51,7 +51,7 @@ class IOPubListenerServiceImpl internal constructor(
         if(defaultHandler!=null){
             this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
         }
-        job = externalScope.launch(dispatcher) {
+        this.job = externalScope.launch(dispatcher) {
             val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
             socket.use {
                 // x: start the service loop
@@ -80,7 +80,8 @@ class IOPubListenerServiceImpl internal constructor(
         }
         val waitRs = Sleeper.delayUntil(10, startTimeOut) { this.isRunning() }
         if(waitRs is Err){
-            this.bluntStop()
+//            this.bluntStop()
+            this.job?.cancel()
             val report = ErrorReport(
                 type= IOPubServiceErrors.CantStartIOPubServiceTimeOut,
                 data = IOPubServiceErrors.CantStartIOPubServiceTimeOut.Data("Time out when trying to start IOPub service"),
@@ -113,17 +114,18 @@ class IOPubListenerServiceImpl internal constructor(
         return msgType
     }
 
-    override suspend fun stop(): Result<Unit, ErrorReport> {
+    override suspend fun stopJoin(): Result<Unit, ErrorReport> {
         if (this.isRunning()) {
-            bluntStop()
+            job?.cancelAndJoin()
         }
         return Ok(Unit)
     }
 
-    private suspend fun bluntStop(){
-//        job?.cancelAndJoin()
-        this.job?.cancel()
-        this.job = null
+    override fun stop(): Result<Unit, ErrorReport> {
+        if (this.isRunning()) {
+            this.job?.cancel()
+        }
+        return Ok(Unit)
     }
 
     override fun isRunning(): Boolean {
