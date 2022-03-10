@@ -70,7 +70,8 @@ internal class ZMQMsgSender {
                 if (queueOk) {
                     poller.poll(interval)
                     if (poller.pollin(0)) {
-                        return Ok(ZMsg.recvMsg(socket, ZMQ.DONTWAIT))
+//                        return Ok(ZMsg.recvMsg(socket, ZMQ.DONTWAIT))
+                        return Ok(ZMsg.recvMsg(socket))
                     } else {
                         return Err(
                             ErrorReport(

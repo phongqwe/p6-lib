@@ -159,16 +159,17 @@ class CodeExecutionSender internal constructor(
             }
         }
 
-        // x: this ensure that this sender will wait until state reach terminal states: Done
+        // x: this ensure that this sender will wait until state reach terminal states
         Sleeper.delayUntil(10) {
             state = state.transit(rt, kernelContext, executionState)
-            when (state) {
+            val waitRt=when (state) {
                 SendingState.HasResult, SendingState.DoneButNoResult, SendingState.KernelDieMidway -> true
                 else -> false
             }
+            waitRt
         }
 
-        // x: remove temp handlers from the listener to prevent bug
+        // x: remove temp handlers from the listener service
         ioPubListenerService.removeHandlers(handlers)
         val rt2: Result<ExecuteResult?, ErrorReport> = when (state) {
             SendingState.HasResult -> rt!!
@@ -274,7 +275,6 @@ class CodeExecutionSender internal constructor(
 
             return this.transit(
                 hasResult = rt != null,
-//                kernelIsRunning = kernelContext.getConvHeartBeatService().get()?.isHBAlive() ?: false,
                 kernelIsRunning = kernelContext.isKernelRunning(),
                 executionState = executionState
             )

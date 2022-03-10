@@ -12,6 +12,22 @@ import kotlin.system.measureTimeMillis
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
+    @Test
+    fun nonBlockingEg(){
+        runBlocking {
+            val main2 = Thread.currentThread()
+            launch(Dispatchers.IO) {
+                fs()
+            }
+            launch(Dispatchers.Default) {
+                val t = Thread.currentThread()
+                println(t)
+                println(main2)
+                println("abc")
+            }
+        }
+    }
+
 //    @Test
     fun bb(){
         val context = ZContext()
@@ -31,7 +47,7 @@ class Bench : TestOnJupyter() {
     suspend fun fs() {
         withContext(Dispatchers.Default) {
             var x = 0
-            while (x < 10) {
+            while (x < 5) {
                 delay(300)
                 x++
                 println(x)

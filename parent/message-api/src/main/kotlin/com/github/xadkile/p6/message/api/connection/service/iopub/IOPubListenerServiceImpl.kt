@@ -46,19 +46,21 @@ class IOPubListenerServiceImpl internal constructor(
             return Err(report)
         }
 
-        val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
+
         // x: add default handler
         if(defaultHandler!=null){
             this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
         }
         job = externalScope.launch(dispatcher) {
+            val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
             socket.use {
                 // x: start the service loop
                 // x: when the kernel is down, this service simply does not do anything. Just hang there.
                 while (isActive) {
                     // x: this listener is passive, so it can start listening when the kernel is up, no need to wait for heartbeat service
                     if (kernelContext.isKernelRunning()) {
-                        val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
+//                        val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
+                        val msg = ZMsg.recvMsg(it)
                         if (msg != null) {
                             val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
                             when (parseResult) {
@@ -119,7 +121,8 @@ class IOPubListenerServiceImpl internal constructor(
     }
 
     private suspend fun bluntStop(){
-        job?.cancelAndJoin()
+//        job?.cancelAndJoin()
+        this.job?.cancel()
         this.job = null
     }
 

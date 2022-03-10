@@ -36,7 +36,6 @@ internal class REPServiceTest : TestOnJupyter(){
             """.trimIndent()
             sendSocket.send(mss)
             val rep = sendSocket.recvStr()
-            sv.stop()
 
             assertEquals(1,x)
             assertEquals("ok",rep)

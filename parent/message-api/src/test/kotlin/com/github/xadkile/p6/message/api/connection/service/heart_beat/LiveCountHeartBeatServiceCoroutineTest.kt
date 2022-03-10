@@ -27,8 +27,8 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
             liveCount = 3,
             pollTimeOut = 1000,
             startTimeOut = 5000,
-            cScope = GlobalScope,
-            cDispatcher = Dispatchers.IO
+            coroutineScope = GlobalScope,
+            dispatcher = Dispatchers.IO
         )
     }
 

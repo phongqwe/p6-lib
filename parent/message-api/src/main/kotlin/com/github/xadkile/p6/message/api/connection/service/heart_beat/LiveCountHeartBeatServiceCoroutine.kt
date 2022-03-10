@@ -4,12 +4,10 @@ import com.github.michaelbull.result.*
 import com.github.xadkile.p6.common.exception.error.CommonErrors
 import com.github.xadkile.p6.common.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContext
-import com.github.xadkile.p6.message.api.connection.kernel_context.context_object.SocketFactory
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.errors.HBServiceCrashException
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.errors.HBServiceErrors
 import com.github.xadkile.p6.message.api.other.Sleeper
 import kotlinx.coroutines.*
-import org.zeromq.ZContext
 import org.zeromq.ZMQ
 
 /**
@@ -21,8 +19,8 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
     private val liveCount: Int = 20,
     private val pollTimeOut: Long = 1_000,
     private val startTimeOut: Long = 50_000,
-    private val cScope: CoroutineScope,
-    private val cDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val coroutineScope: CoroutineScope,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : HeartBeatService {
 
 
@@ -35,7 +33,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
         }
         var skipErr:ErrorReport?= null
 
-        this.job = cScope.launch(cDispatcher) {
+        this.job = coroutineScope.launch(dispatcher) {
             var needReConnect = false
             val socketRs = kernelContext.getSocketProvider().map { it.heartBeatSocket() }
             if(socketRs is Ok){
@@ -44,7 +42,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
                 poller.register(socket, ZMQ.Poller.POLLIN)
                 poller.use {
                     while (isActive) {
-                        val checkRs = check(poller, socket)
+                        val checkRs = this@LiveCountHeartBeatServiceCoroutine.check(poller, socket)
                         if (checkRs is Ok) {
                             currentLives = liveCount
                             needReConnect = false
@@ -145,11 +143,12 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
      */
     private fun check(poller: ZMQ.Poller, hbSocket: ZMQ.Socket): Result<Unit, ErrorReport> {
         try {
-            hbSocket.send("a".toByteArray())
+            hbSocket.send(byteArrayOf('a'.code.toByte()))
             poller.poll(pollTimeOut)
             val o = poller.pollin(0)
             if (o) {
-                val output = hbSocket.recv(ZMQ.DONTWAIT)
+//                val output = hbSocket.recv(ZMQ.DONTWAIT)
+                val output = hbSocket.recv()
                 if (output != null) {
                     return Ok(Unit)
                 } else {
@@ -188,7 +187,8 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
     }
 
     private suspend fun bluntStop() {
-        job?.cancelAndJoin()
+//        job?.cancelAndJoin()
+        job?.cancel()
         this.job = null
     }
 }

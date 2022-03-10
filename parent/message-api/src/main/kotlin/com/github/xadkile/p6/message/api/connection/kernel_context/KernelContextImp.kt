@@ -172,9 +172,9 @@ class KernelContextImp @Inject internal constructor(
 
             val hbSv = LiveCountHeartBeatServiceCoroutine(
                 kernelContext = this,
-                cScope = appCScope,
-                cDispatcher = this.networkServiceDispatcher,
-                startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
+                coroutineScope = appCScope,
+                dispatcher = this.networkServiceDispatcher,
+                startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut,
             )
             this.hbService = hbSv
 

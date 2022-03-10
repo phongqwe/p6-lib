@@ -17,10 +17,7 @@ import com.github.xadkile.p6.test.utils.TestOnJupyter
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -73,11 +70,6 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         msgContent = Shell.Execute.Request.Content(
             code ="""
                 x=0
-                y=0
-                for k in range(1000):
-                    x=k+1
-                    y=x*2
-                y
             """.trimIndent(),
             silent = false,
             storeHistory = true,
@@ -91,7 +83,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     /**
      * See if it is feasible to bombard kernel with many request at the same time
      */
-    @Test
+//    @Test
     fun stressTest() {
         val okCount = AtomicInteger(0)
         // ph: send 1000 messages
@@ -129,46 +121,16 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         assertEquals(msgCount, okCount.get())
     }
 
-    @Test
+//    @Test
     fun send_Ok() {
         runBlocking {
             val sender = CodeExecutionSender(kernelContext)
+//            delay(3000)
             val o = sender.send(message, Dispatchers.Default)
             assertTrue(o is Ok, o.toString())
             println(o.value?.content)
         }
     }
-
-//    @Test
-//    fun send_Ok2() {
-//        runBlocking {
-//            val message2: ExecuteRequest = ExecuteRequest.autoCreate(
-//                sessionId = "session_id",
-//                username = "user_name",
-//                msgType = Shell.Execute.Request._msgType,
-//                msgContent = Shell.Execute.Request.Content(
-//                    code =
-//                    "x=0\n" + "" +
-//                            "while(True):\n"+
-//                            "    x=x+1\n"+
-//                            "    if(x>200000000):\n"+
-//                            "        break\n"
-//                    ,
-//                    silent = false,
-//                    storeHistory = true,
-//                    userExpressions = mapOf(),
-//                    allowStdin = false,
-//                    stopOnError = true
-//                ),
-//                "msg_id_abc_2"
-//            )
-//
-//            val sender = CodeExecutionSender(kernelContext)
-//            val o = sender.send(message2, Dispatchers.Default)
-//            assertTrue(o is Ok, o.toString())
-//            println(o.value?.content)
-//        }
-//    }
 
     /**
      * Ensure that long operations is wait until they are completed
@@ -225,7 +187,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     /**
      * When unable to send a message, the composite sender should return an Err indicate such condition
      */
-    @Test
+//    @Test
     fun send_fail() {
         runBlocking {
             kernelContext.startAll()
@@ -259,7 +221,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         }
     }
 
-    @Test
+//    @Test
     fun send_kernelNotRunning() = runBlocking {
         kernelContext.stopAll()
         val sender = CodeExecutionSender(kernelContext)
@@ -268,7 +230,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         assertTrue((o.unwrapError().type) is KernelErrors.KernelDown,"should return the correct exception")
     }
 
-    @Test
+//    @Test
     fun send_listenerServiceIsDown() = runBlocking {
         kernelContext.startAll()
         val mockListener = mockk<IOPubListenerServiceImpl>().also {
@@ -286,7 +248,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         assertTrue((o.unwrapError().type) is IOPubServiceErrors.IOPubServiceNotRunning,"should return the correct exception")
     }
 
-    @Test
+//    @Test
     fun test_sendMalformedCode() {
         runBlocking{
             kernelContext.startAll()

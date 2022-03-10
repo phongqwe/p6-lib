@@ -8,9 +8,9 @@ import org.zeromq.ZMQ
 import java.net.ServerSocket
 
 abstract class AbstractZMQService(
-    private val coroutineScope: CoroutineScope,
-    private val coroutineDispatcher: CoroutineDispatcher,
-    private val handlerContainer:P6MsgHandlerContainer = P6MsgHandlerContainerMutableImp()
+    protected val coroutineScope: CoroutineScope,
+    protected val coroutineDispatcher: CoroutineDispatcher,
+    protected val handlerContainer:P6MsgHandlerContainer = P6MsgHandlerContainerMutableImp()
 ) : ZMQListenerService, P6MsgHandlerContainer by handlerContainer{
 
     var job: Job? = null
@@ -31,8 +31,8 @@ abstract class AbstractZMQService(
 
     override suspend fun start(): Result<Unit, ErrorReport> {
         if (this.isRunning()) return Ok(Unit)
-        val socket: ZMQ.Socket = makeSocket()
         this.job = coroutineScope.launch(coroutineDispatcher) {
+            val socket: ZMQ.Socket = makeSocket()
             socket.use { sk: ZMQ.Socket ->
                 while (isActive) {
                     receiveMessage(sk)
@@ -43,7 +43,9 @@ abstract class AbstractZMQService(
     }
 
     override suspend fun stop(): Result<Unit, ErrorReport> {
-        this.job?.cancelAndJoin()
+//        this.job?.cancelAndJoin()
+        this.job?.cancel()
+        this.job = null
         return Ok(Unit)
     }
 
