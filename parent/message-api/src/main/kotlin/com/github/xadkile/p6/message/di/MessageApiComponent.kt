@@ -1,6 +1,6 @@
 package com.github.xadkile.p6.message.di
 
-import com.github.xadkile.p6.message.api.connection.kernel_context.ApplicationCScope
+import com.github.xadkile.p6.message.api.connection.kernel_context.ApplicationCoroutineScope
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelConfig
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContext
 import dagger.BindsInstance
@@ -11,9 +11,11 @@ import org.zeromq.ZContext
 import javax.inject.Singleton
 
 
+@MessageApiScope
 @Singleton
-@Component(modules = [ContextModule::class])
+@Component(modules = [KernelContextModule::class])
 interface MessageApiComponent {
+
     fun zContext(): ZContext
     fun kernelContext(): KernelContext
 
@@ -25,7 +27,7 @@ interface MessageApiComponent {
         fun kernelConfig(config: KernelConfig):Builder
 
         @BindsInstance
-        fun applicationCoroutineScope( @ApplicationCScope scope:CoroutineScope):Builder
+        fun applicationCoroutineScope( @ApplicationCoroutineScope scope:CoroutineScope):Builder
 
         @BindsInstance
         fun networkServiceCoroutineDispatcher(dispatcher:CoroutineDispatcher):Builder

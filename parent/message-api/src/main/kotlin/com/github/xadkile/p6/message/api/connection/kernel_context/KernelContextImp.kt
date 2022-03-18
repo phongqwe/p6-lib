@@ -32,17 +32,15 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  *  standard implementation of [KernelContext]
  */
-@Singleton
 class KernelContextImp @Inject internal constructor(
     // x: kernelConfig is created from an external file.
     private val kernelConfig: KernelConfig,
     private val zcontext: ZContext,
-    @ApplicationCScope
+    @ApplicationCoroutineScope
     private val appCScope: CoroutineScope,
     // x: dispatcher (a group of threads) on which network communication services run on
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,

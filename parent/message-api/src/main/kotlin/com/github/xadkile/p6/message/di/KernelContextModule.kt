@@ -2,7 +2,6 @@ package com.github.xadkile.p6.message.di
 
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContext
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextImp
-import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -12,12 +11,10 @@ import javax.inject.Singleton
 /**
  */
 @Module
-interface ContextModule {
+interface KernelContextModule {
     @Binds
-    fun ipythonContext(context: KernelContextImp): KernelContext
-
-    @Binds
-    fun backboneObjProvider(provider:KernelContextImp): KernelContextReadOnly
+    @Singleton
+    fun kernelContext(context: KernelContextImp): KernelContext
 
     companion object {
         @Provides

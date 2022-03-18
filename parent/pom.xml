@@ -182,8 +182,6 @@
                             <plugin>jpa</plugin>
                         </compilerPlugins>
                         <pluginOptions>
-                            <!--                            <option>all-open:annotation=javax.enterprise.context.ApplicationScoped</option>-->
-                            <!--                            <option>no-arg:annotation=javax.enterprise.context.ApplicationScoped</option>-->
                         </pluginOptions>
                         <annotationProcessorPaths>
                             <!-- Specify your annotation processors here. -->
