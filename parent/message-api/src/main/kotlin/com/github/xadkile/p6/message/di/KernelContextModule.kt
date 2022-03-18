@@ -8,17 +8,14 @@ import dagger.Provides
 import org.zeromq.ZContext
 import javax.inject.Singleton
 
-/**
- */
+
 @Module
 interface KernelContextModule {
     @Binds
-    @Singleton
     fun kernelContext(context: KernelContextImp): KernelContext
 
     companion object {
         @Provides
-        @Singleton
         fun zContext(): ZContext {
             return ZContext()
         }

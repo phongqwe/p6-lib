@@ -32,6 +32,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  *  standard implementation of [KernelContext]

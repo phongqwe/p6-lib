@@ -11,8 +11,6 @@ import org.zeromq.ZContext
 import javax.inject.Singleton
 
 
-@MessageApiScope
-@Singleton
 @Component(modules = [KernelContextModule::class])
 interface MessageApiComponent {
 
