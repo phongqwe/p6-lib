@@ -16,10 +16,9 @@ import java.nio.file.Path
  * [connectionFilePath] path to connection file
  *
  */
-data class KernelConfig internal constructor(private val launchCmd:List<String>,
+data class KernelConfig constructor(private val launchCmd:List<String>,
                                              private val connectionFilePath:String,
-                                             val timeOut: KernelTimeOut
-) {
+                                             val timeOut: KernelTimeOut) {
 
     companion object {
         fun fromFile(filePath: Path):Result<KernelConfig, ErrorReport>{
