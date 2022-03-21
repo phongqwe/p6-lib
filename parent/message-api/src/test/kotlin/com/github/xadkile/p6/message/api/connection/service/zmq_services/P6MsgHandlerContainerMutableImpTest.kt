@@ -1,6 +1,6 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services
 
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6MsgType
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6EventType
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.BeforeEach
@@ -26,18 +26,18 @@ internal class P6MsgHandlerContainerMutableImpTest {
         container = P6MsgHandlerContainerMutableImp()
         containerFilled = P6MsgHandlerContainerMutableImp()
 
-        containerFilled.addHandler(P6MsgType.worksheet_update,reactors[0])
-        containerFilled.addHandler(P6MsgType.worksheet_update,reactors[1])
-        containerFilled.addHandler(P6MsgType.cell_value_update,reactors[2])
-        containerFilled.addHandler(P6MsgType.cell_value_update,reactors[3])
-        containerFilled.addHandler(P6MsgType.cell_value_update,reactors[4])
+        containerFilled.addHandler(P6EventType.worksheet_update,reactors[0])
+        containerFilled.addHandler(P6EventType.worksheet_update,reactors[1])
+        containerFilled.addHandler(P6EventType.cell_value_update,reactors[2])
+        containerFilled.addHandler(P6EventType.cell_value_update,reactors[3])
+        containerFilled.addHandler(P6EventType.cell_value_update,reactors[4])
     }
 
     @Test
     fun addHandler() {
         assertTrue(container.isEmpty())
         val reactor = P6MsgHandlers.makeHandler {  }
-        container.addHandler(P6MsgType.cell_value_update,reactor)
+        container.addHandler(P6EventType.cell_value_update,reactor)
         assertTrue(container.isNotEmpty())
         val gotReactor = container.getHandler(reactor.id)
         assertEquals(reactor,gotReactor)
@@ -48,14 +48,14 @@ internal class P6MsgHandlerContainerMutableImpTest {
         assertTrue(container.isEmpty())
         val reactor = P6MsgHandlers.makeHandler {  }
         val reactor2 = P6MsgHandlers.makeHandler {  }
-        container.addHandler(P6MsgType.cell_value_update,reactor)
+        container.addHandler(P6EventType.cell_value_update,reactor)
 
         assertTrue(container.isNotEmpty())
         val gotReactor = container.getHandler(reactor.id)
         var gotReactor2 = container.getHandler(reactor2.id)
         assertEquals(reactor,gotReactor)
         assertEquals(null,gotReactor2)
-        container.addHandler(P6MsgType.worksheet_update,reactor2)
+        container.addHandler(P6EventType.worksheet_update,reactor2)
         gotReactor2 = container.getHandler(reactor2.id)
         assertEquals(reactor2,gotReactor2)
     }
@@ -80,12 +80,12 @@ internal class P6MsgHandlerContainerMutableImpTest {
 
     @Test
     fun getHandlerByMsgType() {
-        val rl = containerFilled.getHandlerByMsgType(P6MsgType.cell_value_update)
+        val rl = containerFilled.getHandlerByMsgType(P6EventType.cell_value_update)
         assertEquals(3,rl.size)
         assertTrue(rl.contains(reactors[2]))
         assertTrue(rl.contains(reactors[3]))
         assertTrue(rl.contains(reactors[4]))
-        val rl2 = containerFilled.getHandlerByMsgType(P6MsgType.worksheet_update)
+        val rl2 = containerFilled.getHandlerByMsgType(P6EventType.worksheet_update)
         assertEquals(2,rl2.size)
         assertTrue(rl2.contains(reactors[0]))
         assertTrue(rl2.contains(reactors[1]))
@@ -93,10 +93,10 @@ internal class P6MsgHandlerContainerMutableImpTest {
 
     @Test
     fun removeHandlerForMsgType() {
-        containerFilled.removeHandlerForMsgType(P6MsgType.cell_value_update)
-        val rl = containerFilled.getHandlerByMsgType(P6MsgType.cell_value_update)
+        containerFilled.removeHandlerForMsgType(P6EventType.cell_value_update)
+        val rl = containerFilled.getHandlerByMsgType(P6EventType.cell_value_update)
         assertTrue(rl.isEmpty())
-        val rl2 = containerFilled.getHandlerByMsgType(P6MsgType.worksheet_update)
+        val rl2 = containerFilled.getHandlerByMsgType(P6EventType.worksheet_update)
         assertTrue(rl2.isNotEmpty())
     }
 
@@ -109,7 +109,7 @@ internal class P6MsgHandlerContainerMutableImpTest {
         assertNotNull(containerFilled.getHandler(reactors[3].id))
         assertNotNull(containerFilled.getHandler(reactors[4].id))
 
-        containerFilled.removeHandler(P6MsgType.cell_value_update,reactors[2].id)
+        containerFilled.removeHandler(P6EventType.cell_value_update,reactors[2].id)
         assertNull(containerFilled.getHandler(reactors[2].id))
         assertNotNull(containerFilled.getHandler(reactors[1].id))
         assertNotNull(containerFilled.getHandler(reactors[3].id))

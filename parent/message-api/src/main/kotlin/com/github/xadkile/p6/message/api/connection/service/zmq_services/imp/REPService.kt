@@ -33,7 +33,7 @@ internal class REPService (
         if (msg!=null){
             val dataStr: String = msg.joinToString("") { String(it.data) }
             val p6Msg:P6Message = ProtocolUtils.msgGson.fromJson(dataStr,P6Message::class.java)
-            val handlers = this.getHandlerByMsgType(p6Msg.header.msgType)
+            val handlers = this.getHandlerByMsgType(p6Msg.header.eventType)
             for(handler in handlers){
                 handler.handleMessage(p6Msg)
             }

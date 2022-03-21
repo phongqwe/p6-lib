@@ -3,7 +3,7 @@ package com.github.xadkile.p6.message.api.connection.service.zmq_services.imp
 import com.github.michaelbull.result.Ok
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MsgHandlers
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6MsgType
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6EventType
 import com.github.xadkile.p6.test.utils.TestOnJupyter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -26,7 +26,7 @@ internal class REPServiceTest : TestOnJupyter(){
                 x+=1
                 parsedMsg =msg
             }
-            sv.addHandler(P6MsgType.cell_value_update,handler)
+            sv.addHandler(P6EventType.cell_value_update,handler)
 
             // send message to service
             val sendSocket = kernelContext.zContext().createSocket(SocketType.REQ)
@@ -40,7 +40,7 @@ internal class REPServiceTest : TestOnJupyter(){
             assertEquals(1,x)
             assertEquals("ok",rep)
             assertEquals("id1",parsedMsg?.header?.msgId)
-            assertEquals(P6MsgType.cell_value_update,parsedMsg?.header?.msgType)
+            assertEquals(P6EventType.cell_value_update,parsedMsg?.header?.eventType)
             assertEquals(
                     """
                         {"value": "cell value", "script": "cell script"}}
