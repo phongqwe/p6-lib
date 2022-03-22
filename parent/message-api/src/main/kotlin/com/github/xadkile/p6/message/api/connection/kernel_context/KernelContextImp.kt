@@ -16,15 +16,18 @@ import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerS
 import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQListenerService
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.imp.REPService
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.imp.REPServiceProto
 import com.github.xadkile.p6.message.api.message.protocol.KernelConnectionFileContent
 import com.github.xadkile.p6.message.api.message.protocol.other.MsgCounterImp
 import com.github.xadkile.p6.message.api.message.protocol.other.MsgIdGenerator
 import com.github.xadkile.p6.message.api.message.protocol.other.RandomMsgIdGenerator
 import com.github.xadkile.p6.message.api.other.Sleeper
+import com.github.xadkile.p6.message.di.ServiceLogger
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
+import org.slf4j.Logger
 import org.zeromq.ZContext
 import java.io.InputStream
 import java.io.OutputStream
@@ -45,6 +48,8 @@ class KernelContextImp @Inject internal constructor(
     private val appCScope: CoroutineScope,
     // x: dispatcher (a group of threads) on which network communication services run on
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    @ServiceLogger
+    private val serviceLogger:Logger?=null,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
@@ -93,8 +98,6 @@ class KernelContextImp @Inject internal constructor(
             return kernelRS
         }
     }
-
-
 
     override suspend fun startKernel(): Result<Unit, ErrorReport> {
         if (this.isKernelRunning()) {
@@ -199,10 +202,16 @@ class KernelContextImp @Inject internal constructor(
                 return ioPubStartRs
             }
 
-            val zmqREPService = REPService(
+//            val zmqREPService = REPService(
+//                kernelContext = this,
+//                coroutineScope = this.appCScope,
+//                coroutineDispatcher = this.networkServiceDispatcher
+//            )
+            val zmqREPService = REPServiceProto(
                 kernelContext = this,
                 coroutineScope = this.appCScope,
-                coroutineDispatcher = this.networkServiceDispatcher
+                coroutineDispatcher = this.networkServiceDispatcher,
+                logger= this.serviceLogger,
             )
             this.zmqREPService = zmqREPService
             val zmqListenerServiceStartRs = zmqREPService.start()

@@ -7,6 +7,7 @@ import dagger.BindsInstance
 import dagger.Component
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import org.slf4j.Logger
 import org.zeromq.ZContext
 import javax.inject.Singleton
 
@@ -29,5 +30,8 @@ interface MessageApiComponent {
 
         @BindsInstance
         fun networkServiceCoroutineDispatcher(dispatcher:CoroutineDispatcher):Builder
+
+        @BindsInstance
+        fun serviceLogger(@ServiceLogger logger:Logger?=null):Builder
     }
 }

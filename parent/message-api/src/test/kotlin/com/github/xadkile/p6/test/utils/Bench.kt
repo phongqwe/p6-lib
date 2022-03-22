@@ -1,5 +1,6 @@
 package com.github.xadkile.p6.test.utils
 
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6EventType
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -12,23 +13,9 @@ import kotlin.system.measureTimeMillis
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench : TestOnJupyter() {
-//    @Test
+    @Test
     fun nonBlockingEg(){
-        runBlocking {
-
-            val j1 = launch(Dispatchers.IO) {
-                while(isActive){
-                    while(true){
-                        println("xqwe")
-                        delay(400)
-                    }
-                }
-            }
-            launch(Dispatchers.Default) {
-                delay(2000)
-                j1.cancel()
-            }
-        }
+        println(P6EventType.valueOf("qwe"))
     }
 
 //    @Test

@@ -17,15 +17,16 @@
         <module>p6-common</module>
     </modules>
 
+
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <karaf.version>4.3.2</karaf.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.5.31</kotlin.version>
-<!--        <kotlin.version>1.6.0</kotlin.version>-->
-        <kotlin.coroutine.version>1.5.2</kotlin.coroutine.version>
-<!--        <kotlin.coroutine.version>1.6.0-RC</kotlin.coroutine.version>-->
+        <!--        <kotlin.version>1.5.31</kotlin.version>-->
+        <kotlin.version>1.6.10</kotlin.version>
+        <!--        <kotlin.coroutine.version>1.5.2</kotlin.coroutine.version>-->
+        <kotlin.coroutine.version>1.6.0</kotlin.coroutine.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <firebase.version>8.0.1</firebase.version>
         <redis.version>3.6.0</redis.version>
@@ -33,6 +34,9 @@
         <javafx.version>11.0.2</javafx.version>
         <tornadorfx.version>1.7.20</tornadorfx.version>
         <dagger.version>2.38.1</dagger.version>
+        <protocol.buffer.version>3.19.4</protocol.buffer.version>
+        <slf4j.version>1.7.36</slf4j.version>
+        <log4j.version>2.17.2</log4j.version>
     </properties>
     <repositories>
         <repository>
@@ -43,6 +47,34 @@
     </repositories>
     <dependencyManagement>
         <dependencies>
+<!--            <dependency>-->
+<!--                <groupId>org.apache.logging.log4j</groupId>-->
+<!--                <artifactId>log4j-api</artifactId>-->
+<!--                <version>${log4j.version}</version>-->
+<!--            </dependency>-->
+
+<!--            <dependency>-->
+<!--                <groupId>org.apache.logging.log4j</groupId>-->
+<!--                <artifactId>log4j-core</artifactId>-->
+<!--                <version>${log4j.version}</version>-->
+<!--            </dependency>-->
+
+<!--            <dependency>-->
+<!--                <groupId>org.apache.logging.log4j</groupId>-->
+<!--                <artifactId>log4j-slf4j-impl</artifactId>-->
+<!--                <version>${log4j.version}</version>-->
+<!--            </dependency>-->
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protocol.buffer.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.google.dagger</groupId>
                 <artifactId>dagger-compiler</artifactId>
@@ -233,12 +265,12 @@
                             </goals>
                             <configuration>
                                 <sourceDirs>
-<!--                                    <sourceDir>${project.build.directory}/generated-sources</sourceDir>-->
                                     <sourceDir>${project.build.directory}/generated-sources/antlr4</sourceDir>
+                                    <sourceDir>${project.build.directory}/generated-sources/protobuf/java</sourceDir>
                                     <sourceDir>${project.build.directory}/generated-sources/kapt/compile</sourceDir>
-                                    <sourceDir>${project.build.directory}/generated-sources/kaptKotlin/compile</sourceDir>
+                                    <sourceDir>${project.build.directory}/generated-sources/kaptKotlin/compile
+                                    </sourceDir>
                                     <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
-                                    <sourceDir>${project.basedir}/src/main/java</sourceDir>
                                     <sourceDir>${project.basedir}/src/main/java</sourceDir>
                                 </sourceDirs>
                             </configuration>
@@ -313,55 +345,22 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>org.apache.felix</groupId>
-                    <artifactId>maven-bundle-plugin</artifactId>
-                    <version>5.1.2</version>
-                    <configuration>
-                        <supportedProjectTypes>
-                            <supportedProjectType>jar</supportedProjectType>
-                            <supportedProjectType>bundle</supportedProjectType>
-                            <supportedProjectType>war</supportedProjectType>
-                        </supportedProjectTypes>
-                        <instructions>
-                            <!-- Enable processing of OSGI DS component annotations -->
-                            <_dsannotations>*</_dsannotations>
-                            <_cdiannotations>*;discover=annotated</_cdiannotations>
-                            <!-- Inherit service injections from base class -->
-                            <_dsannotations-options>inherit</_dsannotations-options>
-                            <!-- Enable processing of OSGI metatype annotations -->
-                            <_metatypeannotations>*</_metatypeannotations>
-                        </instructions>
-                    </configuration>
+                    <groupId>org.xolstice.maven.plugins</groupId>
+                    <artifactId>protobuf-maven-plugin</artifactId>
+                    <version>0.6.1</version>
+                    <!--                    <configuration>-->
+                    <!--                        <protocExecutable>/usr/local/bin/protoc</protocExecutable>-->
+                    <!--                    </configuration>-->
                     <executions>
                         <execution>
-                            <id>bundle</id>
                             <goals>
-                                <goal>bundle</goal>
+                                <goal>compile</goal>
+                                <goal>test-compile</goal>
                             </goals>
                         </execution>
                     </executions>
                 </plugin>
-                <plugin>
-                    <groupId>org.apache.karaf.tooling</groupId>
-                    <artifactId>karaf-maven-plugin</artifactId>
-                    <version>${karaf.version}</version>
-                    <extensions>true</extensions>
-                    <configuration>
-                        <includeTransitiveDependency>true</includeTransitiveDependency>
-                        <aggregateFeatures>false</aggregateFeatures>
-                        <includeProjectArtifact>true</includeProjectArtifact>
-                        <primaryFeatureName>${project.artifactId}</primaryFeatureName>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>generate-features-file</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>features-generate-descriptor</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
+
             </plugins>
         </pluginManagement>
 
@@ -380,27 +379,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
-
-<!--                        <plugin>-->
-<!--                            <groupId>org.codehaus.mojo</groupId>-->
-<!--                            <artifactId>build-helper-maven-plugin</artifactId>-->
-<!--                            <version>1.4</version>-->
-<!--                            <executions>-->
-<!--                                <execution>-->
-<!--                                    <id>zzz</id>-->
-<!--                                    <phase>generate-sources</phase>-->
-<!--                                    <goals>-->
-<!--                                        <goal>add-source</goal>-->
-<!--                                    </goals>-->
-<!--                                    <configuration>-->
-<!--                                        <sources>-->
-<!--                                            <source>${basedir}/target/generated-sources</source>-->
-<!--                                        </sources>-->
-<!--                                    </configuration>-->
-<!--                                </execution>-->
-<!--                            </executions>-->
-<!--                        </plugin>-->
-
         </plugins>
     </build>
 
