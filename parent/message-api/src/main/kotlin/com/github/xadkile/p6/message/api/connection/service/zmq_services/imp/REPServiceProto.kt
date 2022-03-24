@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.slf4j.MarkerFactory
 import org.zeromq.SocketType
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
@@ -21,6 +22,12 @@ internal class REPServiceProto(
     val logger: Logger?=null,
 ) : AbstractZMQService(coroutineScope, coroutineDispatcher), ZMQListenerService {
 
+    companion object {
+        val logtag="REPServiceProto"
+        val marker = MarkerFactory.getMarker(REPServiceProto::class.java.canonicalName).also {
+            it.add(ZMQListenerService.marker)
+        }
+    }
 
     override fun makeSocket(): ZMQ.Socket {
         val zcontext = kernelContext.zContext()
@@ -30,19 +37,19 @@ internal class REPServiceProto(
     }
 
     override fun receiveMessage(socket: ZMQ.Socket) {
-        logger?.info("start receive msg")
         try {
             val msg: ZMsg? = ZMsg.recvMsg(socket)
             if (msg != null) {
-                logger?.info("receive msg ok")
+                logger?.info(marker,"$logtag receive msg ok")
                 val dataStr: String = msg.joinToString("") { String(it.data) }
                 val p6MsgProto =
                     P6MsgPM.P6MessageProto.newBuilder()
                         .mergeFrom(dataStr.toByteArray())
                         .build()
-                logger?.debug(p6MsgProto.toString())
+                logger?.debug(marker,"$logtag proto msg: $p6MsgProto")
+
                 val p6Msg: P6Message = p6MsgProto.toModel()
-                logger?.debug(p6Msg.toString())
+                logger?.debug(marker, "$logtag parsed p6 msg: $p6Msg")
                 val handlers = this.getHandlerByMsgType(p6Msg.header.eventType)
                 for (handler in handlers) {
                     handler.handleMessage(p6Msg)
@@ -50,13 +57,13 @@ internal class REPServiceProto(
                 // x: send a reply when all handlers finish running
                 socket.send("ok")
             }else{
-                logger?.debug("msg null")
+                logger?.warn(marker,"$logtag Received null message")
                 socket.send("fail")
             }
         } catch (e: Exception) {
             // receiver service must not crash
             socket.send("fail")
-            logger?.error(e.toString())
+            logger?.error(marker,"$logtag ${e.toString()}")
         }
     }
 

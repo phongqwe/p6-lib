@@ -33,5 +33,8 @@ interface MessageApiComponent {
 
         @BindsInstance
         fun serviceLogger(@ServiceLogger logger:Logger?=null):Builder
+
+        @BindsInstance
+        fun msgApiCommonLogger(@MsgApiCommonLogger logger:Logger?=null):Builder
     }
 }
