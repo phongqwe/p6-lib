@@ -3,7 +3,7 @@ package com.github.xadkile.p6.message.api.connection.service.zmq_services.imp
 import com.github.michaelbull.result.Ok
 import com.github.xadkile.message.api.proto.P6MsgPM
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MsgHandlers
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6EventType
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Event
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
 import com.github.xadkile.p6.test.utils.TestOnJupyter
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +17,7 @@ import org.zeromq.SocketType
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class REPServiceProtoTest : TestOnJupyter() {
+    val cellEvent = P6Event("cell_value_update")
     @Test
     fun testStandardFlow() {
         runBlocking {
@@ -28,7 +29,7 @@ internal class REPServiceProtoTest : TestOnJupyter() {
                 x += 1
                 parsedMsg = msg
             }
-            sv.addHandler(P6EventType.cell_value_update, handler)
+            sv.addHandler(cellEvent, handler)
 
             // send message to service
             val sendSocket = kernelContext.zContext().createSocket(SocketType.REQ)
@@ -48,7 +49,7 @@ internal class REPServiceProtoTest : TestOnJupyter() {
             assertEquals(1, x)
             assertEquals("ok", rep)
             assertEquals("id1", parsedMsg?.header?.msgId)
-            assertEquals(P6EventType.cell_value_update, parsedMsg?.header?.eventType)
+            assertEquals(cellEvent, parsedMsg?.header?.eventType)
             assertEquals(
                 """{"value": "cell value", "script": "cell script"}}""".trimIndent(),
                 parsedMsg?.content?.data

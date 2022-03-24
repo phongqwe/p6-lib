@@ -2,8 +2,8 @@ package com.github.xadkile.p6.message.api.connection.service.zmq_services.imp
 
 import com.github.michaelbull.result.Ok
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MsgHandlers
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Event
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6EventType
 import com.github.xadkile.p6.test.utils.TestOnJupyter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -15,6 +15,7 @@ import org.zeromq.SocketType
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class REPServiceTest : TestOnJupyter(){
+    val cell_value_update = P6Event("cell_value_update")
     @Test
     fun testStandardFlow(){
         runBlocking {
@@ -26,13 +27,13 @@ internal class REPServiceTest : TestOnJupyter(){
                 x+=1
                 parsedMsg =msg
             }
-            sv.addHandler(P6EventType.cell_value_update,handler)
+            sv.addHandler(cell_value_update,handler)
 
             // send message to service
             val sendSocket = kernelContext.zContext().createSocket(SocketType.REQ)
             sendSocket.connect("tcp://localhost:${sv.zmqPort}")
             val mss = """
-                {"header": {"msgId": "id1", "msgType": "cell_value_update"}, "content": {"data": "{\"value\": \"cell value\", \"script\": \"cell script\"}}"}}
+                {"header": {"msgId": "id1", "eventType": {"name":"cell_value_update"}}, "content": {"data": "{\"value\": \"cell value\", \"script\": \"cell script\"}}"}}
             """.trimIndent()
             sendSocket.send(mss)
             val rep = sendSocket.recvStr()
@@ -40,7 +41,7 @@ internal class REPServiceTest : TestOnJupyter(){
             assertEquals(1,x)
             assertEquals("ok",rep)
             assertEquals("id1",parsedMsg?.header?.msgId)
-            assertEquals(P6EventType.cell_value_update,parsedMsg?.header?.eventType)
+            assertEquals(cell_value_update,parsedMsg?.header?.eventType)
             assertEquals(
                     """
                         {"value": "cell value", "script": "cell script"}}

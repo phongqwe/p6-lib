@@ -1,6 +1,5 @@
 package com.github.xadkile.p6.test.utils
 
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6EventType
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -15,7 +14,6 @@ import kotlin.system.measureTimeMillis
 class Bench : TestOnJupyter() {
     @Test
     fun nonBlockingEg(){
-        println(P6EventType.valueOf("qwe"))
     }
 
 //    @Test

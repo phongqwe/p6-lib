@@ -22,6 +22,7 @@ import com.github.xadkile.p6.message.api.message.protocol.other.MsgCounterImp
 import com.github.xadkile.p6.message.api.message.protocol.other.MsgIdGenerator
 import com.github.xadkile.p6.message.api.message.protocol.other.RandomMsgIdGenerator
 import com.github.xadkile.p6.message.api.other.Sleeper
+import com.github.xadkile.p6.message.di.MsgApiCommonLogger
 import com.github.xadkile.p6.message.di.ServiceLogger
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -50,6 +51,8 @@ class KernelContextImp @Inject internal constructor(
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
     @ServiceLogger
     private val serviceLogger:Logger?=null,
+    @MsgApiCommonLogger
+    private val commonLogger:Logger?=null,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
