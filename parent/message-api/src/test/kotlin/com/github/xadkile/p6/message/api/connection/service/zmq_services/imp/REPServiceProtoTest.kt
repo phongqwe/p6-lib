@@ -1,7 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services.imp
 
 import com.github.michaelbull.result.Ok
-import com.github.xadkile.message.api.proto.P6MsgPM
+import com.github.xadkile.message.api.proto.P6MsgPM.*
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MsgHandlers
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Event
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
@@ -17,7 +17,7 @@ import org.zeromq.SocketType
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class REPServiceProtoTest : TestOnJupyter() {
-    val cellEvent = P6Event("cell_value_update")
+    val cellEvent = P6Event("code","cell_value_update")
     @Test
     fun testStandardFlow() {
         runBlocking {
@@ -35,10 +35,10 @@ internal class REPServiceProtoTest : TestOnJupyter() {
             val sendSocket = kernelContext.zContext().createSocket(SocketType.REQ)
             sendSocket.connect("tcp://localhost:${sv.zmqPort}")
 
-            val msgProto = P6MsgPM.P6MessageProto.newBuilder()
-                .setHeader(P6MsgPM.P6MessageHeaderProto.newBuilder()
+            val msgProto = P6MessageProto.newBuilder()
+                .setHeader(P6MessageHeaderProto.newBuilder()
                     .setMsgId("id1")
-                    .setEventType("cell_value_update")
+                    .setEventType(P6EventProto.newBuilder().setCode(cellEvent.code).setName(cellEvent.name).build())
                     .build())
                 .setData("""{"value": "cell value", "script": "cell script"}}""")
                 .build()

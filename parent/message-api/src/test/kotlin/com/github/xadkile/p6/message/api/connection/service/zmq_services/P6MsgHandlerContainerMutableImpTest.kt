@@ -12,8 +12,8 @@ import kotlin.test.assertTrue
 internal class P6MsgHandlerContainerMutableImpTest {
     lateinit var container:P6MsgHandlerContainerMutableImp
     lateinit var containerFilled:P6MsgHandlerContainerMutableImp
-    val event1 = P6Event("worksheet_update")
-    val event2 = P6Event("cell_value_update")
+    val event1 = P6Event("event1","worksheet_update")
+    val event2 = P6Event("event2","cell_value_update")
     val reactors = listOf(
         P6MsgHandlers.makeHandler {  },P6MsgHandlers.makeHandler {  },
         P6MsgHandlers.makeHandler {  },P6MsgHandlers.makeHandler {  },

@@ -15,8 +15,8 @@ import org.zeromq.SocketType
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class REPServiceTest : TestOnJupyter(){
-    val cell_value_update = P6Event("cell_value_update")
-    @Test
+    val cell_value_update = P6Event("code","cell_value_update")
+//    @Test
     fun testStandardFlow(){
         runBlocking {
             val sv = REPService(kernelContext,GlobalScope, Dispatchers.IO)

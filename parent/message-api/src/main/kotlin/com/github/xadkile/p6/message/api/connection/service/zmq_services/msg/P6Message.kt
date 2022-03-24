@@ -1,32 +1,28 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services.msg
 
-import com.github.xadkile.message.api.proto.P6MsgPM.P6MessageHeaderProto
-import com.github.xadkile.message.api.proto.P6MsgPM.P6MessageProto
+import com.github.xadkile.message.api.proto.P6MsgPM.*
 
-enum class P6EventType {
-    cell_value_update,
-    worksheet_update,
-    worksheet_rename_ok,
-    unknown,
-    ;
-
-    companion object {
-        fun fromStr(str: String): P6EventType {
-            try {
-                return P6EventType.valueOf(str)
-            } catch (e: Exception) {
-                return unknown
-            }
+data class P6Event(val code: String, val name: String){
+    override fun equals(other: Any?): Boolean {
+        if(other != null && other is P6Event){
+            return this.code == other.code
         }
+        return false
+    }
+
+    override fun hashCode(): Int {
+        return this.code.hashCode()
     }
 }
 
-data class P6Event(val name: String)
-
 data class P6MessageHeader(val msgId: String, val eventType: P6Event) {
     fun toProto(): P6MessageHeaderProto {
+        val eventType = P6EventProto.newBuilder()
+            .setCode(this.eventType.code)
+            .setName(this.eventType.name)
+            .build()
         return P6MessageHeaderProto.newBuilder()
-            .setEventType(eventType.name)
+            .setEventType(eventType)
             .setMsgId(msgId)
             .build()
     }
@@ -35,7 +31,14 @@ data class P6MessageHeader(val msgId: String, val eventType: P6Event) {
 fun P6MessageHeaderProto.toModel(): P6MessageHeader {
     return P6MessageHeader(
         msgId = msgId,
-        eventType = P6Event(eventType)
+        eventType = eventType.toModel()
+    )
+}
+
+fun P6EventProto.toModel():P6Event{
+    return P6Event(
+        code = code,
+        name = name,
     )
 }
 
