@@ -22,6 +22,8 @@ internal class REPServiceProto(
     val logger: Logger?=null,
 ) : AbstractZMQService(coroutineScope, coroutineDispatcher), ZMQListenerService {
 
+    override val socketType: SocketType = SocketType.REP
+
     companion object {
         val logtag="REPServiceProto"
         val marker = MarkerFactory.getMarker(REPServiceProto::class.java.canonicalName).also {
@@ -52,7 +54,12 @@ internal class REPServiceProto(
                 logger?.debug(marker, "$logtag parsed p6 msg: $p6Msg")
                 val handlers = this.getHandlerByMsgType(p6Msg.header.eventType)
                 for (handler in handlers) {
-                    handler.handleMessage(p6Msg)
+                    if(p6Msg.isError){
+                        logger?.debug(marker,"$logtag error p6 msg")
+                        handler.handleError(p6Msg)
+                    }else{
+                        handler.handleMessage(p6Msg)
+                    }
                 }
                 // x: send a reply when all handlers finish running
                 socket.send("ok")
@@ -66,6 +73,4 @@ internal class REPServiceProto(
             logger?.error(marker,"$logtag ${e.toString()}")
         }
     }
-
-    override val socketType: SocketType = SocketType.REP
 }

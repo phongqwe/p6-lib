@@ -15,7 +15,7 @@ data class P6Event(val code: String, val name: String){
     }
 }
 
-data class P6MessageHeader(val msgId: String, val eventType: P6Event) {
+data class P6MessageHeader(val msgId: String, val eventType: P6Event, val isError:Boolean = false) {
     fun toProto(): P6MessageHeaderProto {
         val eventType = P6EventProto.newBuilder()
             .setCode(this.eventType.code)
@@ -24,6 +24,7 @@ data class P6MessageHeader(val msgId: String, val eventType: P6Event) {
         return P6MessageHeaderProto.newBuilder()
             .setEventType(eventType)
             .setMsgId(msgId)
+            .setIsError(isError)
             .build()
     }
 }
@@ -31,7 +32,8 @@ data class P6MessageHeader(val msgId: String, val eventType: P6Event) {
 fun P6MessageHeaderProto.toModel(): P6MessageHeader {
     return P6MessageHeader(
         msgId = msgId,
-        eventType = eventType.toModel()
+        eventType = eventType.toModel(),
+        isError = isError
     )
 }
 
@@ -45,6 +47,7 @@ fun P6EventProto.toModel():P6Event{
 data class P6MessageContent(val data: String)
 
 data class P6Message(val header: P6MessageHeader, val content: P6MessageContent) {
+    val isError = header.isError
     fun toProto(): P6MessageProto {
         return P6MessageProto.newBuilder()
             .setHeader(header.toProto())
