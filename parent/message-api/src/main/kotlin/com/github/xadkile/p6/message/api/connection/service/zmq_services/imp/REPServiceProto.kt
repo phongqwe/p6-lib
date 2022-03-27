@@ -54,12 +54,7 @@ internal class REPServiceProto(
                 logger?.debug(marker, "$logtag parsed p6 msg: $p6Msg")
                 val handlers = this.getHandlerByMsgType(p6Msg.header.eventType)
                 for (handler in handlers) {
-                    if(p6Msg.isError){
-                        logger?.debug(marker,"$logtag error p6 msg")
-                        handler.handleError(p6Msg)
-                    }else{
-                        handler.handleMessage(p6Msg)
-                    }
+                    handler.handleMessage(p6Msg)
                 }
                 // x: send a reply when all handlers finish running
                 socket.send("ok")
@@ -69,8 +64,8 @@ internal class REPServiceProto(
             }
         } catch (e: Exception) {
             // receiver service must not crash
-            socket.send("fail")
             logger?.error(marker,"$logtag ${e.toString()}")
+            socket.send("fail")
         }
     }
 }
