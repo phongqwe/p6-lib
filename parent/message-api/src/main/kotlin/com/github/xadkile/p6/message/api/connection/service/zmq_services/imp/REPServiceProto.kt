@@ -64,7 +64,7 @@ internal class REPServiceProto(
             }
         } catch (e: Exception) {
             // receiver service must not crash
-            logger?.error(marker,"$logtag ${e.toString()}")
+            logger?.error(marker,"$logtag Exception: ${e.toString()}")
             socket.send("fail")
         }
     }

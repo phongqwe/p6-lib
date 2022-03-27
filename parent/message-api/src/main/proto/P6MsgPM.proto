@@ -1,0 +1,20 @@
+syntax = "proto3";
+package com.github.xadkile.message.api.proto;
+
+//    protoc -I=. --python_out=../../../../../python ./*
+
+
+message P6EventProto{
+  string code = 1;
+  string name = 2;
+}
+
+message P6MessageHeaderProto{
+  string msgId = 1;
+  P6EventProto eventType = 2;
+}
+
+message P6MessageProto{
+  P6MessageHeaderProto header = 1;
+  string data = 2;
+}
