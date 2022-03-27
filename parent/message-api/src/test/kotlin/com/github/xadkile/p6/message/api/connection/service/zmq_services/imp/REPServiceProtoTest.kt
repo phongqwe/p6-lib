@@ -6,6 +6,7 @@ import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MsgHa
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Event
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
 import com.github.xadkile.p6.test.utils.TestOnJupyter
+import com.google.protobuf.ByteString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
@@ -40,7 +41,7 @@ internal class REPServiceProtoTest : TestOnJupyter() {
                     .setMsgId("id1")
                     .setEventType(P6EventProto.newBuilder().setCode(cellEvent.code).setName(cellEvent.name).build())
                     .build())
-                .setData("""{"value": "cell value", "script": "cell script"}}""")
+                .setData(ByteString.copyFrom("""{"value": "cell value", "script": "cell script"}}""",Charsets.UTF_8))
                 .build()
 
             sendSocket.send(msgProto.toByteArray())

@@ -1,6 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services.msg
 
 import com.github.xadkile.message.api.proto.P6MsgPM.*
+import com.google.protobuf.ByteString
 
 data class P6Event(val code: String, val name: String){
     override fun equals(other: Any?): Boolean {
@@ -42,7 +43,7 @@ fun P6EventProto.toModel():P6Event{
     )
 }
 
-data class P6MessageContent(val data: String)
+data class P6MessageContent(val data: ByteString)
 
 data class P6Message(val header: P6MessageHeader, val content: P6MessageContent) {
     fun toProto(): P6MessageProto {

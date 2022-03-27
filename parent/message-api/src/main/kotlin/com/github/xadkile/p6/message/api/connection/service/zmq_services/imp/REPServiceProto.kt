@@ -9,7 +9,6 @@ import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.toM
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.slf4j.MarkerFactory
 import org.zeromq.SocketType
 import org.zeromq.ZMQ
@@ -43,10 +42,11 @@ internal class REPServiceProto(
             val msg: ZMsg? = ZMsg.recvMsg(socket)
             if (msg != null) {
                 logger?.info(marker,"$logtag receive msg ok")
-                val dataStr: String = msg.joinToString("") { String(it.data) }
-                val p6MsgProto =
-                    P6MsgPM.P6MessageProto.newBuilder()
-                        .mergeFrom(dataStr.toByteArray())
+                val dataStr = msg.fold(byteArrayOf()){acc,zframe->
+                    acc + zframe.data
+                }
+                val p6MsgProto = P6MsgPM.P6MessageProto.newBuilder()
+                        .mergeFrom(dataStr)
                         .build()
                 logger?.debug(marker,"$logtag proto msg: $p6MsgProto")
 

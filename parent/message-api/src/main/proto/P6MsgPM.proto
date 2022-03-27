@@ -16,5 +16,5 @@ message P6MessageHeaderProto{
 
 message P6MessageProto{
   P6MessageHeaderProto header = 1;
-  string data = 2;
+  bytes data = 2;
 }

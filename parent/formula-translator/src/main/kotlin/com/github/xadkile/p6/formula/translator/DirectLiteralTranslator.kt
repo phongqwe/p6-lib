@@ -21,10 +21,13 @@ class DirectLiteralTranslator:FormulaTranslator {
         if(i!=null){
             return Ok(formula)
         }else{
+            // r""" a\" """[1:-1]
             val isStringLiteral =strPattern.matcher(formula).matches()
             if (isStringLiteral){
+                // only append 2 double quote
                 return Ok("\"\"$formula\"\"")
             }else{
+                // add 3 double quote
                 return Ok("\"\"\"$formula\"\"\"")
             }
         }
