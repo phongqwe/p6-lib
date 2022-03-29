@@ -43,13 +43,12 @@ fun P6EventProto.toModel():P6Event{
     )
 }
 
-data class P6MessageContent(val data: ByteString)
 
-data class P6Message(val header: P6MessageHeader, val content: P6MessageContent) {
+data class P6Message(val header: P6MessageHeader, val data: ByteString) {
     fun toProto(): P6MessageProto {
         return P6MessageProto.newBuilder()
             .setHeader(header.toProto())
-            .setData(content.data)
+            .setData(data)
             .build()
     }
 }
@@ -57,8 +56,6 @@ data class P6Message(val header: P6MessageHeader, val content: P6MessageContent)
 fun P6MessageProto.toModel(): P6Message {
     return P6Message(
         header = header.toModel(),
-        content = P6MessageContent(
-            data = data
-        )
+        data = data
     )
 }

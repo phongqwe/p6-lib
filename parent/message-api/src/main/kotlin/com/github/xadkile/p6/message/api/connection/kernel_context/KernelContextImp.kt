@@ -16,8 +16,6 @@ import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerS
 import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQListenerService
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.imp.REPService
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.imp.REPServiceProto
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Response
 import com.github.xadkile.p6.message.api.message.protocol.KernelConnectionFileContent
 import com.github.xadkile.p6.message.api.message.protocol.other.MsgCounterImp
@@ -38,7 +36,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  *  standard implementation of [KernelContext]
@@ -212,7 +209,7 @@ class KernelContextImp @Inject internal constructor(
 //                coroutineScope = this.appCScope,
 //                coroutineDispatcher = this.networkServiceDispatcher
 //            )
-            val zmqREPService = REPServiceProto(
+            val zmqREPService = REPService(
                 kernelContext = this,
                 coroutineScope = this.appCScope,
                 coroutineDispatcher = this.networkServiceDispatcher,

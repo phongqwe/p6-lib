@@ -1,24 +1,34 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services.imp
 
-import com.github.michaelbull.result.Ok
-import com.github.michaelbull.result.Result
-import com.github.xadkile.p6.common.exception.error.ErrorReport
+import com.github.xadkile.message.api.proto.P6MsgPM
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.AbstractZMQService
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MessageHandler
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQListenerService
-import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
-import com.github.xadkile.p6.message.api.message.protocol.ProtocolUtils
-import kotlinx.coroutines.*
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Response
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.toModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import org.slf4j.Logger
+import org.slf4j.MarkerFactory
 import org.zeromq.SocketType
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
 
-internal class REPService (
+internal class REPService(
     private val kernelContext: KernelContextReadOnly,
     coroutineScope: CoroutineScope,
     coroutineDispatcher: CoroutineDispatcher,
-) : AbstractZMQService<P6Message>(coroutineScope,coroutineDispatcher), ZMQListenerService<P6Message> {
+    val logger: Logger?=null,
+) : AbstractZMQService<P6Response>(coroutineScope, coroutineDispatcher), ZMQListenerService<P6Response> {
+
+    override val socketType: SocketType = SocketType.REP
+
+    companion object {
+        val logtag="REPServiceProto"
+        val marker = MarkerFactory.getMarker(REPService::class.java.canonicalName).also {
+            it.add(ZMQListenerService.marker)
+        }
+    }
 
     override fun makeSocket(): ZMQ.Socket {
         val zcontext = kernelContext.zContext()
@@ -28,19 +38,34 @@ internal class REPService (
     }
 
     override fun receiveMessage(socket: ZMQ.Socket) {
-        // Without DONTWAIT, this service may not be able to stop. Each while loop will wait until it receive a message. So, if I issue stop after the loop start, the stop effect will not be taken into effect after another receive a message is received.
-        val msg: ZMsg? = ZMsg.recvMsg(socket)
-//        val msg: ZMsg? = ZMsg.recvMsg(socket,ZMQ.DONTWAIT)
-        if (msg!=null){
-            val dataStr: String = msg.joinToString("") { String(it.data) }
-            val p6Msg:P6Message = ProtocolUtils.msgGson.fromJson(dataStr,P6Message::class.java)
-            val handlers = this.getHandlerByMsgType(p6Msg.header.eventType)
-            for(handler in handlers){
-                handler.handleMessage(p6Msg)
+        try {
+            val msg: ZMsg? = ZMsg.recvMsg(socket)
+            if (msg != null) {
+                logger?.info(marker,"$logtag receive msg ok")
+                val dataStr = msg.fold(byteArrayOf()){acc,zframe->
+                    acc + zframe.data
+                }
+                val p6MsgProto = P6MsgPM.P6ResponseProto.newBuilder()
+                        .mergeFrom(dataStr)
+                        .build()
+                logger?.debug(marker,"$logtag proto msg: $p6MsgProto")
+
+                val p6Msg: P6Response = p6MsgProto.toModel()
+                logger?.debug(marker, "$logtag parsed p6 msg: $p6Msg")
+                val handlers = this.getHandlerByMsgType(p6Msg.header.eventType)
+                for (handler in handlers) {
+                    handler.handleMessage(p6Msg)
+                }
+                // x: send a reply when all handlers finish running
+                socket.send("ok")
+            }else{
+                logger?.warn(marker,"$logtag Received null message")
+                socket.send("fail")
             }
-            // x: send a reply when all handlers finish running
-            socket.send("ok")
+        } catch (e: Exception) {
+            // receiver service must not crash
+            logger?.error(marker,"$logtag Exception: ${e.toString()}")
+            socket.send("fail")
         }
     }
-    override val socketType: SocketType = SocketType.REP
 }

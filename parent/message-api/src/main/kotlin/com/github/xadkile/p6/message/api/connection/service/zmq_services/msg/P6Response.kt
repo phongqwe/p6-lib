@@ -4,19 +4,6 @@ import com.github.xadkile.message.api.proto.P6MsgPM
 import com.google.protobuf.ByteString
 
 
-/*
-message P6ResponseProto{
-  P6MessageHeaderProto header = 1;
-  enum Status{
-      INVALID = 0;
-      OK = 1;
-      ERROR = 2;
-  };
-  Status status = 2;
-  bytes data = 3;
-}
- */
-
 enum class Status{
     INVALID,OK,ERROR;
     companion object{
@@ -29,6 +16,7 @@ enum class Status{
         }
     }
 }
+
 data class P6Response(
     val header:P6MessageHeader,
     val status:Status,
