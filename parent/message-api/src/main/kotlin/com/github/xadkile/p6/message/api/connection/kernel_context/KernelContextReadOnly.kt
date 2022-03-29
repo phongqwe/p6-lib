@@ -9,6 +9,8 @@ import com.github.xadkile.p6.message.api.connection.kernel_context.context_objec
 import com.github.xadkile.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.github.xadkile.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQListenerService
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Response
 import com.github.xadkile.p6.message.api.message.protocol.KernelConnectionFileContent
 import com.github.xadkile.p6.message.api.message.protocol.other.MsgIdGenerator
 import org.zeromq.ZContext
@@ -19,7 +21,7 @@ import org.zeromq.ZContext
  * This is for preventing changing kernel context state by mistake
  */
 interface KernelContextReadOnly {
-    fun getZmqREPService():Result<ZMQListenerService,ErrorReport>
+    fun getZmqREPService():Result<ZMQListenerService<P6Response>,ErrorReport>
 
     fun getKernelConfig(): KernelConfig
 

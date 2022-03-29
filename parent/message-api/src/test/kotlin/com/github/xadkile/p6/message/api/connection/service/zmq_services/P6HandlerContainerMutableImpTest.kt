@@ -1,6 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services
 
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Event
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -8,9 +9,9 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-internal class P6MsgHandlerContainerMutableImpTest {
-    lateinit var container: P6MsgHandlerContainerMutableImp
-    lateinit var containerFilled: P6MsgHandlerContainerMutableImp
+internal class P6HandlerContainerMutableImpTest {
+    lateinit var container: P6HandlerContainerMutableImp<P6Message>
+    lateinit var containerFilled: P6HandlerContainerMutableImp<P6Message>
     val event1 = P6Event("event1", "worksheet_update")
     val event2 = P6Event("event2", "cell_value_update")
     val reactors = listOf(
@@ -25,8 +26,8 @@ internal class P6MsgHandlerContainerMutableImpTest {
 
     @BeforeEach
     fun b() {
-        container = P6MsgHandlerContainerMutableImp()
-        containerFilled = P6MsgHandlerContainerMutableImp()
+        container = P6HandlerContainerMutableImp()
+        containerFilled = P6HandlerContainerMutableImp()
         containerFilled.addHandler(event1, reactors[0])
         containerFilled.addHandler(event1, reactors[1])
         containerFilled.addHandler(event2, reactors[2])

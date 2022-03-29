@@ -18,3 +18,15 @@ message P6MessageProto{
   P6MessageHeaderProto header = 1;
   bytes data = 2;
 }
+
+
+message P6ResponseProto{
+  P6MessageHeaderProto header = 1;
+  enum Status{
+      INVALID = 0;
+      OK = 1;
+      ERROR = 2;
+  };
+  Status status = 2;
+  bytes data = 3;
+}

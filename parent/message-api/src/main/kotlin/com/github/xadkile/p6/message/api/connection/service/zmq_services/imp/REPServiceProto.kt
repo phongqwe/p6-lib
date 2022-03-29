@@ -5,6 +5,7 @@ import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContext
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.AbstractZMQService
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQListenerService
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Response
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.toModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -19,7 +20,7 @@ internal class REPServiceProto(
     coroutineScope: CoroutineScope,
     coroutineDispatcher: CoroutineDispatcher,
     val logger: Logger?=null,
-) : AbstractZMQService(coroutineScope, coroutineDispatcher), ZMQListenerService {
+) : AbstractZMQService<P6Response>(coroutineScope, coroutineDispatcher), ZMQListenerService<P6Response> {
 
     override val socketType: SocketType = SocketType.REP
 
@@ -45,12 +46,12 @@ internal class REPServiceProto(
                 val dataStr = msg.fold(byteArrayOf()){acc,zframe->
                     acc + zframe.data
                 }
-                val p6MsgProto = P6MsgPM.P6MessageProto.newBuilder()
+                val p6MsgProto = P6MsgPM.P6ResponseProto.newBuilder()
                         .mergeFrom(dataStr)
                         .build()
                 logger?.debug(marker,"$logtag proto msg: $p6MsgProto")
 
-                val p6Msg: P6Message = p6MsgProto.toModel()
+                val p6Msg: P6Response = p6MsgProto.toModel()
                 logger?.debug(marker, "$logtag parsed p6 msg: $p6Msg")
                 val handlers = this.getHandlerByMsgType(p6Msg.header.eventType)
                 for (handler in handlers) {

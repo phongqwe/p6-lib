@@ -7,7 +7,7 @@ import org.zeromq.SocketType
 /**
  * A service that listen to message, could be any type of socket.
  */
-interface ZMQListenerService : Service,P6MsgHandlerContainer {
+interface ZMQListenerService<T> : Service,P6HandlerContainer<T> {
     companion object{
         val marker = MarkerFactory.getMarker(ZMQListenerService::class.java.canonicalName)
     }

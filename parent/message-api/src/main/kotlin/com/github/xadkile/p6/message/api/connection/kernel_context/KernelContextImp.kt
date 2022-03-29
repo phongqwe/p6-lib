@@ -17,6 +17,8 @@ import com.github.xadkile.p6.message.api.connection.service.iopub.errors.IOPubSe
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQListenerService
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.imp.REPService
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.imp.REPServiceProto
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Response
 import com.github.xadkile.p6.message.api.message.protocol.KernelConnectionFileContent
 import com.github.xadkile.p6.message.api.message.protocol.other.MsgCounterImp
 import com.github.xadkile.p6.message.api.message.protocol.other.MsgIdGenerator
@@ -72,7 +74,7 @@ class KernelContextImp @Inject internal constructor(
     // x: Context-related services
     private var hbService: HeartBeatService? = null
     private var ioPubService: IOPubListenerService? = null
-    private var zmqREPService:ZMQListenerService? = null
+    private var zmqREPService:ZMQListenerService<P6Response>? = null
 
     // x: events listeners
     private var onBeforeStopListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
@@ -87,8 +89,8 @@ class KernelContextImp @Inject internal constructor(
         )
     }
 
-    override fun getZmqREPService(): Result<ZMQListenerService,ErrorReport> {
-        val sv = getService<ZMQListenerService>(this.zmqREPService, "ZMQ REP listener service")
+    override fun getZmqREPService(): Result<ZMQListenerService<P6Response>,ErrorReport> {
+        val sv = getService<ZMQListenerService<P6Response>>(this.zmqREPService, "ZMQ REP listener service")
         return sv
     }
 

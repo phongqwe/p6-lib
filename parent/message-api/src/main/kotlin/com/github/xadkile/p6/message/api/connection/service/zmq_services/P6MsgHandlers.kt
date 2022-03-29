@@ -1,6 +1,7 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services
 
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Response
 import java.util.*
 
 object P6MsgHandlers {
@@ -8,6 +9,14 @@ object P6MsgHandlers {
         return object : P6MessageHandler {
             override val id: String = UUID.randomUUID().toString()
             override fun handleMessage(msg: P6Message) {
+                handleMsg(msg)
+            }
+        }
+    }
+    fun makeP6ResHandler(handleMsg: (msg: P6Response) -> Unit = {}): P6ResponseHandler {
+        return object : P6ResponseHandler {
+            override val id: String = UUID.randomUUID().toString()
+            override fun handleMessage(msg: P6Response) {
                 handleMsg(msg)
             }
         }

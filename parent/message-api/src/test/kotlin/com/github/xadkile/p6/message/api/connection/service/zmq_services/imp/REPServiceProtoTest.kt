@@ -5,6 +5,7 @@ import com.github.xadkile.message.api.proto.P6MsgPM.*
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MsgHandlers
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Event
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Response
 import com.github.xadkile.p6.test.utils.TestOnJupyter
 import com.google.protobuf.ByteString
 import kotlinx.coroutines.Dispatchers
@@ -25,8 +26,8 @@ internal class REPServiceProtoTest : TestOnJupyter() {
             val sv = REPServiceProto(kernelContext, GlobalScope, Dispatchers.IO)
             sv.start()
             var x = 0
-            var parsedMsg: P6Message? = null
-            val handler = P6MsgHandlers.makeHandler { msg: P6Message ->
+            var parsedMsg: P6Response? = null
+            val handler = P6MsgHandlers.makeP6ResHandler { msg: P6Response ->
                 x += 1
                 parsedMsg = msg
             }
@@ -53,7 +54,7 @@ internal class REPServiceProtoTest : TestOnJupyter() {
             assertEquals(cellEvent, parsedMsg?.header?.eventType)
             assertEquals(
                 """{"value": "cell value", "script": "cell script"}}""".trimIndent(),
-                parsedMsg?.content?.data
+                parsedMsg?.data
             )
             println(parsedMsg)
             val stopRs = sv.stop()

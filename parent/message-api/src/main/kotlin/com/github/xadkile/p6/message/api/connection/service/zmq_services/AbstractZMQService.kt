@@ -7,11 +7,11 @@ import kotlinx.coroutines.*
 import org.zeromq.ZMQ
 import java.net.ServerSocket
 
-abstract class AbstractZMQService(
+abstract class AbstractZMQService<T>(
     protected val coroutineScope: CoroutineScope,
     protected val coroutineDispatcher: CoroutineDispatcher,
-    protected val handlerContainer:P6MsgHandlerContainer = P6MsgHandlerContainerMutableImp()
-) : ZMQListenerService, P6MsgHandlerContainer by handlerContainer{
+    protected val handlerContainer:P6HandlerContainer<T> = P6HandlerContainerMutableImp()
+) : ZMQListenerService<T>, P6HandlerContainer<T> by handlerContainer{
 
     var job: Job? = null
 

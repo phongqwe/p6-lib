@@ -5,6 +5,7 @@ import com.github.michaelbull.result.Result
 import com.github.xadkile.p6.common.exception.error.ErrorReport
 import com.github.xadkile.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.AbstractZMQService
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.P6MessageHandler
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.ZMQListenerService
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
 import com.github.xadkile.p6.message.api.message.protocol.ProtocolUtils
@@ -17,7 +18,7 @@ internal class REPService (
     private val kernelContext: KernelContextReadOnly,
     coroutineScope: CoroutineScope,
     coroutineDispatcher: CoroutineDispatcher,
-) : AbstractZMQService(coroutineScope,coroutineDispatcher), ZMQListenerService {
+) : AbstractZMQService<P6Message>(coroutineScope,coroutineDispatcher), ZMQListenerService<P6Message> {
 
     override fun makeSocket(): ZMQ.Socket {
         val zcontext = kernelContext.zContext()

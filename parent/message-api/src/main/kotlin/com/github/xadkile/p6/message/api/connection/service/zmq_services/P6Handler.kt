@@ -1,8 +1,9 @@
 package com.github.xadkile.p6.message.api.connection.service.zmq_services
 
 import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Message
+import com.github.xadkile.p6.message.api.connection.service.zmq_services.msg.P6Response
 
-interface P6MessageHandler : P6Handler<P6Message>{
-//    val id:String
-//    fun handleMessage(msg:P6Message)
+interface P6Handler<T> {
+    val id:String
+    fun handleMessage(t:T)
 }
