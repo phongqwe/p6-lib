@@ -26,7 +26,7 @@ object Sleeper {
         }else{
             return Err(
                 ErrorReport(
-                type =  CommonErrors.TimeOut,
+                header =  CommonErrors.TimeOut,
                 data = CommonErrors.TimeOut.Data("timeout in Sleeper.delay()")
             )
             )

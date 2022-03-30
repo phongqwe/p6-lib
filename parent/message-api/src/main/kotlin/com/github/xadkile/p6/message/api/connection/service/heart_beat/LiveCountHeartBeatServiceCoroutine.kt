@@ -82,7 +82,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
             job?.cancel()
 //            this.bluntJoinStop()
             val report = ErrorReport(
-                type = CommonErrors.TimeOut,
+                header = CommonErrors.TimeOut,
                 data = CommonErrors.TimeOut.Data("Time out when trying to start IOPub service")
             )
             return Err(report)
@@ -98,7 +98,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
         val loc = "${this.javaClass.canonicalName}:waitTillLive"
         val rt = waitRs.mapError {
             ErrorReport(
-                type = CommonErrors.TimeOut,
+                header = CommonErrors.TimeOut,
                 data = CommonErrors.TimeOut.Data("Time out when trying to start heart beat service"),
                 loc = loc
             )
@@ -112,7 +112,7 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
 
         val rt2 = waitRs2.mapError {
             ErrorReport(
-                type = HBServiceErrors.CantStartHBService,
+                header = HBServiceErrors.CantStartHBService,
                 data = HBServiceErrors.CantStartHBService.Data("Time out when waiting for HB to come live"),
                 loc = loc
             )
@@ -154,21 +154,21 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
                     return Ok(Unit)
                 } else {
                     val report = ErrorReport(
-                        type = CommonErrors.Unknown,
+                        header = CommonErrors.Unknown,
                         data = CommonErrors.Unknown.Data("output of heartbeat zmq channel is null", null)
                     )
                     return Err(report)
                 }
             } else {
                 val report = ErrorReport(
-                    type = CommonErrors.Unknown,
+                    header = CommonErrors.Unknown,
                     data = CommonErrors.Unknown.Data("not receiving heart beat signal", null)
                 )
                 return Err(report)
             }
         } catch (e: Exception) {
             val report = ErrorReport(
-                type = CommonErrors.ExceptionError,
+                header = CommonErrors.ExceptionError,
                 data = CommonErrors.ExceptionError.Data(e)
             )
             return Err(report)

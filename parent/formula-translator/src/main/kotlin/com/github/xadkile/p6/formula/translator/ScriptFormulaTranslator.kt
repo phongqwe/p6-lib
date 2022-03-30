@@ -31,7 +31,7 @@ class ScriptFormulaTranslator : FormulaTranslator {
             return Ok(rt.trim())
         }else {
             val report = ErrorReport(
-                type = TranslatorErrors.NotAScriptCall,
+                header = TranslatorErrors.NotAScriptCall,
                 data = TranslatorErrors.NotAScriptCall.Data(formula)
             )
             return Err(report)

@@ -19,7 +19,6 @@ import com.github.xadkile.p6.message.api.message.sender.exception.SenderErrors
 import com.github.xadkile.p6.message.api.message.sender.shell.ExecuteReply
 import com.github.xadkile.p6.message.api.message.sender.shell.ExecuteRequest
 import com.github.xadkile.p6.message.api.other.Sleeper
-import kotlinx.coroutines.CoroutineDispatcher
 
 typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>
 
@@ -46,7 +45,7 @@ class CodeExecutionSender internal constructor(
 
         if (kernelContext.isKernelNotRunning()) {
             val report = ErrorReport(
-                type = KernelErrors.KernelDown,
+                header = KernelErrors.KernelDown,
                 data = KernelErrors.KernelDown.Data(""),
                 loc = "${this.javaClass.canonicalName}.send"
             )
@@ -70,7 +69,7 @@ class CodeExecutionSender internal constructor(
 
         if (ioPubListenerService.isNotRunning()) {
             return Err(ErrorReport(
-                type = IOPubServiceErrors.IOPubServiceNotRunning,
+                header = IOPubServiceErrors.IOPubServiceNotRunning,
                 data = IOPubServiceErrors.IOPubServiceNotRunning.Data("occur at ${this.javaClass.canonicalName}.send"),
                 loc = "${this.javaClass.canonicalName}.send"
             ))
@@ -102,7 +101,7 @@ class CodeExecutionSender internal constructor(
                 val receivedMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
                 if (receivedMsg.parentHeader == message.header) {
                     val report = ErrorReport(
-                        type = SenderErrors.CodeError,
+                        header = SenderErrors.CodeError,
                         data = SenderErrors.CodeError.Data(receivedMsg.content),
                     )
                     rt = Err(report)
@@ -128,21 +127,21 @@ class CodeExecutionSender internal constructor(
                 }
                 MsgStatus.ERROR -> {
                     val report = ErrorReport(
-                        type = SenderErrors.CodeError,
+                        header = SenderErrors.CodeError,
                         data = SenderErrors.CodeError.Data(content),
                     )
                     rt = Err(report)
                 }
                 MsgStatus.ABORTED -> {
                     val report = ErrorReport(
-                        type = SenderErrors.CodeError,
+                        header = SenderErrors.CodeError,
                         data = SenderErrors.CodeError.Data(content),
                     )
                     rt = Err(report)
                 }
                 else -> {
                     val report = ErrorReport(
-                        type = CommonErrors.Unknown,
+                        header = CommonErrors.Unknown,
                         data = CommonErrors.Unknown.Data("Unknown error when executing code", null)
                     )
                     rt = Err(report)
@@ -175,7 +174,7 @@ class CodeExecutionSender internal constructor(
             SendingState.DoneButNoResult -> Ok(null)
             SendingState.KernelDieMidway -> {
                 val report = ErrorReport(
-                    type = KernelErrors.KernelDown,
+                    header = KernelErrors.KernelDown,
                     data = KernelErrors.KernelDown.Data("Kernel is killed before result is returned"),
                     loc = "${this.javaClass.canonicalName}.send"
                 )
@@ -183,7 +182,7 @@ class CodeExecutionSender internal constructor(
             }
             else -> Err(
                 ErrorReport(
-                    type = SenderErrors.InvalidSendState,
+                    header = SenderErrors.InvalidSendState,
                     data = SenderErrors.InvalidSendState.Data(state)
                 )
             )

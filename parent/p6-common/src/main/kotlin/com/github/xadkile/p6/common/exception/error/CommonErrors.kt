@@ -5,25 +5,25 @@ object CommonErrors {
 
     /**
      */
-    object TimeOut : ErrorType("${prefix}1","Timeout"){
+    object TimeOut : ErrorHeader("${prefix}1","Timeout"){
         data class Data(val detail:String)
     }
 
     /**
      * For reporting unknown exception
      */
-    object Unknown : ErrorType("${prefix}2","Unknown error"){
+    object Unknown : ErrorHeader("${prefix}2","Unknown error"){
         data class Data(val additionalInfo:String, val exception:Exception?)
     }
 
     /**
      * this error indicates that an exception was caught
      */
-    object ExceptionError : ErrorType("${prefix}3","Exception error"){
+    object ExceptionError : ErrorHeader("${prefix}3","Exception error"){
         data class Data(val exception:Exception)
     }
 
-    object MultipleErrors: ErrorType("$prefix 3","Multiple errors"){
+    object MultipleErrors: ErrorHeader("$prefix 3","Multiple errors"){
         data class Data(val errorList:List<ErrorReport>)
     }
 }

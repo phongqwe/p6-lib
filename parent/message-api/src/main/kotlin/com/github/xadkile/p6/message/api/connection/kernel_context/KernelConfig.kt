@@ -30,7 +30,7 @@ data class KernelConfig constructor(private val launchCmd:List<String>,
             }catch (e:IOException){
                 return Err(
                     ErrorReport(
-                    type = KernelErrors.CantCreateKernelConfig,
+                    header = KernelErrors.CantCreateKernelConfig,
                     data=KernelErrors.CantCreateKernelConfig.Data(e),
                 )
                 )

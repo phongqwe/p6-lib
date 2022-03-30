@@ -79,7 +79,7 @@ class PythonFormulaTranslator : FormulaTranslator {
 
             if(parserErrorData!=null || lexerErrData!=null){
                 return Err(ErrorReport(
-                    type= TranslatorErrors.TranslatingErr,
+                    header= TranslatorErrors.TranslatingErr,
                     data = TranslatorErrors.TranslatingErr.Data(
                         lexerErr = lexerErrData,
                         parserErr = parserErrorData

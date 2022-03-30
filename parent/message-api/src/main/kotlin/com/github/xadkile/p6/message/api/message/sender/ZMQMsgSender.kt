@@ -75,7 +75,7 @@ internal class ZMQMsgSender {
                     } else {
                         return Err(
                             ErrorReport(
-                                type = CommonErrors.TimeOut,
+                                header = CommonErrors.TimeOut,
                                 data = CommonErrors.TimeOut.Data(""),
                                 loc = ""
                             )
@@ -83,14 +83,14 @@ internal class ZMQMsgSender {
                     }
                 } else {
                     val report = ErrorReport(
-                        type = SenderErrors.UnableToQueueZMsg,
+                        header = SenderErrors.UnableToQueueZMsg,
                         data = SenderErrors.UnableToQueueZMsg.Data(zmsg)
                     )
                     return Err(report)
                 }
             } else {
                 val report = ErrorReport(
-                    type = HBServiceErrors.HBIsDead,
+                    header = HBServiceErrors.HBIsDead,
                     data = HBServiceErrors.HBIsDead.Data("ZMQMsgSender can't send msg because hb service is not running")
                 )
                 return Err(report)
@@ -130,14 +130,14 @@ internal class ZMQMsgSender {
 
                 } else {
                     val report = ErrorReport(
-                        type = SenderErrors.UnableToQueueZMsg,
+                        header = SenderErrors.UnableToQueueZMsg,
                         data = SenderErrors.UnableToQueueZMsg.Data(zmsg)
                     )
                     return Err(report)
                 }
             } else {
                 val report = ErrorReport(
-                    type = HBServiceErrors.HBIsDead,
+                    header = HBServiceErrors.HBIsDead,
                     data = HBServiceErrors.HBIsDead.Data("ZMQMsgSender can't send msg because hb service is not running")
                 )
                 return Err(report)

@@ -82,7 +82,7 @@ internal class JPRawMessageTest {
         val facade = JPRawMessage.fromPayload(payload)
         assertTrue(facade is Err)
         facade.onFailure {
-            assertTrue(it.type is MsgProtocolErrors.InvalidPayloadSizeError)
+            assertTrue(it.header is MsgProtocolErrors.InvalidPayloadSizeError)
         }
     }
 
@@ -102,7 +102,7 @@ internal class JPRawMessageTest {
         val facade = JPRawMessage.fromPayload(payload)
         assertTrue(facade is Err)
         facade.onFailure {
-            assertTrue(it.type is MsgProtocolErrors.DelimiterNotFound)
+            assertTrue(it.header is MsgProtocolErrors.DelimiterNotFound)
         }
     }
 

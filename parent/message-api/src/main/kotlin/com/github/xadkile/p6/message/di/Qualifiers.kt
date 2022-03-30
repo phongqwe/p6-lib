@@ -4,7 +4,7 @@ import javax.inject.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
-annotation class ServiceLogger
+annotation class RepServiceLogger
 
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)

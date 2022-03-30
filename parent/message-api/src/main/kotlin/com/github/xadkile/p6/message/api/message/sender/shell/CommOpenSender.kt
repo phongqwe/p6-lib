@@ -18,7 +18,7 @@ class CommOpenSender(
 ) : MsgSender<CommOpenRequest, Result<Unit, ErrorReport>> {
     override suspend fun send(message: CommOpenRequest): Result<Unit, ErrorReport> {
         if (this.kernelContext.isKernelNotRunning()) {
-            return Err(ErrorReport(type = KernelErrors.KernelDown,
+            return Err(ErrorReport(header = KernelErrors.KernelDown,
                 data = KernelErrors.KernelDown.Data(""),
                 loc = "${this.javaClass.canonicalName}.send"))
         }

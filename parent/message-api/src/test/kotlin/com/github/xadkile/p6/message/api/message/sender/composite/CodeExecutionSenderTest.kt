@@ -196,7 +196,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 ): Result<ExecuteReply, ErrorReport> {
                     return Err(
                         ErrorReport(
-                        type = SenderErrors.UnableToSendMsg,
+                        header = SenderErrors.UnableToSendMsg,
                         data = SenderErrors.UnableToSendMsg.Data(message)
                     )
                     )
@@ -213,7 +213,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             val sender = CodeExecutionSender(mockContext)
             val o = sender.send(message)
             assertTrue(o is Err, o.toString())
-            assertTrue(o.unwrapError().type is SenderErrors.UnableToSendMsg)
+            assertTrue(o.unwrapError().header is SenderErrors.UnableToSendMsg)
         }
     }
 
@@ -223,7 +223,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         val sender = CodeExecutionSender(kernelContext)
         val o = sender.send(message)
         assertTrue(o is Err)
-        assertTrue((o.unwrapError().type) is KernelErrors.KernelDown,"should return the correct exception")
+        assertTrue((o.unwrapError().header) is KernelErrors.KernelDown,"should return the correct exception")
     }
 
     @Test
@@ -241,7 +241,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
         val sender = CodeExecutionSender(mockContext)
         val o = sender.send(message)
         assertTrue(o is Err)
-        assertTrue((o.unwrapError().type) is IOPubServiceErrors.IOPubServiceNotRunning,"should return the correct exception")
+        assertTrue((o.unwrapError().header) is IOPubServiceErrors.IOPubServiceNotRunning,"should return the correct exception")
     }
 
     @Test

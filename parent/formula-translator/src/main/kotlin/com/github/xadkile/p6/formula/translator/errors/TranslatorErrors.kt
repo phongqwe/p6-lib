@@ -1,19 +1,19 @@
 package com.github.xadkile.p6.formula.translator.errors
 
-import com.github.xadkile.p6.common.exception.error.ErrorType
+import com.github.xadkile.p6.common.exception.error.ErrorHeader
 import org.antlr.v4.runtime.RecognitionException
 import org.antlr.v4.runtime.Recognizer
 
 object TranslatorErrors {
     private const val prefix = "Translator Error "
-    object TranslatingErr: ErrorType("${prefix}0", "translating error") {
+    object TranslatingErr: ErrorHeader("${prefix}0", "translating error") {
         class Data(
             val lexerErr:LexerErr.Data?,
             val parserErr:ParserErr.Data?,
         )
     }
 
-    object ParserErr : ErrorType("${prefix}1", "parser error") {
+    object ParserErr : ErrorHeader("${prefix}1", "parser error") {
         class Data(
             val formula: String,
             val recognizer: Recognizer<*, *>?,
@@ -24,7 +24,7 @@ object TranslatorErrors {
             val recognitionException: RecognitionException?,
         )
     }
-    object LexerErr : ErrorType("${prefix}2", "lexer error") {
+    object LexerErr : ErrorHeader("${prefix}2", "lexer error") {
         class Data(
             val formula: String,
             val recognizer: Recognizer<*, *>?,
@@ -36,7 +36,7 @@ object TranslatorErrors {
         )
     }
 
-    object NotAScriptCall : ErrorType("${prefix}2","input is not a =SCRIPT() call"){
+    object NotAScriptCall : ErrorHeader("${prefix}2","input is not a =SCRIPT() call"){
         class Data(val formula:String)
     }
 }

@@ -9,7 +9,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import org.slf4j.Logger
 import org.zeromq.ZContext
-import javax.inject.Singleton
 
 
 @Component(modules = [KernelContextModule::class])
@@ -32,7 +31,7 @@ interface MessageApiComponent {
         fun networkServiceCoroutineDispatcher(dispatcher:CoroutineDispatcher):Builder
 
         @BindsInstance
-        fun serviceLogger(@ServiceLogger logger:Logger?=null):Builder
+        fun serviceLogger(@RepServiceLogger logger:Logger?=null):Builder
 
         @BindsInstance
         fun msgApiCommonLogger(@MsgApiCommonLogger logger:Logger?=null):Builder
