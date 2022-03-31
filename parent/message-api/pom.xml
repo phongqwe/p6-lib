@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>parent</artifactId>
-        <groupId>com.github.xadkile.p6</groupId>
+        <groupId>com.emeraldblast.p6</groupId>
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,7 +13,12 @@
     <description>api for communicating with kernel using zmq</description>
     <dependencies>
         <dependency>
-            <groupId>com.github.xadkile.p6</groupId>
+            <groupId>com.emeraldblast.p6</groupId>
+            <artifactId>p6-proto</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.emeraldblast.p6</groupId>
             <artifactId>p6-common</artifactId>
         </dependency>
         <dependency>
@@ -45,13 +50,4 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.xolstice.maven.plugins</groupId>
-                <artifactId>protobuf-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>

@@ -1,0 +1,61 @@
+package com.emeraldblast.p6.message.api.connection.service.zmq_services.msg
+
+import com.emeraldblast.p6.proto.P6MsgPM
+import com.google.protobuf.ByteString
+
+data class P6Event(val code: String, val name: String){
+    override fun equals(other: Any?): Boolean {
+        if(other != null && other is P6Event){
+            return this.code == other.code
+        }
+        return false
+    }
+
+    override fun hashCode(): Int {
+        return this.code.hashCode()
+    }
+}
+
+data class P6MessageHeader(val msgId: String, val eventType: P6Event) {
+    fun toProto(): P6MsgPM.P6MessageHeaderProto {
+        val eventType = P6MsgPM.P6EventProto.newBuilder()
+            .setCode(this.eventType.code)
+            .setName(this.eventType.name)
+            .build()
+        return P6MsgPM.P6MessageHeaderProto.newBuilder()
+            .setEventType(eventType)
+            .setMsgId(msgId)
+            .build()
+    }
+}
+
+fun P6MsgPM.P6MessageHeaderProto.toModel(): P6MessageHeader {
+    return P6MessageHeader(
+        msgId = msgId,
+        eventType = eventType.toModel(),
+    )
+}
+
+fun P6MsgPM.P6EventProto.toModel():P6Event{
+    return P6Event(
+        code = code,
+        name = name,
+    )
+}
+
+
+data class P6Message(val header: P6MessageHeader, val data: ByteString) {
+    fun toProto(): P6MsgPM.P6MessageProto {
+        return P6MsgPM.P6MessageProto.newBuilder()
+            .setHeader(header.toProto())
+            .setData(data)
+            .build()
+    }
+}
+
+fun P6MsgPM.P6MessageProto.toModel(): P6Message {
+    return P6Message(
+        header = header.toModel(),
+        data = data
+    )
+}
