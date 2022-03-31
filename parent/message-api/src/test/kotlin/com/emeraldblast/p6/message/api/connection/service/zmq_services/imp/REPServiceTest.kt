@@ -11,15 +11,31 @@ import com.google.protobuf.ByteString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class REPServiceTest : TestOnJupyter() {
     val cellEvent = P6Event("code","cell_value_update")
+
+
+    @BeforeEach
+    fun beforeEach(){
+        this.setUp()
+        runBlocking {
+            kernelContext.startAll()
+        }
+    }
+
+    @AfterEach
+    fun afterEach(){
+        runBlocking {
+            kernelContext.stopAll()
+        }
+    }
+
     @Test
     fun testStandardFlow() {
         runBlocking {
@@ -37,7 +53,7 @@ internal class REPServiceTest : TestOnJupyter() {
             val sendSocket = kernelContext.zContext().createSocket(SocketType.REQ)
             sendSocket.connect("tcp://localhost:${sv.zmqPort}")
 
-            val msgProto = P6MsgPM.P6MessageProto.newBuilder()
+            val msgProto = P6MsgPM.P6ResponseProto.newBuilder()
                 .setHeader(P6MsgPM.P6MessageHeaderProto.newBuilder()
                     .setMsgId("id1")
                     .setEventType(P6MsgPM.P6EventProto.newBuilder().setCode(cellEvent.code).setName(cellEvent.name).build())
@@ -53,7 +69,7 @@ internal class REPServiceTest : TestOnJupyter() {
             assertEquals("id1", parsedMsg?.header?.msgId)
             assertEquals(cellEvent, parsedMsg?.header?.eventType)
             assertEquals(
-                """{"value": "cell value", "script": "cell script"}}""".trimIndent(),
+                ByteString.copyFrom("""{"value": "cell value", "script": "cell script"}}""",Charsets.UTF_8),
                 parsedMsg?.data
             )
             println(parsedMsg)

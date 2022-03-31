@@ -57,7 +57,6 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
                         }
                         if(needReConnect){
                             // attempt to re-reconnect to new heartbeat channel
-                            socket.close()
                             poller.close()
                             val socketRs2 = kernelContext.getSocketProvider().map { it.heartBeatSocket() }
                             if(socketRs2 is Ok){
@@ -68,7 +67,6 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
                         }
                     }
                 }
-                socket.close()
             }else{
                 skipErr= socketRs.getError()
               this.cancel()
@@ -80,7 +78,6 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
         val rt = this.waitTillLive()
         if (rt is Err) {
             job?.cancel()
-//            this.bluntJoinStop()
             val report = ErrorReport(
                 header = CommonErrors.TimeOut,
                 data = CommonErrors.TimeOut.Data("Time out when trying to start IOPub service")
@@ -148,7 +145,6 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
             poller.poll(pollTimeOut)
             val o = poller.pollin(0)
             if (o) {
-//                val output = hbSocket.recv(ZMQ.DONTWAIT)
                 val output = hbSocket.recv()
                 if (output != null) {
                     return Ok(Unit)
@@ -184,18 +180,16 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
 
     override fun stop(): Result<Unit, ErrorReport> {
         if (this.isServiceRunning()) {
-            this.bluntStop2()
+            this.bluntStop()
         }
         return Ok(Unit)
     }
 
-    private fun bluntStop2() {
+    private fun bluntStop() {
         job?.cancel()
-//        this.job = null
     }
 
     private suspend fun bluntJoinStop() {
         job?.cancelAndJoin()
-//        this.job = null
     }
 }

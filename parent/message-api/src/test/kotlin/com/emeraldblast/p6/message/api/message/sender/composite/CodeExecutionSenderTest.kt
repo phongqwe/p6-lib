@@ -34,16 +34,10 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
 
     lateinit var ioPubService: IOPubListenerServiceImpl
 
-    @AfterEach
-    fun afterEach() {
-        runBlocking {
-            ioPubService.stop()
-        }
-    }
-
     @BeforeEach
-    fun beforeEach() {
-        runBlocking{
+    fun beforeEach(){
+        this.setUp()
+        runBlocking {
             kernelContext.startAll()
             ioPubService = IOPubListenerServiceImpl(
                 kernelContext = kernelContext,
@@ -61,6 +55,15 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             ioPubService.start()
         }
     }
+
+    @AfterEach
+    fun afterEach(){
+        runBlocking {
+            kernelContext.stopAll()
+            ioPubService.stop()
+        }
+    }
+
 
     val message: ExecuteRequest = ExecuteRequest.autoCreate(
         sessionId = "session_id",

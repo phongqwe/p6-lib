@@ -18,17 +18,18 @@ internal data class SomeData(val x: Int = 1)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class CommOpenSenderTest : TestOnJupyter() {
 
-    @AfterEach
-    fun afterEach() {
+    @BeforeEach
+    fun beforeEach(){
+        this.setUp()
         runBlocking {
-            kernelContext.stopAll()
+            kernelContext.startAll()
         }
     }
 
-    @BeforeEach
-    fun beforeEach() {
+    @AfterEach
+    fun afterEach(){
         runBlocking {
-            kernelContext.startAll()
+            kernelContext.stopAll()
         }
     }
 

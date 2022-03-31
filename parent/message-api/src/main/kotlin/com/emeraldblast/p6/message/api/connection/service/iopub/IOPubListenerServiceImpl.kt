@@ -59,7 +59,6 @@ class IOPubListenerServiceImpl internal constructor(
                 while (isActive) {
                     // x: this listener is passive, so it can start listening when the kernel is up, no need to wait for heartbeat service
                     if (kernelContext.isKernelRunning()) {
-//                        val msg = ZMsg.recvMsg(it, ZMQ.DONTWAIT)
                         val msg = ZMsg.recvMsg(it)
                         if (msg != null) {
                             val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
@@ -80,7 +79,6 @@ class IOPubListenerServiceImpl internal constructor(
         }
         val waitRs = Sleeper.delayUntil(10, startTimeOut) { this.isRunning() }
         if(waitRs is Err){
-//            this.bluntStop()
             this.job?.cancel()
             val report = ErrorReport(
                 header= IOPubServiceErrors.CantStartIOPubServiceTimeOut,

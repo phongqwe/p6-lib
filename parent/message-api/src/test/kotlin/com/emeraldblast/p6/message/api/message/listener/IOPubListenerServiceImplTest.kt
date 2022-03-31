@@ -18,8 +18,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.SocketType
@@ -29,6 +31,20 @@ import kotlin.test.assertFalse
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IOPubListenerServiceImplTest : TestOnJupyter() {
+    @BeforeEach
+    fun beforeEach(){
+        this.setUp()
+        runBlocking {
+            kernelContext.startAll()
+        }
+    }
+
+    @AfterEach
+    fun afterEach(){
+        runBlocking {
+            kernelContext.stopAll()
+        }
+    }
 
     fun okMesg(): ExecuteRequest {
         val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
@@ -76,7 +92,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
         val listener1 = IOPubListenerServiceImpl(
             kernelContext = kernelContext,
             externalScope = GlobalScope,
-            dispatcher = Dispatchers.Default
+            dispatcher = Dispatchers.IO
         )
 
         listener1.addHandler(
@@ -91,11 +107,12 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
         )
 
         listener1.start()
+        assertTrue(listener1.isRunning(), "listener 1 should be running")
 
         val listener2 = IOPubListenerServiceImpl(
             kernelContext = kernelContext,
             externalScope = GlobalScope,
-            dispatcher = Dispatchers.Default
+            dispatcher = Dispatchers.IO
         )
 
         listener2.addHandler(
@@ -110,10 +127,9 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
         )
 
         listener2.start()
-
-        assertTrue(listener1.isRunning(), "listener should be running")
+        assertTrue(listener2.isRunning(), "listener 2 should be running")
         // rmd: send message
-        val limit = 1000
+        val limit = 30
         for (x in 0 until limit) {
             val okMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
@@ -179,7 +195,6 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
 
         listener.start()
 
-//        Sleeper.waitUntil { listener.isRunning() }
         // p: send a malformed message that cannot be parse by the listener
         pubSocket.send("malformed", 0)
 
@@ -202,7 +217,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
                 defaultHandlerTriggeredCount++
             },
             externalScope = GlobalScope,
-            dispatcher = Dispatchers.Default
+            dispatcher = Dispatchers.IO
         ).also {
             it.addHandler(MsgHandlers.withUUID(
                 msgType = MsgType.Control_shutdown_reply,
@@ -225,11 +240,10 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     fun fullLifeCycle() {
         runBlocking {
             val handlerWasTriggered = AtomicInteger(0)
-//            val service = kernelContext.getIOPubListenerService().unwrap()
             val service = IOPubListenerServiceImpl(
                 kernelContext = kernelContext,
                 externalScope = GlobalScope,
-                dispatcher = Dispatchers.Default
+                dispatcher = Dispatchers.IO
             )
             service.addHandler(
                 MsgHandlers.withUUID(MsgType.IOPub_execute_result) { msg: JPRawMessage ->
@@ -238,12 +252,9 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
                     handlerWasTriggered.incrementAndGet()
                 }
             )
-//
             val startRs = service.start()
             assertTrue(startRs is Ok, startRs.toString())
             assertTrue(service.isRunning(), "listener should be running")
-//
-//            // x: send message
             kernelContext.getSenderProvider().unwrap().executeRequestSender().also {
                 it.send(okMesg())
             }
@@ -252,10 +263,6 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
             assertFalse(service.isRunning(), "listener should be stopped")
             delay(300)
             assertEquals(1, handlerWasTriggered.get(), "handler should be triggered exactly once")
-//            kernelContext.stopAll()
-//            kernelContext.getKernelProcess().map { println(it.isAlive) }.onFailure {
-//                println("Process Already stop")
-//            }
         }
         println("END")
     }

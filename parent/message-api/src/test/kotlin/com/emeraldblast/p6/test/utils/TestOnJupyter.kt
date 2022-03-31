@@ -15,28 +15,12 @@ import org.zeromq.ZContext
 abstract class TestOnJupyter {
     lateinit var ipythonConfig: KernelConfig
     lateinit var kernelContext: KernelContext
-    lateinit var iPythonContextConv: KernelContextReadOnly
     lateinit var zcontext: ZContext
 
-    @BeforeAll
-    open fun beforeAll() {
+
+    fun setUp(){
         this.zcontext = ZContext()
         this.ipythonConfig = TestResources.kernelConfigForTest()
         this.kernelContext = KernelContextImp(this.ipythonConfig, zcontext, GlobalScope, Dispatchers.IO)
-        this.iPythonContextConv = this.kernelContext
-        runBlocking {
-            kernelContext.startAll()
-        }
-    }
-    @AfterAll
-    fun afterAll(){
-        runBlocking {
-            kernelContext.stopAll()
-        }
-    }
-
-    fun newKernelContext():KernelContext{
-        val rt = KernelContextImp(this.ipythonConfig, zcontext, GlobalScope, Dispatchers.IO)
-        return rt
     }
 }

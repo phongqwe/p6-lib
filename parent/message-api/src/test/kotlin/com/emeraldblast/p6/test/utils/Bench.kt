@@ -11,7 +11,7 @@ import kotlin.system.measureTimeMillis
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class Bench : TestOnJupyter() {
+class Bench {
     @Test
     fun nonBlockingEg(){
     }

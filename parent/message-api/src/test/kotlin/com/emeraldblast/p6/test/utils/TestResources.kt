@@ -18,8 +18,6 @@ class TestResources {
                 return o
             }
         }
-
-        fun defaultIPythonProcessCmd():List<String> = kernelConfigForTest().makeCompleteLaunchCmmd()
         fun dummyProcessCmd(count:Int) = listOf("java","-jar","dummy_process.jar",count.toString())
     }
 }

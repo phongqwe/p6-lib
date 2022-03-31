@@ -204,11 +204,6 @@ class KernelContextImp @Inject internal constructor(
                 return ioPubStartRs
             }
 
-//            val zmqREPService = REPService(
-//                kernelContext = this,
-//                coroutineScope = this.appCScope,
-//                coroutineDispatcher = this.networkServiceDispatcher
-//            )
             val zmqREPService = REPService(
                 kernelContext = this,
                 coroutineScope = this.appCScope,
@@ -349,6 +344,7 @@ class KernelContextImp @Inject internal constructor(
         this.msgCounter = null
         this.senderProvider = null
         this.socketFactory = null
+//        this.zcontext.close()
     }
 
     override fun getKernelProcess(): Result<Process, ErrorReport> {

@@ -14,7 +14,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import java.util.concurrent.atomic.AtomicInteger
@@ -22,7 +24,20 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
+    @BeforeEach
+    fun beforeEach(){
+        this.setUp()
+        runBlocking {
+            kernelContext.startAll()
+        }
+    }
 
+    @AfterEach
+    fun afterEach(){
+        runBlocking {
+            kernelContext.stopAll()
+        }
+    }
 
     @Test
     fun errMsg() {

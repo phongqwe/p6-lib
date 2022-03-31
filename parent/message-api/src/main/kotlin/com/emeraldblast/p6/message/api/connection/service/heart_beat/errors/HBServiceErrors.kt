@@ -3,7 +3,7 @@ package com.emeraldblast.p6.message.api.connection.service.heart_beat.errors
 import com.emeraldblast.p6.common.exception.error.ErrorHeader
 
 object HBServiceErrors {
-    private const val prefix = "Heart Beat Service error "
+    private const val prefix = "HBErr "
     object CantStartHBService : ErrorHeader("${prefix}1", "Can't start heart beat service"){
         class Data (val additionalInfo:String)
     }
