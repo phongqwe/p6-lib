@@ -15,7 +15,7 @@ class DITest {
             val component = DaggerMessageApiComponent
                 .builder()
                 .kernelConfig(TestResources.kernelConfigForTest())
-                .applicationCoroutineScope(GlobalScope)
+                .kernelCoroutineScope(GlobalScope)
                 .networkServiceCoroutineDispatcher(Dispatchers.IO)
                 .build()
 

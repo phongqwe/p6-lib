@@ -5,7 +5,7 @@ import com.emeraldblast.p6.message.api.connection.service.zmq_services.AbstractZ
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.ZMQListenerService
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Response
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.toModel
-import com.emeraldblast.p6.proto.P6MsgPM
+import com.emeraldblast.p6.proto.P6MsgProtos
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import org.slf4j.Logger
@@ -48,7 +48,7 @@ internal class REPService(
                     acc + zframe.data
                 }
                 repServiceLogger?.info(marker,"bytes received: $dataBytes")
-                val p6MsgProto = P6MsgPM.P6ResponseProto.newBuilder()
+                val p6MsgProto = P6MsgProtos.P6ResponseProto.newBuilder()
                         .mergeFrom(dataBytes)
                         .build()
                 logger.debug(marker,"proto obj: $p6MsgProto")

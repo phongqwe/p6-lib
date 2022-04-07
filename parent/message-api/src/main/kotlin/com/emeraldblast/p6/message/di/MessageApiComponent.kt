@@ -1,8 +1,8 @@
 package com.emeraldblast.p6.message.di
 
-import com.emeraldblast.p6.message.api.connection.kernel_context.ApplicationCoroutineScope
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelConfig
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContext
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelCoroutineScope
 import dagger.BindsInstance
 import dagger.Component
 import kotlinx.coroutines.CoroutineDispatcher
@@ -25,7 +25,7 @@ interface MessageApiComponent {
         fun kernelConfig(config: KernelConfig):Builder
 
         @BindsInstance
-        fun applicationCoroutineScope( @ApplicationCoroutineScope scope:CoroutineScope):Builder
+        fun kernelCoroutineScope(@KernelCoroutineScope scope:CoroutineScope):Builder
 
         @BindsInstance
         fun networkServiceCoroutineDispatcher(dispatcher:CoroutineDispatcher):Builder

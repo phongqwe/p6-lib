@@ -7,4 +7,4 @@ import javax.inject.Qualifier
  */
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
-annotation class ApplicationCoroutineScope()
+annotation class KernelCoroutineScope()

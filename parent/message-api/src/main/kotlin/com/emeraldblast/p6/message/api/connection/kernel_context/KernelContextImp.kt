@@ -44,8 +44,8 @@ class KernelContextImp @Inject internal constructor(
     // x: kernelConfig is created from an external file.
     private val kernelConfig: KernelConfig,
     private val zcontext: ZContext,
-    @com.emeraldblast.p6.message.api.connection.kernel_context.ApplicationCoroutineScope
-    private val appCScope: CoroutineScope,
+    @KernelCoroutineScope
+    private val kernelCoroutineScope: CoroutineScope,
     // x: dispatcher (a group of threads) on which network communication services run on
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
     @RepServiceLogger
@@ -176,7 +176,7 @@ class KernelContextImp @Inject internal constructor(
 
             val hbSv = LiveCountHeartBeatServiceCoroutine(
                 kernelContext = this,
-                coroutineScope = appCScope,
+                coroutineScope = kernelCoroutineScope,
                 dispatcher = this.networkServiceDispatcher,
                 startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut,
             )
@@ -191,7 +191,7 @@ class KernelContextImp @Inject internal constructor(
 
             val ioPubSv = IOPubListenerServiceImpl(
                 kernelContext = this,
-                externalScope = appCScope,
+                externalScope = kernelCoroutineScope,
                 dispatcher = this.networkServiceDispatcher,
                 startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
             )
@@ -206,7 +206,7 @@ class KernelContextImp @Inject internal constructor(
 
             val zmqREPService = REPService(
                 kernelContext = this,
-                coroutineScope = this.appCScope,
+                coroutineScope = this.kernelCoroutineScope,
                 coroutineDispatcher = this.networkServiceDispatcher,
                 repServiceLogger = this.repServiceLogger,
             )

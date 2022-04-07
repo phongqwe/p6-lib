@@ -4,7 +4,7 @@ package com.emeraldblast.p6.message.api.connection.service.zmq_services.imp
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.P6MsgHandlers
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Event
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Response
-import com.emeraldblast.p6.proto.P6MsgPM
+import com.emeraldblast.p6.proto.P6MsgProtos
 import com.emeraldblast.p6.test.utils.TestOnJupyter
 import com.github.michaelbull.result.Ok
 import com.google.protobuf.ByteString
@@ -53,10 +53,10 @@ internal class REPServiceTest : TestOnJupyter() {
             val sendSocket = kernelContext.zContext().createSocket(SocketType.REQ)
             sendSocket.connect("tcp://localhost:${sv.zmqPort}")
 
-            val msgProto = P6MsgPM.P6ResponseProto.newBuilder()
-                .setHeader(P6MsgPM.P6MessageHeaderProto.newBuilder()
+            val msgProto = P6MsgProtos.P6ResponseProto.newBuilder()
+                .setHeader(P6MsgProtos.P6MessageHeaderProto.newBuilder()
                     .setMsgId("id1")
-                    .setEventType(P6MsgPM.P6EventProto.newBuilder().setCode(cellEvent.code).setName(cellEvent.name).build())
+                    .setEventType(P6MsgProtos.P6EventProto.newBuilder().setCode(cellEvent.code).setName(cellEvent.name).build())
                     .build())
                 .setData(ByteString.copyFrom("""{"value": "cell value", "script": "cell script"}}""",Charsets.UTF_8))
                 .build()
