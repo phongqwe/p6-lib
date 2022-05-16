@@ -14,7 +14,12 @@ class ErrorReport(
     }
 
     override fun toString(): String {
-        return this.header.toString()
+        val rt="""
+            type: ${this.header.toString()}
+            data: ${data}
+            loc: ${loc} 
+        """.trimIndent()
+        return rt
     }
     fun isType(errorHeader: ErrorHeader):Boolean{
         return this.header.isType(errorHeader)
