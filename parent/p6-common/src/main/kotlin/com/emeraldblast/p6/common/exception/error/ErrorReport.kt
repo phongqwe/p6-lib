@@ -15,9 +15,9 @@ class ErrorReport(
 
     override fun toString(): String {
         val rt="""
-            type: ${this.header.toString()}
-            data: ${data}
-            loc: ${loc} 
+type: ${this.header.toString()}
+data: ${data}
+loc: ${loc} 
         """.trimIndent()
         return rt
     }
