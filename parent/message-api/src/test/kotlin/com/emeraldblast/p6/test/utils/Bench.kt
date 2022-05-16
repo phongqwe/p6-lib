@@ -14,6 +14,13 @@ import kotlin.system.measureTimeMillis
 class Bench {
     @Test
     fun nonBlockingEg(){
+        runBlocking {
+            withContext(Dispatchers.IO) {
+                mySusFunc1()
+                println("x1")
+            }
+            println("End")
+        }
     }
 
 //    @Test
@@ -110,7 +117,7 @@ class Bench {
         println("This is blocked by the completion of runBlocking")
     }
 
-    //    @Test
+        @Test
     fun coroutineScopeEggg() {
 
         runBlocking {
@@ -145,6 +152,8 @@ class Bench {
             ++x
         }
     }
+
+
 
     /**
      * suspending vs blocking:
@@ -185,6 +194,8 @@ class Bench {
      *      - for services: inject coroutine scope as object properties
      *      - for multiple-purpose crap: inject in function parameter. But this is rare. For now this is only used in IOPub listener. This listener is supposed to run both as background services, and one-time object. This is bad, and should not be be exposed to external use.
      *      - for one-time blocking such as network call or long computation, use inherited coroutine scope
+     * ======
+     * The point of suspending function is that it enforcing that certain action to be run inside a coroutine. This prevent miscalling long-running-action on undesirable thread (such as main thread).
      */
 //    @Test
     fun suspendingFunction() {

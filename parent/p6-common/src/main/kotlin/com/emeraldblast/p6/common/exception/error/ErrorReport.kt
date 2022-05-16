@@ -2,7 +2,7 @@ package com.emeraldblast.p6.common.exception.error
 
 class ErrorReport(
     val header: ErrorHeader,
-    val data: Any,
+    val data: Any = "",
     val loc:String="",
 ) {
     fun <T> getCastedData(): T {
@@ -18,6 +18,11 @@ class ErrorReport(
     }
     fun isType(errorHeader: ErrorHeader):Boolean{
         return this.header.isType(errorHeader)
+    }
+    fun addLoc(loc:String):ErrorReport{
+        return ErrorReport(
+            header, data, this.loc+"\n${loc}"
+        )
     }
 }
 
