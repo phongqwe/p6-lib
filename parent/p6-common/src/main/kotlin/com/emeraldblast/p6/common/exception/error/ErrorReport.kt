@@ -24,6 +24,9 @@ loc: ${loc}
     fun isType(errorHeader: ErrorHeader):Boolean{
         return this.header.isType(errorHeader)
     }
+    fun isType(errorReport: ErrorReport):Boolean{
+        return this.header.isType(errorReport.header)
+    }
     fun addLoc(loc:String):ErrorReport{
         return ErrorReport(
             header, data, this.loc+"\n${loc}"
