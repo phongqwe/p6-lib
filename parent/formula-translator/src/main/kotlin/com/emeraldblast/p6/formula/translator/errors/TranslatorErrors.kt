@@ -6,14 +6,16 @@ import org.antlr.v4.runtime.Recognizer
 
 object TranslatorErrors {
     private const val prefix = "Translator Error "
-    object TranslatingErr: ErrorHeader("${prefix}0", "translating error") {
+    object TranslatingErr {
+        val header = ErrorHeader("${prefix}0", "translating error")
         class Data(
             val lexerErr: LexerErr.Data?,
             val parserErr: ParserErr.Data?,
         )
     }
 
-    object ParserErr : ErrorHeader("${prefix}1", "parser error") {
+    object ParserErr  {
+        val header = ErrorHeader("${prefix}1", "parser error")
         class Data(
             val formula: String,
             val recognizer: Recognizer<*, *>?,
@@ -24,7 +26,8 @@ object TranslatorErrors {
             val recognitionException: RecognitionException?,
         )
     }
-    object LexerErr : ErrorHeader("${prefix}2", "lexer error") {
+    object LexerErr  {
+        val header = ErrorHeader("${prefix}2", "lexer error")
         class Data(
             val formula: String,
             val recognizer: Recognizer<*, *>?,
@@ -36,7 +39,8 @@ object TranslatorErrors {
         )
     }
 
-    object NotAScriptCall : ErrorHeader("${prefix}2","input is not a =SCRIPT() call"){
+    object NotAScriptCall {
+        val header = ErrorHeader("${prefix}2","input is not a =SCRIPT() call")
         class Data(val formula:String)
     }
 }

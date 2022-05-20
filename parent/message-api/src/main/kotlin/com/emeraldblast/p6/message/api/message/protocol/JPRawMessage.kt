@@ -30,7 +30,7 @@ class JPRawMessage(
         fun fromPayload(payload: List<ByteArray>): Result<JPRawMessage, ErrorReport> {
             if (payload.size < 6) {
                 val report = ErrorReport(
-                    header = MsgProtocolErrors.InvalidPayloadSizeError,
+                    header = MsgProtocolErrors.InvalidPayloadSizeError.header,
                     data = MsgProtocolErrors.InvalidPayloadSizeError.Data(payload.size, 6)
                 )
                 return Err(report)
@@ -78,7 +78,7 @@ class JPRawMessage(
             } catch (e: NoSuchElementException) {
                 return Err(
                     ErrorReport(
-                        header = MsgProtocolErrors.DelimiterNotFound,
+                        header = MsgProtocolErrors.DelimiterNotFound.header,
                         data = MsgProtocolErrors.DelimiterNotFound.Data(payload)
                     )
                 )

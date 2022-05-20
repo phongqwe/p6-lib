@@ -40,7 +40,7 @@ class IOPubListenerServiceImpl internal constructor(
 
         if(kernelContext.isKernelRunning().not()){
             val report = ErrorReport(
-                header = KernelErrors.KernelDown,
+                header = KernelErrors.KernelDown.header,
                 data = KernelErrors.KernelDown.Data("${this.javaClass.canonicalName}:start")
             )
             return Err(report)
@@ -81,7 +81,7 @@ class IOPubListenerServiceImpl internal constructor(
         if(waitRs is Err){
             this.job?.cancel()
             val report = ErrorReport(
-                header= IOPubServiceErrors.CantStartIOPubServiceTimeOut,
+                header= IOPubServiceErrors.CantStartIOPubServiceTimeOut.header,
                 data = IOPubServiceErrors.CantStartIOPubServiceTimeOut.Data("Time out when trying to start IOPub service"),
                 loc = "${this.javaClass.canonicalName}:start"
             )

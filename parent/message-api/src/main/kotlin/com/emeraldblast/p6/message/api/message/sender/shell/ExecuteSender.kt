@@ -26,7 +26,7 @@ class ExecuteSender internal constructor(
         if (this.kernelContext.isKernelNotRunning()) {
             return Err(
                 ErrorReport(
-                    header = KernelErrors.KernelDown,
+                    header = KernelErrors.KernelDown.header,
                     data = KernelErrors.KernelDown.Data(""),
                     loc = "${this.javaClass.canonicalName}.send"
                 )

@@ -23,7 +23,7 @@ sealed class CoroutineWatcher : ProcessWatcher {
         } else {
             if (this.isWatching()) {
                 val report = ErrorReport(
-                    header = ProcessWatcherErrors.IllegalState,
+                    header = ProcessWatcherErrors.IllegalState.header,
                     data =ProcessWatcherErrors.IllegalState.Data(currentState ="Running",correctState ="Not Running")
                 )
                 return Err(report)
@@ -31,7 +31,7 @@ sealed class CoroutineWatcher : ProcessWatcher {
             if (!process.isAlive) {
                 return Err(
                     ErrorReport(
-                    header =  ProcessWatcherErrors.DeadProcess,
+                    header =  ProcessWatcherErrors.DeadProcess.header,
                     data = Unit
                 )
                 )
@@ -39,7 +39,7 @@ sealed class CoroutineWatcher : ProcessWatcher {
         }
         return Err(
             ErrorReport(
-            header = CommonErrors.Unknown,
+            header = CommonErrors.Unknown.header,
             data = CommonErrors.Unknown.Data("unknow",null)
         )
         )

@@ -48,7 +48,7 @@ data class KernelConnectionFileContent(
             }catch(e:IOException){
                 return Err(
                     ErrorReport(
-                        header = MsgProtocolErrors.IOError,
+                        header = MsgProtocolErrors.IOError.header,
                         data = MsgProtocolErrors.IOError.Data(e)
                     )
                 )

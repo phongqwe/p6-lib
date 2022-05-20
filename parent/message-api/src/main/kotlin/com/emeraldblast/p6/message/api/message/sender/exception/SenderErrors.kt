@@ -9,22 +9,26 @@ import org.zeromq.ZMsg
 object SenderErrors {
 
     private const val prefix= "Sender error "
-    object InvalidSendState : ErrorHeader("${prefix}1","invalid send state"){
+    object InvalidSendState {
+        val header=ErrorHeader("${prefix}1","invalid send state")
         class Data(val currentState: CodeExecutionSender.SendingState)
     }
 
     /**
      * Indicate there are errors in code sent to kernel to be executed
      */
-    object CodeError: ErrorHeader("${prefix}2","error in code"){
+    object CodeError{
+        val header=ErrorHeader("${prefix}2","error in code")
         class Data (val messageContent: MsgContent)
     }
 
-    object UnableToQueueZMsg : ErrorHeader("${prefix}3","unable to queue ZMsg"){
+    object UnableToQueueZMsg {
+        val header=ErrorHeader("${prefix}3","unable to queue ZMsg")
         class Data(val message: ZMsg)
     }
 
-    object UnableToSendMsg : ErrorHeader("${prefix}4","unable to send message"){
+    object UnableToSendMsg {
+        val header=ErrorHeader("${prefix}4","unable to send message")
         class Data(val message: JPMessage<*, *>)
     }
 }
