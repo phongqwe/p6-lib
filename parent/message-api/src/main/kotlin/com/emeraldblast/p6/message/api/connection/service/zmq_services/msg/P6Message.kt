@@ -51,6 +51,9 @@ data class P6Message(val header: P6MessageHeader, val data: ByteString) {
             .setData(data)
             .build()
     }
+
+    val event = header.eventType
+    val id = header.msgId
 }
 
 fun P6MsgProtos.P6MessageProto.toModel(): P6Message {
