@@ -160,14 +160,14 @@ class Bench {
      * suspending = blocking a coroutine, but not the underneath thread
      * blocking = block the underneath thread.
      *
-     * A normal function is a blocking function. A suspend function only block a coroutine.
+     * A normal function is a blocking function. A suspend function only block a coroutine in which it resides.
      * =====
      * suspend function and coroutine. I must not mix-up these two concept.
      * Coroutines are a block of code that can be run asynchronously.
      * suspending functions are function that can block/pause/suspend coroutines.
      * =======
      * Coroutine builders (launch, async) run things in a suspend functions.
-     * So when creating a suspend function, I should ask the question: is the logic require waiting.
+     * So when creating a suspend function, I should ask the question: is the logic require waiting or cause waiting
      *
      * I don't really need to write suspend function in order to use coroutine.
      *
@@ -175,7 +175,7 @@ class Bench {
      *
      * - suspending function deal with waiting code.
      *
-     * Most of the time, coroutine is invoke asynchronously because it involves waiting code. But they (coroutines) do not necessarily serve only such purpose.
+     * Most of the time, coroutine is invoked asynchronously because it involves waiting code. But they (coroutines) do not necessarily serve only such purpose.
      *
      * Since suspending function is for waiting/blocking code. It is best that they are used within coroutine so that they don't block the UI thread.
      * =====
