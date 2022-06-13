@@ -2,8 +2,10 @@ package com.emeraldblast.p6.message.api.connection.kernel_context.context_object
 
 import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.other.HmacMaker
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 
-class MsgEncoderImp internal constructor(val keyStr: String) : MsgEncoder {
+class MsgEncoderImp @AssistedInject constructor(@Assisted val keyStr: String) : MsgEncoder {
 
     private val key: ByteArray = keyStr.toByteArray(Charsets.UTF_8)
 

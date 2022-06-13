@@ -53,6 +53,7 @@ class KernelContextImp @Inject internal constructor(
     @MsgApiCommonLogger
     private val commonLogger:Logger?=null,
     private val channelProviderFactory:ChannelProviderFactory,
+    private val msgEncoderFactory: MsgEncoderFactory,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
@@ -62,6 +63,7 @@ class KernelContextImp @Inject internal constructor(
     private var connectionFileContent: KernelConnectionFileContent? = null
     private var connectionFilePath: Path? = null
     private var session: Session? = null
+
     private var channelProvider: ChannelProvider? = null
     private var msgEncoder: MsgEncoder? = null
     private var msgIdGenerator: MsgIdGenerator? = null
@@ -135,7 +137,7 @@ class KernelContextImp @Inject internal constructor(
             this.channelProvider = channelProviderFactory.create(this.connectionFileContent!!)
             this.socketFactory = SocketFactoryImp(this.channelProvider!!, this.zcontext)
             this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
-            this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
+            this.msgEncoder = msgEncoderFactory.create(this.connectionFileContent?.key!!)
             this.msgCounter = MsgCounterImp()
             this.msgIdGenerator = RandomMsgIdGenerator()
             this.senderProvider = SenderProviderImp(this)
