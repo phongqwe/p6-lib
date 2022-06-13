@@ -29,7 +29,7 @@ interface MessageApiComponent {
         fun kernelCoroutineScope(@KernelCoroutineScope scope:CoroutineScope):Builder
 
         @BindsInstance
-        fun networkServiceCoroutineDispatcher(dispatcher:CoroutineDispatcher):Builder
+        fun networkServiceCoroutineDispatcher(@ServiceCoroutineDispatcher dispatcher:CoroutineDispatcher):Builder
 
         @BindsInstance
         fun serviceLogger(@RepServiceLogger logger:Logger?=null):Builder

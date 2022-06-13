@@ -21,3 +21,8 @@ annotation class SystemUsername
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
 annotation class SessionId
+
+
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ServiceCoroutineDispatcher

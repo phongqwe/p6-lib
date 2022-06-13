@@ -10,6 +10,7 @@ import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelEr
 import com.emeraldblast.p6.message.api.connection.service.Service
 import com.emeraldblast.p6.message.api.connection.service.errors.ServiceErrors
 import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatService
+import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatServiceFactory
 import com.emeraldblast.p6.message.api.connection.service.heart_beat.LiveCountHeartBeatServiceCoroutine
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
@@ -24,6 +25,7 @@ import com.emeraldblast.p6.message.api.message.protocol.other.RandomMsgIdGenerat
 import com.emeraldblast.p6.message.api.other.Sleeper
 import com.emeraldblast.p6.message.di.MsgApiCommonLogger
 import com.emeraldblast.p6.message.di.RepServiceLogger
+import com.emeraldblast.p6.message.di.ServiceCoroutineDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +49,7 @@ class KernelContextImp @Inject internal constructor(
     @KernelCoroutineScope
     private val kernelCoroutineScope: CoroutineScope,
     // x: dispatcher (a group of threads) on which network communication services run on
+    @ServiceCoroutineDispatcher
     private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
     @RepServiceLogger
     private val repServiceLogger:Logger?=null,
@@ -59,6 +62,8 @@ class KernelContextImp @Inject internal constructor(
     private val socketFactoryFactory:SocketFactoryFactory,
     private val sessionFactory: SessionFactory,
     private val senderProviderFactory: SenderProviderFactory,
+
+    private val heartBeatServiceFactory: HeartBeatServiceFactory,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
@@ -176,11 +181,17 @@ class KernelContextImp @Inject internal constructor(
     override suspend fun startServices(): Result<Unit, ErrorReport> {
         if (this.isKernelRunning()) {
 
-            val hbSv = LiveCountHeartBeatServiceCoroutine(
+//            val hbSv = LiveCountHeartBeatServiceCoroutine(
+//                kernelContext = this,
+//                coroutineScope = kernelCoroutineScope,
+//                dispatcher = this.networkServiceDispatcher,
+//                startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut,
+//            )
+            val hbSv = heartBeatServiceFactory.create(
                 kernelContext = this,
-                coroutineScope = kernelCoroutineScope,
-                dispatcher = this.networkServiceDispatcher,
-                startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut,
+                liveCount = 20,
+                pollTimeOut = 1000,
+                startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
             )
             this.hbService = hbSv
 

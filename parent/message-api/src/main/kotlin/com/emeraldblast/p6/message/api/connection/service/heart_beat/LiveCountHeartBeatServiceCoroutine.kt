@@ -4,9 +4,13 @@ import com.github.michaelbull.result.*
 import com.emeraldblast.p6.common.exception.error.CommonErrors
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContext
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelCoroutineScope
 import com.emeraldblast.p6.message.api.connection.service.heart_beat.errors.HBServiceCrashException
 import com.emeraldblast.p6.message.api.connection.service.heart_beat.errors.HBServiceErrors
 import com.emeraldblast.p6.message.api.other.Sleeper
+import com.emeraldblast.p6.message.di.ServiceCoroutineDispatcher
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ
 
@@ -14,13 +18,15 @@ import org.zeromq.ZMQ
  * Must not invoke the constructor directly unless in testing. An instance of this is provided by [IPythonContext].
  * This service is recoverable. If a kernel is restarted while this service is running, this service will still able to detect heart-beat channel when the kernel is started (with new hb channel on new port)
  */
-class LiveCountHeartBeatServiceCoroutine constructor(
-    private val kernelContext:KernelContext,
-    private val liveCount: Int = 20,
-    private val pollTimeOut: Long = 1_000,
-    private val startTimeOut: Long = 50_000,
+class LiveCountHeartBeatServiceCoroutine @AssistedInject constructor(
+    @Assisted private val kernelContext: KernelContext,
+    @Assisted private val liveCount: Int = 20,
+    @Assisted("pollTimeOut") private val pollTimeOut: Long = 1_000,
+    @Assisted("startTimeOut") private val startTimeOut: Long = 50_000,
+    @KernelCoroutineScope
     private val coroutineScope: CoroutineScope,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    @ServiceCoroutineDispatcher
+    private val dispatcher: CoroutineDispatcher,
 ) : HeartBeatService {
 
 
@@ -31,12 +37,12 @@ class LiveCountHeartBeatServiceCoroutine constructor(
         if (this.isServiceRunning()) {
             return Ok(Unit)
         }
-        var skipErr:ErrorReport?= null
+        var skipErr: ErrorReport? = null
 
         this.job = coroutineScope.launch(dispatcher) {
             var needReConnect = false
             val socketRs = kernelContext.getSocketProvider().map { it.heartBeatSocket() }
-            if(socketRs is Ok){
+            if (socketRs is Ok) {
                 var socket = socketRs.value
                 var poller = kernelContext.zContext().createPoller(1)
                 poller.register(socket, ZMQ.Poller.POLLIN)
@@ -51,15 +57,15 @@ class LiveCountHeartBeatServiceCoroutine constructor(
                             if (currentLives > 0) {
                                 currentLives -= 1
                             }
-                            if(currentLives <=0){
+                            if (currentLives <= 0) {
                                 needReConnect = true
                             }
                         }
-                        if(needReConnect){
+                        if (needReConnect) {
                             // attempt to re-reconnect to new heartbeat channel
                             poller.close()
                             val socketRs2 = kernelContext.getSocketProvider().map { it.heartBeatSocket() }
-                            if(socketRs2 is Ok){
+                            if (socketRs2 is Ok) {
                                 socket = socketRs2.value
                                 poller = kernelContext.zContext().createPoller(1)
                                 poller.register(socket, ZMQ.Poller.POLLIN)
@@ -67,12 +73,12 @@ class LiveCountHeartBeatServiceCoroutine constructor(
                         }
                     }
                 }
-            }else{
-                skipErr= socketRs.getError()
-              this.cancel()
+            } else {
+                skipErr = socketRs.getError()
+                this.cancel()
             }
         }
-        if(skipErr!=null){
+        if (skipErr != null) {
             return Err(skipErr as ErrorReport)
         }
         val rt = this.waitTillLive()
