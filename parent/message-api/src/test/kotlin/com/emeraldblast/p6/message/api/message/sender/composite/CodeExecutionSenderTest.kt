@@ -5,7 +5,7 @@ import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.SenderProvider
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
-import com.emeraldblast.p6.message.api.connection.service.iopub.HandlerContainerImp
+import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlerContainerImp
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.Shell
@@ -47,7 +47,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 parseExceptionHandler = { e ->
                     println(e)
                 },
-                handlerContainer = HandlerContainerImp(),
+                handlerContainer = MsgHandlerContainerImp(),
                 externalScope =  GlobalScope,
                 dispatcher = Dispatchers.Default,
                 startTimeOut = 50000

@@ -1,23 +1,23 @@
 package com.emeraldblast.p6.message.api.message.listener
 
-import com.emeraldblast.p6.message.api.connection.service.iopub.HandlerContainerImp
+import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlerContainerImp
 import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlers
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-internal class HandlerContainerImpTest {
+internal class MsgHandlerContainerImpTest {
 
     val h1 = MsgHandlers.withUUID(msgType = MsgType.IOPub_execute_result)
     val h2 = MsgHandlers.withUUID(msgType = MsgType.Shell_kernel_info_reply)
     val h3 = MsgHandlers.withUUID(msgType = MsgType.Shell_kernel_info_request)
     val h4 = MsgHandlers.withUUID(msgType = MsgType.IOPub_execute_result)
-    var hContainer = HandlerContainerImp()
+    var hContainer = MsgHandlerContainerImp()
 
     @BeforeEach
     fun bee(){
-        hContainer = HandlerContainerImp()
+        hContainer = MsgHandlerContainerImp()
     }
 
     @Test

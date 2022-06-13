@@ -3,30 +3,48 @@ package com.emeraldblast.p6.message.api.connection.service.iopub
 import com.github.michaelbull.result.*
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelCoroutineScope
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.emeraldblast.p6.message.api.message.protocol.JPRawMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.IOPub
 import com.emeraldblast.p6.message.api.other.Sleeper
+import com.emeraldblast.p6.message.di.ServiceCoroutineDispatcher
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
+
+@AssistedFactory
+interface IOPubListenerServiceFactory{
+    fun create(
+         kernelContext: KernelContextReadOnly,
+         defaultHandler: ((msg: JPRawMessage) -> Unit)?,
+         parseExceptionHandler: suspend (exception: ErrorReport) -> Unit,
+         startTimeOut: Long,
+    ):IOPubListenerServiceImpl
+}
 
 /**
  * Listen to pub msg from IOPub channel and dispatch msg to appropriate handlers.
  * [defaultHandler] to handle msg type that don't have a specific handler.
  * [parseExceptionHandler] to handle exception of unable to parse zmq message.
  */
-class IOPubListenerServiceImpl internal constructor(
-    private val kernelContext: KernelContextReadOnly,
-    private val defaultHandler: ((msg: JPRawMessage) -> Unit)? = { /*do nothing*/ },
-    private val parseExceptionHandler: suspend (exception: ErrorReport) -> Unit= { /*do nothing*/ },
-    private val handlerContainer: MsgHandlerContainer = HandlerContainerImp(),
+class IOPubListenerServiceImpl @AssistedInject constructor(
+    @Assisted private val kernelContext: KernelContextReadOnly,
+    @Assisted private val defaultHandler: ((msg: JPRawMessage) -> Unit)? = { /*do nothing*/ },
+    @Assisted private val parseExceptionHandler: suspend (exception: ErrorReport) -> Unit= { /*do nothing*/ },
+    @Assisted private val startTimeOut:Long = 50_000,
+    private val handlerContainer: MsgHandlerContainer = MsgHandlerContainerImp(),
+    @KernelCoroutineScope
     private val externalScope: CoroutineScope,
+    @ServiceCoroutineDispatcher
     private val dispatcher: CoroutineDispatcher,
-    private val startTimeOut:Long = 50_000
-) : IOPubListenerService {
+
+    ) : IOPubListenerService {
 
     private var job: Job? = null
 

@@ -1,11 +1,17 @@
 package com.emeraldblast.p6.message.api.connection.service.zmq_services.imp
 
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelCoroutineScope
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.AbstractZMQService
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.ZMQListenerService
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Response
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.toModel
+import com.emeraldblast.p6.message.di.RepServiceLogger
+import com.emeraldblast.p6.message.di.ServiceCoroutineDispatcher
 import com.emeraldblast.p6.proto.P6MsgProtos
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import org.slf4j.Logger
@@ -15,11 +21,21 @@ import org.zeromq.SocketType
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
 
-internal class REPService(
-    private val kernelContext: KernelContextReadOnly,
-    coroutineScope: CoroutineScope,
+@AssistedFactory
+interface REPServiceFactory{
+    fun create(
+        kernelContext: KernelContextReadOnly
+    ):REPService
+}
+
+class REPService @AssistedInject constructor(
+    @Assisted private val kernelContext: KernelContextReadOnly,
+    @KernelCoroutineScope
+     coroutineScope: CoroutineScope,
+    @ServiceCoroutineDispatcher
     coroutineDispatcher: CoroutineDispatcher,
-    private val repServiceLogger:Logger? = null
+    @RepServiceLogger
+    val repServiceLogger:Logger? = null
 ) : AbstractZMQService<P6Response>(coroutineScope, coroutineDispatcher), ZMQListenerService<P6Response> {
 
     override val socketType: SocketType = SocketType.REP

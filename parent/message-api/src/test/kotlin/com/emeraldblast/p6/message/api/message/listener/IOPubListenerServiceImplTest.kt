@@ -2,7 +2,7 @@ package com.emeraldblast.p6.message.api.message.listener
 
 import com.github.michaelbull.result.*
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
-import com.emeraldblast.p6.message.api.connection.service.iopub.HandlerContainerImp
+import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlerContainerImp
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlers
 import com.emeraldblast.p6.message.api.message.protocol.JPRawMessage
@@ -184,10 +184,11 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
 
         val listener = IOPubListenerServiceImpl(
             mockContext,
-            { m -> },
-            { e ->
+            defaultHandler = { m -> },
+            parseExceptionHandler={ e ->
                 exceptionHandlerTriggerCount++
-            }, HandlerContainerImp(),
+            },
+            handlerContainer=MsgHandlerContainerImp(),
             externalScope = GlobalScope,
             dispatcher = Dispatchers.Default,
             startTimeOut = 50000

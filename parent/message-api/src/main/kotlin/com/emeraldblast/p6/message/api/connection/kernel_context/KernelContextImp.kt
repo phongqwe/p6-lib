@@ -13,10 +13,12 @@ import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatSe
 import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatServiceFactory
 import com.emeraldblast.p6.message.api.connection.service.heart_beat.LiveCountHeartBeatServiceCoroutine
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerService
+import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceFactory
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.ZMQListenerService
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.imp.REPService
+import com.emeraldblast.p6.message.api.connection.service.zmq_services.imp.REPServiceFactory
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Response
 import com.emeraldblast.p6.message.api.message.protocol.KernelConnectionFileContent
 import com.emeraldblast.p6.message.api.message.protocol.other.MsgCounterImp
@@ -64,6 +66,8 @@ class KernelContextImp @Inject internal constructor(
     private val senderProviderFactory: SenderProviderFactory,
 
     private val heartBeatServiceFactory: HeartBeatServiceFactory,
+    private val ioPubListenerServiceFactory: IOPubListenerServiceFactory,
+    private val repServiceFactory: REPServiceFactory,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
@@ -181,12 +185,6 @@ class KernelContextImp @Inject internal constructor(
     override suspend fun startServices(): Result<Unit, ErrorReport> {
         if (this.isKernelRunning()) {
 
-//            val hbSv = LiveCountHeartBeatServiceCoroutine(
-//                kernelContext = this,
-//                coroutineScope = kernelCoroutineScope,
-//                dispatcher = this.networkServiceDispatcher,
-//                startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut,
-//            )
             val hbSv = heartBeatServiceFactory.create(
                 kernelContext = this,
                 liveCount = 20,
@@ -202,10 +200,10 @@ class KernelContextImp @Inject internal constructor(
                 return hbStartRs
             }
 
-            val ioPubSv = IOPubListenerServiceImpl(
+            val ioPubSv = ioPubListenerServiceFactory.create(
                 kernelContext = this,
-                externalScope = kernelCoroutineScope,
-                dispatcher = this.networkServiceDispatcher,
+                defaultHandler = {},
+                parseExceptionHandler = {},
                 startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
             )
             this.ioPubService=ioPubSv
@@ -217,12 +215,10 @@ class KernelContextImp @Inject internal constructor(
                 return ioPubStartRs
             }
 
-            val zmqREPService = REPService(
+            val zmqREPService = repServiceFactory.create(
                 kernelContext = this,
-                coroutineScope = this.kernelCoroutineScope,
-                coroutineDispatcher = this.networkServiceDispatcher,
-                repServiceLogger = this.repServiceLogger,
             )
+
             this.zmqREPService = zmqREPService
             val zmqListenerServiceStartRs = zmqREPService.start()
             if(zmqListenerServiceStartRs is Err){

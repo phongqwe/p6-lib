@@ -1,8 +1,9 @@
 package com.emeraldblast.p6.message.api.connection.service.iopub
 
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
+import javax.inject.Inject
 
-class HandlerContainerImp: MsgHandlerContainer {
+class MsgHandlerContainerImp @Inject constructor(): MsgHandlerContainer {
 
     private val map:MutableMap<MsgType,List<MsgHandler>> = mutableMapOf()
 
