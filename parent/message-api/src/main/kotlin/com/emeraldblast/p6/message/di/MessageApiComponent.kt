@@ -11,7 +11,8 @@ import org.slf4j.Logger
 import org.zeromq.ZContext
 
 
-@Component(modules = [KernelContextModule::class])
+@Component(modules = [KernelContextModule::class,ServiceModule::class])
+@MsgApiScope
 interface MessageApiComponent {
 
     fun zContext(): ZContext

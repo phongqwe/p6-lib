@@ -14,7 +14,7 @@ import org.zeromq.ZMQ
  * Must not invoke the constructor directly unless in testing. An instance of this is provided by [IPythonContext].
  * This service is recoverable. If a kernel is restarted while this service is running, this service will still able to detect heart-beat channel when the kernel is started (with new hb channel on new port)
  */
-internal class LiveCountHeartBeatServiceCoroutine constructor(
+class LiveCountHeartBeatServiceCoroutine constructor(
     private val kernelContext:KernelContext,
     private val liveCount: Int = 20,
     private val pollTimeOut: Long = 1_000,
@@ -97,7 +97,6 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
             ErrorReport(
                 header = CommonErrors.TimeOut.header,
                 data = CommonErrors.TimeOut.Data("Time out when trying to start heart beat service"),
-                loc = loc
             )
         }
 
@@ -111,7 +110,6 @@ internal class LiveCountHeartBeatServiceCoroutine constructor(
             ErrorReport(
                 header = HBServiceErrors.CantStartHBService.header,
                 data = HBServiceErrors.CantStartHBService.Data("Time out when waiting for HB to come live"),
-                loc = loc
             )
         }
         return rt2

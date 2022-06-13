@@ -3,8 +3,9 @@ package com.emeraldblast.p6.message.api.connection.kernel_context.context_object
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
+import javax.inject.Inject
 
-internal class SocketFactoryImp(
+class SocketFactoryImp @Inject constructor(
     private val channelProvider: ChannelProvider,
     private val zContext: ZContext
 ) : SocketFactory {

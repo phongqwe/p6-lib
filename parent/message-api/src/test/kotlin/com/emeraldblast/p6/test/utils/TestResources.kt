@@ -13,8 +13,8 @@ class TestResources {
             if (resource == null) {
                 throw Exception("missing jupyterConfig.json")
             } else {
-                val fileCOntent = Files.readString(Paths.get(resource.toURI()))
-                val o = Gson().fromJson(fileCOntent, KernelConfig::class.java)
+                val fileContent = Files.readString(Paths.get(resource.toURI()))
+                val o = Gson().fromJson(fileContent, KernelConfig::class.java)
                 return o
             }
         }

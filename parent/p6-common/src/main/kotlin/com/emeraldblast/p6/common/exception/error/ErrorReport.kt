@@ -2,39 +2,34 @@ package com.emeraldblast.p6.common.exception.error
 
 class ErrorReport(
     val header: ErrorHeader,
-    val data: Any,
-    val locList: List<String>,
+    val data: Any? = null,
+    val exception:Exception? = null,
 ) {
-
-    constructor(header: ErrorHeader, data: Any = "", loc: String = "") : this(
-        header = header,
-        data = data,
-        locList = if (loc.isNotEmpty()) listOf(loc) else emptyList()
-    )
-
-    val loc: String
-        get() = locList.fold("") { acc, str ->
-            acc + "\n" + str
+    /**
+     * Convert this into an exception. If already hold an exception, return that exception
+     */
+    fun toException(): Exception {
+        if(exception!=null){
+            return exception
         }
-
-    fun <T> getCastedData(): T {
-        return this.data as T
+        return this.toErrorException()
     }
 
-    fun toException(): ErrorException {
+    /**
+     * convert this [ErrorReport] into an [ErrorException]
+     */
+    fun toErrorException(): ErrorException {
         return ErrorException(this)
     }
 
     override fun toString(): String {
         val rt = """
-type: ${this.header.toString()}
+type: ${this.header}
 data: ${data}
-loc: ${loc} 
         """.trimIndent()
+        // loc: ${loc}
         return rt
     }
-
-    val repStr:String get()=this.header.toString()
 
     fun isType(errorHeader: ErrorHeader): Boolean {
         return this.header.isType(errorHeader)
@@ -44,28 +39,9 @@ loc: ${loc}
         return this.header.isType(errorReport.header)
     }
 
-    fun addLoc(loc: String): ErrorReport {
-        return ErrorReport(
-            header, data, this.locList + loc
-        )
-    }
-
     fun stackTraceStr(): String {
         val s = this.toException().stackTraceToString()
         return s
-    }
-
-    fun stackTraceWithLoc(): String {
-        return "${loc}\n${this.stackTraceStr()}"
-    }
-
-    fun toStringWithStackTrace(): String {
-        val rt = """
-type: ${this.header.toString()}
-data: ${data}
-loc: ${this.stackTraceWithLoc()} 
-        """.trimIndent()
-        return rt
     }
 }
 

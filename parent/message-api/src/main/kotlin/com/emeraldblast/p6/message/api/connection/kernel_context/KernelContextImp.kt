@@ -52,6 +52,7 @@ class KernelContextImp @Inject internal constructor(
     private val repServiceLogger:Logger?=null,
     @MsgApiCommonLogger
     private val commonLogger:Logger?=null,
+    private val channelProviderFactory:ChannelProviderFactory,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
@@ -82,7 +83,6 @@ class KernelContextImp @Inject internal constructor(
         private val kernelDownReport = ErrorReport(
             header = KernelErrors.KernelDown.header,
             data = KernelErrors.KernelDown.Data(""),
-            loc = "${this::class.java.canonicalName}:getSession",
         )
     }
 
@@ -122,18 +122,17 @@ class KernelContextImp @Inject internal constructor(
             if (waitConnectionFileWritten is Err) {
                 val report = ErrorReport(KernelErrors.CantWriteConnectionFile.header,
                     KernelErrors.CantWriteConnectionFile.Data(this.connectionFilePath),
-                    "")
+                    )
                 return Err(report)
             }
 
-            this.connectionFileContent =
-                KernelConnectionFileContent.fromJsonFile2(
-                    kernelConfig.getConnectionFilePath()).unwrap()
+            this.connectionFileContent = this.kernelConfig.kernelConnectionFileContent
 
             // x: create resources, careful with the order of resource initiation,
             // x: some must be initialized first
             // x: must NOT use getters here because getters always check for kernel status before return derivative objects
-            this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
+//            this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
+            this.channelProvider = channelProviderFactory.create(this.connectionFileContent!!)
             this.socketFactory = SocketFactoryImp(this.channelProvider!!, this.zcontext)
             this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
             this.msgEncoder = MsgEncoderImp(this.connectionFileContent?.key!!)
@@ -431,7 +430,6 @@ class KernelContextImp @Inject internal constructor(
             val report = ErrorReport(
                 header = KernelErrors.GetKernelObjectError.header,
                 data = KernelErrors.GetKernelObjectError.Data(objectName),
-                loc = "${this.javaClass.canonicalName}:checkKernelRunningAndGet"
             )
             return Err(report)
         }

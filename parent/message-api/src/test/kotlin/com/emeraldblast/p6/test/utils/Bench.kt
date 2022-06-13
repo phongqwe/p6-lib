@@ -12,7 +12,7 @@ import kotlin.system.measureTimeMillis
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench {
-    @Test
+//    @Test
     fun nonBlockingEg(){
         runBlocking {
             withContext(Dispatchers.IO) {
@@ -117,7 +117,7 @@ class Bench {
         println("This is blocked by the completion of runBlocking")
     }
 
-        @Test
+//        @Test
     fun coroutineScopeEggg() {
 
         runBlocking {

@@ -20,7 +20,6 @@ import com.emeraldblast.p6.message.api.message.sender.shell.ExecuteReply
 import com.emeraldblast.p6.message.api.message.sender.shell.ExecuteRequest
 import com.emeraldblast.p6.message.api.other.Sleeper
 
-typealias ExecuteResult = JPMessage<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>
 
 
 /**
@@ -47,7 +46,6 @@ class CodeExecutionSender internal constructor(
             val report = ErrorReport(
                 header = KernelErrors.KernelDown.header,
                 data = KernelErrors.KernelDown.Data(""),
-                loc = "${this.javaClass.canonicalName}.send"
             )
             return Err(report)
         }
@@ -71,7 +69,6 @@ class CodeExecutionSender internal constructor(
             return Err(ErrorReport(
                 header = IOPubServiceErrors.IOPubServiceNotRunning.header,
                 data = IOPubServiceErrors.IOPubServiceNotRunning.Data("occur at ${this.javaClass.canonicalName}.send"),
-                loc = "${this.javaClass.canonicalName}.send"
             ))
         }
 
@@ -176,7 +173,6 @@ class CodeExecutionSender internal constructor(
                 val report = ErrorReport(
                     header = KernelErrors.KernelDown.header,
                     data = KernelErrors.KernelDown.Data("Kernel is killed before result is returned"),
-                    loc = "${this.javaClass.canonicalName}.send"
                 )
                 Err(report)
             }

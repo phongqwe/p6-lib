@@ -83,7 +83,6 @@ class IOPubListenerServiceImpl internal constructor(
             val report = ErrorReport(
                 header= IOPubServiceErrors.CantStartIOPubServiceTimeOut.header,
                 data = IOPubServiceErrors.CantStartIOPubServiceTimeOut.Data("Time out when trying to start IOPub service"),
-                loc = "${this.javaClass.canonicalName}:start"
             )
             return Err(report)
         }else{

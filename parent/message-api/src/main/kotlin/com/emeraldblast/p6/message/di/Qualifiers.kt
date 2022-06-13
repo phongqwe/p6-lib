@@ -9,3 +9,7 @@ annotation class RepServiceLogger
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
 annotation class MsgApiCommonLogger
+
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ServiceInitTimeOut

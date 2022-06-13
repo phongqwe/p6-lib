@@ -5,6 +5,7 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.get
 import com.github.michaelbull.result.unwrap
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
+import com.emeraldblast.p6.message.di.DaggerMessageApiComponent
 import com.emeraldblast.p6.test.utils.TestResources
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -24,7 +25,7 @@ import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class KernelContextImpTest {
-    lateinit var kc: KernelContextImp
+    lateinit var kc: KernelContext
     lateinit var kernelConfig: KernelConfig
     lateinit var zContext: ZContext
 
@@ -32,7 +33,12 @@ internal class KernelContextImpTest {
     fun beforeEach() {
         this.zContext = ZContext()
         kernelConfig = TestResources.kernelConfigForTest()
-        kc = KernelContextImp(kernelConfig, this.zContext, GlobalScope, Dispatchers.IO)
+        kc = DaggerMessageApiComponent.builder()
+            .kernelConfig(kernelConfig)
+            .kernelCoroutineScope(GlobalScope)
+            .networkServiceCoroutineDispatcher(Dispatchers.IO)
+            .build()
+            .kernelContext()
     }
 
     @AfterEach
@@ -70,7 +76,7 @@ internal class KernelContextImpTest {
     }
 
     @Test
-    fun startIPython_FromNotStartedYet() = runBlocking {
+    fun startKernel_FromNotStartedYet() = runBlocking {
         assertTrue(kc.getKernelProcess() is Err)
         val rs = kc.startAll()
         assertTrue(rs is Ok, rs.toString())

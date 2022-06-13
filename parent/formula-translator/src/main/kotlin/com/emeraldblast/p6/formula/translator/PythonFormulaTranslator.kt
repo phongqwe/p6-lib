@@ -84,7 +84,6 @@ class PythonFormulaTranslator : FormulaTranslator {
                         lexerErr = lexerErrData,
                         parserErr = parserErrorData
                     ),
-                    loc =  this.javaClass.canonicalName
                 ))
             }
             val visitor = PythonFormularVisitor()

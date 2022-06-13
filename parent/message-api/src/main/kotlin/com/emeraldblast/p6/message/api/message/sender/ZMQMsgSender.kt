@@ -76,7 +76,6 @@ internal class ZMQMsgSender {
                             ErrorReport(
                                 header = CommonErrors.TimeOut.header,
                                 data = CommonErrors.TimeOut.Data(""),
-                                loc = ""
                             )
                         )
                     }

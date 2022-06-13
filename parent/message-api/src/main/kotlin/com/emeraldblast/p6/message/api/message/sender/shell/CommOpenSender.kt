@@ -20,7 +20,7 @@ class CommOpenSender(
         if (this.kernelContext.isKernelNotRunning()) {
             return Err(ErrorReport(header = KernelErrors.KernelDown.header,
                 data = KernelErrors.KernelDown.Data(""),
-                loc = "${this.javaClass.canonicalName}.send"))
+            ))
         }
 
         val out: Result<Unit, ErrorReport> = ZMQMsgSender.sendJPMsgNoReply(
