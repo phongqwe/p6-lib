@@ -52,8 +52,12 @@ class KernelContextImp @Inject internal constructor(
     private val repServiceLogger:Logger?=null,
     @MsgApiCommonLogger
     private val commonLogger:Logger?=null,
+    private var msgCounter: MsgCounter,
+    private var msgIdGenerator: MsgIdGenerator,
     private val channelProviderFactory:ChannelProviderFactory,
     private val msgEncoderFactory: MsgEncoderFactory,
+    private val socketFactoryFactory:SocketFactoryFactory,
+    private val sessionFactory: SessionFactory,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
@@ -66,8 +70,8 @@ class KernelContextImp @Inject internal constructor(
 
     private var channelProvider: ChannelProvider? = null
     private var msgEncoder: MsgEncoder? = null
-    private var msgIdGenerator: MsgIdGenerator? = null
-    private var msgCounter: MsgCounter? = null
+
+
     private var senderProvider: SenderProvider? = null
     private var socketFactory: SocketFactory? = null
 
@@ -135,11 +139,11 @@ class KernelContextImp @Inject internal constructor(
             // x: must NOT use getters here because getters always check for kernel status before return derivative objects
 //            this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
             this.channelProvider = channelProviderFactory.create(this.connectionFileContent!!)
-            this.socketFactory = SocketFactoryImp(this.channelProvider!!, this.zcontext)
-            this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
+            this.socketFactory = socketFactoryFactory.create(this.channelProvider!!, this.zcontext)
+//            this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
+            this.session = sessionFactory.create(this.connectionFileContent?.key!!)
             this.msgEncoder = msgEncoderFactory.create(this.connectionFileContent?.key!!)
-            this.msgCounter = MsgCounterImp()
-            this.msgIdGenerator = RandomMsgIdGenerator()
+//            this.msgIdGenerator = RandomMsgIdGenerator()
             this.senderProvider = SenderProviderImp(this)
 
             this.onKernelStartedListener.run(this)
@@ -341,8 +345,8 @@ class KernelContextImp @Inject internal constructor(
         this.session = null
         this.channelProvider = null
         this.msgEncoder = null
-        this.msgIdGenerator = null
-        this.msgCounter = null
+//        this.msgIdGenerator = null
+        this.msgCounter.reset()
         this.senderProvider = null
         this.socketFactory = null
 //        this.zcontext.close()
@@ -422,7 +426,7 @@ class KernelContextImp @Inject internal constructor(
 
 
     override fun getMsgIdGenerator(): Result<MsgIdGenerator, ErrorReport> {
-        return this.checkKernelRunningAndGet2("MsgIdGenerator") { this.msgIdGenerator!! }
+        return Ok(this.msgIdGenerator)
     }
 
     private fun <T> checkKernelRunningAndGet2(objectName: String = "", that: () -> T): Result<T, ErrorReport> {
@@ -466,12 +470,11 @@ class KernelContextImp @Inject internal constructor(
         val isSessonOk = this.session != null
         val isChannelProviderOk = this.channelProvider != null
         val isMsgEncodeOk = this.msgEncoder != null
-        val isMsgCounterOk = this.msgCounter != null
         val isSenderProviderOk = this.senderProvider != null
 
         val rt = listOf(
             isProcessLive, isFileWritten, connectionFileIsRead,
-            isSessonOk, isChannelProviderOk, isMsgEncodeOk, isMsgCounterOk, isSenderProviderOk,
+            isSessonOk, isChannelProviderOk, isMsgEncodeOk, isSenderProviderOk,
         )
         return rt
     }

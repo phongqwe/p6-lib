@@ -1,14 +1,20 @@
 package com.emeraldblast.p6.message.api.connection.kernel_context.context_object
 
+import com.emeraldblast.p6.message.di.SessionId
+import com.emeraldblast.p6.message.di.SystemUsername
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import java.util.*
 
 /**
  * Provide username, encryption key, and session id. These are for making message
  */
-data class SessionImp internal constructor(
+data class SessionImp @AssistedInject constructor(
+    @SessionId
     private val sessionId: String,
+    @SystemUsername
     private val systemUsername: String,
-    private val key: String
+    @Assisted private val key: String
 ) : Session {
     companion object {
         /**

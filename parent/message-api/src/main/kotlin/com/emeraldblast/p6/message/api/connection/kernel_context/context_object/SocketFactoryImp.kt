@@ -1,13 +1,14 @@
 package com.emeraldblast.p6.message.api.connection.kernel_context.context_object
 
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ
-import javax.inject.Inject
 
-class SocketFactoryImp @Inject constructor(
-    private val channelProvider: ChannelProvider,
-    private val zContext: ZContext
+class SocketFactoryImp @AssistedInject constructor(
+    @Assisted private val channelProvider: ChannelProvider,
+    @Assisted private val zContext: ZContext
 ) : SocketFactory {
 
     override fun shellSocket(): ZMQ.Socket {

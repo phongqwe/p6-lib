@@ -13,3 +13,11 @@ annotation class MsgApiCommonLogger
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ServiceInitTimeOut
+
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class SystemUsername
+
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class SessionId
