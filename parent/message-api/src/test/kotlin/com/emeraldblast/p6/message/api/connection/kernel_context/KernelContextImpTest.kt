@@ -119,7 +119,6 @@ internal class KernelContextImpTest {
         assertTrue(kc.getSession() is Err)
         assertTrue(kc.getChannelProvider() is Err)
         assertTrue(kc.getMsgEncoder() is Err)
-        assertTrue(kc.getMsgIdGenerator() is Err)
         assertTrue(kc.getHeartBeatService() is Err)
         assertTrue(kc.getZmqREPService() is Err)
         assertTrue(kc.getIOPubListenerService() is Err)

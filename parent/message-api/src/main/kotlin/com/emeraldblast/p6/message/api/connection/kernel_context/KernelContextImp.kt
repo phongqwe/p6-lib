@@ -48,13 +48,13 @@ class KernelContextImp @Inject internal constructor(
     // x: kernelConfig is created from an external file.
     private val kernelConfig: KernelConfig,
     private val zcontext: ZContext,
-    @KernelCoroutineScope
-    private val kernelCoroutineScope: CoroutineScope,
-    // x: dispatcher (a group of threads) on which network communication services run on
-    @ServiceCoroutineDispatcher
-    private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    @RepServiceLogger
-    private val repServiceLogger:Logger?=null,
+//    @KernelCoroutineScope
+//    private val kernelCoroutineScope: CoroutineScope,
+//    // x: dispatcher (a group of threads) on which network communication services run on
+//    @ServiceCoroutineDispatcher
+//    private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
+//    @RepServiceLogger
+//    private val repServiceLogger:Logger?=null,
     @MsgApiCommonLogger
     private val commonLogger:Logger?=null,
     private var msgCounter: MsgCounter,
@@ -64,7 +64,6 @@ class KernelContextImp @Inject internal constructor(
     private val socketFactoryFactory:SocketFactoryFactory,
     private val sessionFactory: SessionFactory,
     private val senderProviderFactory: SenderProviderFactory,
-
     private val heartBeatServiceFactory: HeartBeatServiceFactory,
     private val ioPubListenerServiceFactory: IOPubListenerServiceFactory,
     private val repServiceFactory: REPServiceFactory,
@@ -142,15 +141,16 @@ class KernelContextImp @Inject internal constructor(
                 return Err(report)
             }
 
-            this.connectionFileContent = this.kernelConfig.kernelConnectionFileContent
+            this.connectionFileContent = this.kernelConfig.kernelConnectionFileContent!!
+            val connectionFiles = this.connectionFileContent!!
 
             // x: create resources, careful with the order of resource initiation,
             // x: some must be initialized first
             // x: must NOT use getters here because getters always check for kernel status before return derivative objects
-            this.channelProvider = channelProviderFactory.create(this.connectionFileContent!!)
+            this.channelProvider = channelProviderFactory.create(connectionFiles)
             this.socketFactory = socketFactoryFactory.create(this.channelProvider!!, this.zcontext)
-            this.session = sessionFactory.create(this.connectionFileContent?.key!!)
-            this.msgEncoder = msgEncoderFactory.create(this.connectionFileContent?.key!!)
+            this.session = sessionFactory.create(connectionFiles.key)
+            this.msgEncoder = msgEncoderFactory.create(connectionFiles.key)
             this.senderProvider = senderProviderFactory.create(this)
             this.onKernelStartedListener.run(this)
             return Ok(Unit)
@@ -349,11 +349,9 @@ class KernelContextImp @Inject internal constructor(
         this.session = null
         this.channelProvider = null
         this.msgEncoder = null
-//        this.msgIdGenerator = null
         this.msgCounter.reset()
         this.senderProvider = null
         this.socketFactory = null
-//        this.zcontext.close()
     }
 
     override fun getKernelProcess(): Result<Process, ErrorReport> {
