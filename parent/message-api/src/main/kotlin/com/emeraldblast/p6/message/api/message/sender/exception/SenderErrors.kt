@@ -3,7 +3,7 @@ package com.emeraldblast.p6.message.api.message.sender.exception
 import com.emeraldblast.p6.common.exception.error.ErrorHeader
 import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgContent
-import com.emeraldblast.p6.message.api.message.sender.composite.CodeExecutionSender
+import com.emeraldblast.p6.message.api.message.sender.composite.CodeExecutionSenderImp
 import org.zeromq.ZMsg
 
 object SenderErrors {
@@ -11,7 +11,7 @@ object SenderErrors {
     private const val prefix= "Sender error "
     object InvalidSendState {
         val header=ErrorHeader("${prefix}1","invalid send state")
-        class Data(val currentState: CodeExecutionSender.SendingState)
+        class Data(val currentState: CodeExecutionSenderImp.SendingState)
     }
 
     /**

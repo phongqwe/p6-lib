@@ -3,6 +3,7 @@ package com.emeraldblast.p6.message.di
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelConfig
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContext
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextImp
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.ChannelProvider
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.ChannelProviderImp
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.SocketFactory
@@ -27,12 +28,16 @@ interface KernelContextModule {
     fun kernelContext(context: KernelContextImp): KernelContext
 
     @Binds
+    fun KernelContextReadOnly(context: KernelContextImp): KernelContextReadOnly
+
+    @Binds
     fun msgCounter(i: MsgCounterImp): MsgCounter
 
     @Binds
     fun MsgIdGenerator(i: RandomMsgIdGenerator):MsgIdGenerator
 
     companion object {
+
         @Provides
         fun zContext(): ZContext {
             return ZContext()

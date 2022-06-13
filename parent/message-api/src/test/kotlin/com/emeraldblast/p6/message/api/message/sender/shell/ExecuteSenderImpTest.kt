@@ -6,7 +6,6 @@ import com.github.michaelbull.result.unwrap
 import com.emeraldblast.p6.message.api.message.protocol.MsgStatus
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.Shell
 import com.emeraldblast.p6.test.utils.TestOnJupyter
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -16,7 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class ExecuteSenderTest : TestOnJupyter() {
+internal class ExecuteSenderImpTest : TestOnJupyter() {
 
     @BeforeEach
     fun beforeEach(){
@@ -65,7 +64,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     @Test
     fun send_ok() {
         runBlocking {
-            val sender2 = ExecuteSender(
+            val sender2 = ExecuteSenderImp(
                 kernelContext
             )
 
@@ -84,7 +83,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     @Test
     fun send_malformedCode() {
         runBlocking {
-            val sender2 = ExecuteSender(
+            val sender2 = ExecuteSenderImp(
                 kernelContext
             )
 
@@ -103,7 +102,7 @@ internal class ExecuteSenderTest : TestOnJupyter() {
     @Test
     fun send_fail() {
         runBlocking {
-            val sender2 = ExecuteSender(kernelContext)
+            val sender2 = ExecuteSenderImp(kernelContext)
             kernelContext.stopAll()
             val out = sender2.send(message)
             assertTrue(out is Err, out.toString())

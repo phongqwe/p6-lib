@@ -151,7 +151,7 @@ class KernelContextImp @Inject internal constructor(
             this.socketFactory = socketFactoryFactory.create(this.channelProvider!!, this.zcontext)
             this.session = sessionFactory.create(connectionFiles.key)
             this.msgEncoder = msgEncoderFactory.create(connectionFiles.key)
-            this.senderProvider = senderProviderFactory.create(this)
+            this.senderProvider = senderProviderFactory.create()
             this.onKernelStartedListener.run(this)
             return Ok(Unit)
         }

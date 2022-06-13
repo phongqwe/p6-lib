@@ -10,15 +10,22 @@ import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.Shell
 import com.emeraldblast.p6.message.api.message.sender.MsgSender
 import com.emeraldblast.p6.message.api.message.sender.PCSender
+import javax.inject.Inject
 
 typealias ExecuteReply = JPMessage<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>
 
 typealias ExecuteRequest = JPMessage<Shell.Execute.Request.MetaData, Shell.Execute.Request.Content>
 
-class ExecuteSender internal constructor(
+interface ExecuteSender : MsgSender<ExecuteRequest,
+        Result<ExecuteReply, ErrorReport>>
+
+/**
+ * Send a code execution request. It is noted that the result returned by this sender is not the code execution result, only the sending status.
+ * @return a reply.
+ */
+class ExecuteSenderImp @Inject constructor(
     private val kernelContext: KernelContextReadOnly,
-) : MsgSender<ExecuteRequest,
-        Result<ExecuteReply, ErrorReport>> {
+) : ExecuteSender {
 
     override suspend fun send(
         message: ExecuteRequest,

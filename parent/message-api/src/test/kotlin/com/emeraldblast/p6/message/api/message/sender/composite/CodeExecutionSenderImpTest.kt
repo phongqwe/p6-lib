@@ -30,7 +30,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class CodeExecutionSenderTest : TestOnJupyter() {
+internal class CodeExecutionSenderImpTest : TestOnJupyter() {
 
     lateinit var ioPubService: IOPubListenerServiceImpl
 
@@ -109,7 +109,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                         kernelContext.getMsgIdGenerator().unwrap().next()
                     )
 
-                    val sender = CodeExecutionSender(
+                    val sender = CodeExecutionSenderImp(
                         kernelContext = kernelContext,
                     )
 
@@ -126,7 +126,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun send_Ok() {
         runBlocking {
-            val sender = CodeExecutionSender(kernelContext)
+            val sender = CodeExecutionSenderImp(kernelContext)
             val o = sender.send(message)
             assertTrue(o is Ok, o.toString())
         }
@@ -172,7 +172,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 ),
                 "msg_id_abc_1"
             )
-            val sender = CodeExecutionSender(kernelContext)
+            val sender = CodeExecutionSenderImp(kernelContext)
             val o2 = sender.send(message2)
             assertTrue(o2 is Ok,o2.toString())
             assertNull(o2.value)
@@ -213,7 +213,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 every{it.getSenderProvider()} returns Ok(mockSenderProvider)
             }
 
-            val sender = CodeExecutionSender(mockContext)
+            val sender = CodeExecutionSenderImp(mockContext)
             val o = sender.send(message)
             assertTrue(o is Err, o.toString())
             assertTrue(o.unwrapError().isType(SenderErrors.UnableToSendMsg.header))
@@ -223,7 +223,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
     @Test
     fun send_kernelNotRunning() = runBlocking {
         kernelContext.stopAll()
-        val sender = CodeExecutionSender(kernelContext)
+        val sender = CodeExecutionSenderImp(kernelContext)
         val o = sender.send(message)
         assertTrue(o is Err)
         assertTrue((o.unwrapError().isType(KernelErrors.KernelDown.header)),"should return the correct exception")
@@ -241,7 +241,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
             every {it.getIOPubListenerService()} returns Ok(mockListener)
         }
 
-        val sender = CodeExecutionSender(mockContext)
+        val sender = CodeExecutionSenderImp(mockContext)
         val o = sender.send(message)
         assertTrue(o is Err)
         assertTrue((o.unwrapError().isType(IOPubServiceErrors.IOPubServiceNotRunning.header)),"should return the correct exception")
@@ -265,7 +265,7 @@ internal class CodeExecutionSenderTest : TestOnJupyter() {
                 ),
                 "msg_id_abc_123"
             )
-            val sender = CodeExecutionSender(kernelContext)
+            val sender = CodeExecutionSenderImp(kernelContext)
             val o = sender.send(malformedCodeMsg)
             assertTrue(o is Err)
         }

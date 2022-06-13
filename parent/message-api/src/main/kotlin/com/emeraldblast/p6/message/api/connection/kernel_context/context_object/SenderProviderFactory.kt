@@ -5,5 +5,7 @@ import dagger.assisted.AssistedFactory
 
 @AssistedFactory
 interface SenderProviderFactory{
-    fun create(kernelContext: KernelContextReadOnly): SenderProviderImp
+    fun create(
+//        kernelContext: KernelContextReadOnly
+    ): SenderProviderImp
 }
