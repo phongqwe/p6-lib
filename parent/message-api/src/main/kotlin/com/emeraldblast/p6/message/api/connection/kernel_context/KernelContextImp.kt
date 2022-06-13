@@ -58,6 +58,7 @@ class KernelContextImp @Inject internal constructor(
     private val msgEncoderFactory: MsgEncoderFactory,
     private val socketFactoryFactory:SocketFactoryFactory,
     private val sessionFactory: SessionFactory,
+    private val senderProviderFactory: SenderProviderFactory,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
@@ -137,15 +138,11 @@ class KernelContextImp @Inject internal constructor(
             // x: create resources, careful with the order of resource initiation,
             // x: some must be initialized first
             // x: must NOT use getters here because getters always check for kernel status before return derivative objects
-//            this.channelProvider = ChannelProviderImp(this.connectionFileContent!!)
             this.channelProvider = channelProviderFactory.create(this.connectionFileContent!!)
             this.socketFactory = socketFactoryFactory.create(this.channelProvider!!, this.zcontext)
-//            this.session = SessionImp.autoCreate(this.connectionFileContent?.key!!)
             this.session = sessionFactory.create(this.connectionFileContent?.key!!)
             this.msgEncoder = msgEncoderFactory.create(this.connectionFileContent?.key!!)
-//            this.msgIdGenerator = RandomMsgIdGenerator()
-            this.senderProvider = SenderProviderImp(this)
-
+            this.senderProvider = senderProviderFactory.create(this)
             this.onKernelStartedListener.run(this)
             return Ok(Unit)
         }

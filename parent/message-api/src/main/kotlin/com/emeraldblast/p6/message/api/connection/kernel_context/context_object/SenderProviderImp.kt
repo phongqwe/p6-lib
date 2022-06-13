@@ -7,9 +7,12 @@ import com.emeraldblast.p6.message.api.message.sender.MsgSender
 import com.emeraldblast.p6.message.api.message.sender.composite.CodeExecutionSender
 import com.emeraldblast.p6.message.api.message.sender.composite.ExecuteResult
 import com.emeraldblast.p6.message.api.message.sender.shell.*
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 
-class SenderProviderImp internal constructor(
-    val kernelContext: KernelContextReadOnly,
+
+class SenderProviderImp @AssistedInject constructor(
+    @Assisted val kernelContext: KernelContextReadOnly,
 ) : SenderProvider {
 
     override fun executeRequestSender(): MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> {
