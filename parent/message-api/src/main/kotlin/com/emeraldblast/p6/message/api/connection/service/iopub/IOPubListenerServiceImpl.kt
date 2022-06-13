@@ -9,6 +9,7 @@ import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServ
 import com.emeraldblast.p6.message.api.message.protocol.JPRawMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.IOPub
+import com.emeraldblast.p6.message.api.message.sender.composite.execution_handler.*
 import com.emeraldblast.p6.message.api.other.Sleeper
 import com.emeraldblast.p6.message.di.ServiceCoroutineDispatcher
 import dagger.assisted.Assisted
@@ -43,8 +44,19 @@ class IOPubListenerServiceImpl @AssistedInject constructor(
     private val externalScope: CoroutineScope,
     @ServiceCoroutineDispatcher
     private val dispatcher: CoroutineDispatcher,
+    override val executeResultHandler: ExecuteResultHandler= ExecuteResultHandlerImp(),
+    override val executeErrorHandler: ExecuteErrorHandler = ExecuteErrorHandlerImp(),
+    override val idleExecutionStatusHandler: IdleExecutionStatusHandler = ExecutionStatusHandlerImp.Idle(),
+    override val busyExecutionStatusHandler: BusyExecutionStatusHandler=ExecutionStatusHandlerImp.Busy(),
 
     ) : IOPubListenerService {
+
+    init{
+        this.addHandler(this.executeResultHandler)
+        this.addHandler(this.executeErrorHandler)
+        this.addHandler(this.idleExecutionStatusHandler)
+        this.addHandler(this.busyExecutionStatusHandler)
+    }
 
     private var job: Job? = null
 
@@ -63,7 +75,6 @@ class IOPubListenerServiceImpl @AssistedInject constructor(
             )
             return Err(report)
         }
-
 
         // x: add default handler
         if(defaultHandler!=null){

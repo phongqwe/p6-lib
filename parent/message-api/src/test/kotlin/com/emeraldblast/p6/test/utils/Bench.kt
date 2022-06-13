@@ -1,5 +1,6 @@
 package com.emeraldblast.p6.test.utils
 
+import com.emeraldblast.p6.message.di.DaggerMessageApiComponent
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -12,6 +13,21 @@ import kotlin.system.measureTimeMillis
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench {
+    @Test
+    fun t2defer(){
+        val zcontext = ZContext()
+        val kernelConfig = TestResources.kernelConfigForTest()
+        val comp = DaggerMessageApiComponent.builder()
+            .kernelConfig(kernelConfig)
+            .kernelCoroutineScope(GlobalScope)
+            .networkServiceCoroutineDispatcher(Dispatchers.IO)
+            .build()
+        val k1 = comp.kernelContext()
+        val k2 = comp.kernelContext()
+        println(k1 === k2)
+    }
+
+
 //    @Test
     fun nonBlockingEg(){
         runBlocking {

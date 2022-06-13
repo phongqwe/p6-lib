@@ -6,17 +6,7 @@ import dagger.Binds
 
 @dagger.Module
 interface ServiceModule {
-//    @Binds
-//    @MsgApiScope
-//    fun HeartBeatService(i: LiveCountHeartBeatServiceCoroutine):HeartBeatService
-//
     @Binds
+    @MsgApiScope
     fun HandlerContainer(i: MsgHandlerContainerImp): MsgHandlerContainer
-//
-    companion object{
-//        @ServiceInitTimeOut
-//        fun ServiceInitTimeOut(kernelConfig:KernelConfig):Long{
-//            return kernelConfig.timeOut.serviceInitTimeOut
-//        }
-    }
 }

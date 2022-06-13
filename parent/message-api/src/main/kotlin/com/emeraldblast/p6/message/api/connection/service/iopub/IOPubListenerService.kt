@@ -4,6 +4,7 @@ import com.github.michaelbull.result.Result
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.service.Service
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
+import com.emeraldblast.p6.message.api.message.sender.composite.execution_handler.*
 
 /**
  * Listen for in-coming message.
@@ -32,5 +33,10 @@ interface IOPubListenerService : MsgHandlerContainer, Service{
             throw RuntimeException("only used this method to add default handler")
         }
     }
+
+    val executeResultHandler:ExecuteResultHandler
+    val executeErrorHandler:ExecuteErrorHandler
+    val idleExecutionStatusHandler : IdleExecutionStatusHandler
+    val busyExecutionStatusHandler : BusyExecutionStatusHandler
 }
 

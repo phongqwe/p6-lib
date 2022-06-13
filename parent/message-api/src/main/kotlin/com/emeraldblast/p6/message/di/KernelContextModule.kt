@@ -4,8 +4,6 @@ import com.emeraldblast.p6.message.api.connection.kernel_context.KernelConfig
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContext
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextImp
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
-import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.ChannelProvider
-import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.ChannelProviderImp
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.SocketFactory
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.SocketFactoryImp
 import com.emeraldblast.p6.message.api.message.protocol.KernelConnectionFileContent
@@ -25,20 +23,25 @@ import javax.inject.Singleton
 @Module
 interface KernelContextModule {
     @Binds
+    @MsgApiScope
     fun kernelContext(context: KernelContextImp): KernelContext
 
     @Binds
-    fun KernelContextReadOnly(context: KernelContextImp): KernelContextReadOnly
+    @MsgApiScope
+    fun KernelContextReadOnly(context: KernelContext): KernelContextReadOnly
 
     @Binds
+    @MsgApiScope
     fun msgCounter(i: MsgCounterImp): MsgCounter
 
     @Binds
+    @MsgApiScope
     fun MsgIdGenerator(i: RandomMsgIdGenerator):MsgIdGenerator
 
     companion object {
 
         @Provides
+        @MsgApiScope
         fun zContext(): ZContext {
             return ZContext()
         }

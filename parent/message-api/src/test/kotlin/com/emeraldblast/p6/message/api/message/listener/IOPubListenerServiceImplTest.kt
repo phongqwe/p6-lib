@@ -92,7 +92,9 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
         val listener1 = IOPubListenerServiceImpl(
             kernelContext = kernelContext,
             externalScope = GlobalScope,
-            dispatcher = Dispatchers.IO
+            dispatcher = Dispatchers.IO,
+
+
         )
 
         listener1.addHandler(

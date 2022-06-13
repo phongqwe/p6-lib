@@ -18,7 +18,6 @@ abstract class TestOnJupyter {
     fun setUp(){
         this.zcontext = ZContext()
         this.kernelConfig = TestResources.kernelConfigForTest()
-//        this.kernelContext = KernelContextImp(this.ipythonConfig, zcontext, GlobalScope, Dispatchers.IO)
         this.kernelContext = DaggerMessageApiComponent.builder()
             .kernelConfig(this.kernelConfig)
             .kernelCoroutineScope(GlobalScope)
