@@ -1,5 +1,6 @@
-package com.emeraldblast.p6.message.api.message.sender.composite.execution_handler
+package com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler
 
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.AbsDeferredJobHandler
 import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.JPRawMessage
 import com.emeraldblast.p6.message.api.message.protocol.MessageHeader
@@ -8,10 +9,12 @@ import com.emeraldblast.p6.message.api.message.protocol.data_interface_definitio
 import kotlinx.coroutines.CompletableDeferred
 import javax.inject.Inject
 
-sealed class ExecutionStatusHandlerImp constructor(private val targetStatus: IOPub.Status.ExecutionState) : ExecutionStatusHandler, AbsDeferredJobHandler<IOPub.Status.ExecutionState>() {
+sealed class ExecutionStatusHandlerImp constructor(private val targetStatus: IOPub.Status.ExecutionState) : ExecutionStatusHandler, AbsDeferredJobHandler<MessageHeader,IOPub.Status.ExecutionState>() {
 
-    class Idle @Inject constructor() : ExecutionStatusHandlerImp(IOPub.Status.ExecutionState.idle),IdleExecutionStatusHandler
-    class Busy @Inject constructor(): ExecutionStatusHandlerImp(IOPub.Status.ExecutionState.busy),BusyExecutionStatusHandler
+    class Idle @Inject constructor() : ExecutionStatusHandlerImp(IOPub.Status.ExecutionState.idle),
+        IdleExecutionStatusHandler
+    class Busy @Inject constructor(): ExecutionStatusHandlerImp(IOPub.Status.ExecutionState.busy),
+        BusyExecutionStatusHandler
 
     override val msgType: MsgType = IOPub.Status.msgType
 

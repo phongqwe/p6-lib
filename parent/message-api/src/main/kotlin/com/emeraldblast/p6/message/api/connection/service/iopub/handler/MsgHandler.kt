@@ -1,4 +1,4 @@
-package com.emeraldblast.p6.message.api.connection.service.iopub
+package com.emeraldblast.p6.message.api.connection.service.iopub.handler
 
 import com.emeraldblast.p6.message.api.message.protocol.JPRawMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgType

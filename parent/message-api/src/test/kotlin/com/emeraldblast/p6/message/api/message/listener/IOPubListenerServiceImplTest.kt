@@ -4,7 +4,7 @@ import com.github.michaelbull.result.*
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlerContainerImp
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
-import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlers
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.MsgHandlers
 import com.emeraldblast.p6.message.api.message.protocol.JPRawMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.IOPub
@@ -222,7 +222,8 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
             externalScope = GlobalScope,
             dispatcher = Dispatchers.IO
         ).also {
-            it.addHandler(MsgHandlers.withUUID(
+            it.addHandler(
+                MsgHandlers.withUUID(
                 msgType = MsgType.Control_shutdown_reply,
                 handlerFunction = { m ->
                     handlerTriggeredCount++

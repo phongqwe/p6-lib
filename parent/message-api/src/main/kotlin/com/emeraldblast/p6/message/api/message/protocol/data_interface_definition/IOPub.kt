@@ -1,7 +1,7 @@
 package com.emeraldblast.p6.message.api.message.protocol.data_interface_definition
 
+import com.emeraldblast.p6.message.api.message.protocol.MapMsgMetaData
 import com.emeraldblast.p6.message.api.message.protocol.MsgContent
-import com.emeraldblast.p6.message.api.message.protocol.MsgMetaData
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
 import com.google.gson.annotations.SerializedName
 
@@ -16,7 +16,7 @@ object IOPub {
             val evalue:String
         ) : MsgContent
 
-        class MetaData : MsgMetaData
+        class MetaData : MapMsgMetaData()
 
     }
 
@@ -33,7 +33,7 @@ object IOPub {
             val executionState: ExecutionState
         ) : MsgContent
 
-        class MetaData() : MsgMetaData
+        class MetaData() : MapMsgMetaData()
 
         enum class ExecutionState{
             busy, idle, starting, undefined
@@ -57,7 +57,7 @@ object IOPub {
             }
         }
 
-        class MetaData: MsgMetaData
+        class MetaData: MapMsgMetaData()
 
     }
 
@@ -71,7 +71,7 @@ object IOPub {
             val metaData: Map<String, Any>,
             val transient: Map<String, Any>
         ) : MsgContent
-
+        class MetaData : MapMsgMetaData()
     }
 
     object Stream {

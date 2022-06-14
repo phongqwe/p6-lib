@@ -1,5 +1,6 @@
 package com.emeraldblast.p6.message.api.connection.service.iopub
 
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.MsgHandler
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
 import javax.inject.Inject
 

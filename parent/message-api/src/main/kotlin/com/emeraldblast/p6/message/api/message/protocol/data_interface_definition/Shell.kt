@@ -1,9 +1,6 @@
 package com.emeraldblast.p6.message.api.message.protocol.data_interface_definition
 
-import com.emeraldblast.p6.message.api.message.protocol.MsgContent
-import com.emeraldblast.p6.message.api.message.protocol.MsgMetaData
-import com.emeraldblast.p6.message.api.message.protocol.MsgStatus
-import com.emeraldblast.p6.message.api.message.protocol.MsgType
+import com.emeraldblast.p6.message.api.message.protocol.*
 import com.google.gson.annotations.SerializedName
 import java.util.*
 
@@ -26,7 +23,7 @@ object Shell{
                 val stopOnError: Boolean,
             ): MsgContent
 
-            class MetaData : MsgMetaData {}
+            class MetaData : MapMsgMetaData() {}
 
 
         }
@@ -68,7 +65,7 @@ object Shell{
 
             class Content : MsgContent
 
-            class MetaData: MsgMetaData
+            class MetaData: MapMsgMetaData()
 
 
         }
@@ -94,7 +91,7 @@ object Shell{
                 evalue:String
             ) : MsgContent, CommonReplyContent(status,traceback, ename, evalue)
 
-            class MetaData: MsgMetaData
+            class MetaData: MapMsgMetaData()
 
             data class HelpLink(
                 val text:String,
@@ -140,7 +137,7 @@ object Shell{
          */
         object Open :MsgDefinitionEncapsulation{
             override val msgType: MsgType = MsgType.Shell_comm_open
-            class MetaData: MsgMetaData
+            class MetaData: MapMsgMetaData()
             class Content(
                 @SerializedName("comm_id")
                 val commId:String,
@@ -157,7 +154,7 @@ object Shell{
          */
         object Close:MsgDefinitionEncapsulation{
             override val msgType: MsgType = MsgType.Shell_comm_close
-            class MetaData: MsgMetaData
+            class MetaData: MapMsgMetaData()
             class Content(
                 @SerializedName("comm_id")
                 val commId:String,
@@ -170,7 +167,7 @@ object Shell{
          */
         object Msg:MsgDefinitionEncapsulation{
             override val msgType: MsgType = MsgType.Shell_comm_msg
-            class MetaData: MsgMetaData
+            class MetaData: MapMsgMetaData()
             class Content(
                 @SerializedName("comm_id")
                 val commId:String,

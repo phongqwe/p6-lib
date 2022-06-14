@@ -2,7 +2,7 @@ package com.emeraldblast.p6.message.api.message.listener
 
 import com.github.michaelbull.result.unwrap
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
-import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlers
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.MsgHandlers
 import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.JPRawMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
@@ -107,7 +107,8 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 dispatcher = Dispatchers.Default
             )
 
-            listener.addHandler(MsgHandlers.withUUID(
+            listener.addHandler(
+                MsgHandlers.withUUID(
                     MsgType.IOPub_execute_result,
                     handlerFunction = { msg: JPRawMessage ->
                         val md = msg.toModel<IOPub.ExecuteResult.MetaData, IOPub.ExecuteResult.Content>()

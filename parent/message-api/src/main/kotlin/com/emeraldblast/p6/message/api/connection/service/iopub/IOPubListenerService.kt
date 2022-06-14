@@ -3,12 +3,18 @@ package com.emeraldblast.p6.message.api.connection.service.iopub
 import com.github.michaelbull.result.Result
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.service.Service
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.MsgHandler
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler.BusyExecutionStatusHandler
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler.ExecuteErrorHandler
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler.ExecuteResultHandler
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler.IdleExecutionStatusHandler
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
-import com.emeraldblast.p6.message.api.message.sender.composite.execution_handler.*
 
 /**
- * Listen for in-coming message.
- * Dispatch message to the appropriate handlers.
+ * Listen for in-coming message on iopub channel.
+ * Dispatch message to the appropriate handlers which are categorized by the type of message that they can handle.
+ * This listener service includes standards handlers that are exposed as properties.
+ * This listener accepts additional handlers, add them using [addHandler] or [addHandlers] method.
  */
 interface IOPubListenerService : MsgHandlerContainer, Service{
 
@@ -34,8 +40,8 @@ interface IOPubListenerService : MsgHandlerContainer, Service{
         }
     }
 
-    val executeResultHandler:ExecuteResultHandler
-    val executeErrorHandler:ExecuteErrorHandler
+    val executeResultHandler: ExecuteResultHandler
+    val executeErrorHandler: ExecuteErrorHandler
     val idleExecutionStatusHandler : IdleExecutionStatusHandler
     val busyExecutionStatusHandler : BusyExecutionStatusHandler
 }

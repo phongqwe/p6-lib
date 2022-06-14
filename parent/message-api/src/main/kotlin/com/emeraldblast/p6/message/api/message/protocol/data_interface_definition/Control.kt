@@ -1,9 +1,6 @@
 package com.emeraldblast.p6.message.api.message.protocol.data_interface_definition
 
-import com.emeraldblast.p6.message.api.message.protocol.MsgContent
-import com.emeraldblast.p6.message.api.message.protocol.MsgMetaData
-import com.emeraldblast.p6.message.api.message.protocol.MsgStatus
-import com.emeraldblast.p6.message.api.message.protocol.MsgType
+import com.emeraldblast.p6.message.api.message.protocol.*
 
 object Control {
 
@@ -18,7 +15,7 @@ object Control {
 
             class Content : MsgContent
 
-            class MetaData : MsgMetaData
+            class MetaData : MapMsgMetaData()
         }
 
         object Reply : MsgDefinitionEncapsulation {
@@ -32,7 +29,7 @@ object Control {
                 evalue: String,
             ) : MsgContent, CommonReplyContent(status, traceback, ename, evalue)
 
-            class MetaData : MsgMetaData {}
+            class MetaData :MapMsgMetaData()
         }
     }
 

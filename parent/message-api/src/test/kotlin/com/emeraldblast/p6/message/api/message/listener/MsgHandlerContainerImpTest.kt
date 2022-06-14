@@ -1,7 +1,7 @@
 package com.emeraldblast.p6.message.api.message.listener
 
 import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlerContainerImp
-import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlers
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.MsgHandlers
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach

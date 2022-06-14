@@ -1,4 +1,4 @@
-package com.emeraldblast.p6.message.api.message.sender.composite.execution_handler
+package com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler
 
 /**
  * A handler for catching busy execution status
