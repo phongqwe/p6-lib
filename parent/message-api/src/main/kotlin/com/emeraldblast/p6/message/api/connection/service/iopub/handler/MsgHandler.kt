@@ -9,8 +9,6 @@ import com.emeraldblast.p6.message.api.message.protocol.MsgType
 interface MsgHandler {
     /**
      * callback function.
-     * A handler may need to interact with other suspend function, so this function is a suspend function.
-     * This function may be long running, and I want to run it inside a coroutine ??????
      */
     fun handle(msg: JPRawMessage)
 
@@ -18,6 +16,10 @@ interface MsgHandler {
      * unique id
      */
     val id: String
+
+    /**
+     * the type of msg that this handler is supposed to handle
+     */
     val msgType: MsgType
 }
 

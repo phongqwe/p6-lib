@@ -1,6 +1,5 @@
 package com.emeraldblast.p6.message.api.connection.service.iopub
 
-import com.github.michaelbull.result.*
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelCoroutineScope
@@ -14,33 +13,23 @@ import com.emeraldblast.p6.message.api.message.protocol.MsgType
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.IOPub
 import com.emeraldblast.p6.message.api.other.Sleeper
 import com.emeraldblast.p6.message.di.ServiceCoroutineDispatcher
+import com.github.michaelbull.result.*
 import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.*
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
-
-@AssistedFactory
-interface IOPubListenerServiceFactory{
-    fun create(
-         kernelContext: KernelContextReadOnly,
-         defaultHandler: ((msg: JPRawMessage) -> Unit)?,
-         parseExceptionHandler: suspend (exception: ErrorReport) -> Unit,
-         startTimeOut: Long,
-    ):IOPubListenerServiceImpl
-}
 
 /**
  * Listen to pub msg from IOPub channel and dispatch msg to appropriate handlers.
  * [defaultHandler] to handle msg type that don't have a specific handler.
  * [parseExceptionHandler] to handle exception of unable to parse zmq message.
  */
-class IOPubListenerServiceImpl @AssistedInject constructor(
+class IOPubListenerServiceImp @AssistedInject constructor(
     @Assisted private val kernelContext: KernelContextReadOnly,
     @Assisted private val defaultHandler: ((msg: JPRawMessage) -> Unit)? = { /*do nothing*/ },
-    @Assisted private val parseExceptionHandler: suspend (exception: ErrorReport) -> Unit= { /*do nothing*/ },
-    @Assisted private val startTimeOut:Long = 50_000,
+    @Assisted private val parseExceptionHandler: suspend (exception: ErrorReport) -> Unit = { /*do nothing*/ },
+    @Assisted private val startTimeOut: Long = 50_000,
     private val handlerContainer: MsgHandlerContainer = MsgHandlerContainerImp(),
     @KernelCoroutineScope
     private val externalScope: CoroutineScope,
@@ -50,14 +39,19 @@ class IOPubListenerServiceImpl @AssistedInject constructor(
     override val executeErrorHandler: ExecuteErrorHandler = ExecuteErrorHandlerImp(),
     override val idleExecutionStatusHandler: IdleExecutionStatusHandler = ExecutionStatusHandlerImp.Idle(),
     override val busyExecutionStatusHandler: BusyExecutionStatusHandler = ExecutionStatusHandlerImp.Busy(),
+    override val displayDataHandler: DisplayDataHandler = DisplayDataHandlerImp()
+) : IOPubListenerService {
 
-    ) : IOPubListenerService {
-
-    init{
-        this.addHandler(this.executeResultHandler)
-        this.addHandler(this.executeErrorHandler)
-        this.addHandler(this.idleExecutionStatusHandler)
-        this.addHandler(this.busyExecutionStatusHandler)
+    init {
+        this.addHandlers(
+            listOf(
+                this.executeResultHandler,
+                this.executeErrorHandler,
+                this.idleExecutionStatusHandler,
+                this.busyExecutionStatusHandler,
+                this.displayDataHandler,
+            )
+        )
     }
 
     private var job: Job? = null
@@ -70,7 +64,7 @@ class IOPubListenerServiceImpl @AssistedInject constructor(
             return Ok(Unit)
         }
 
-        if(kernelContext.isKernelRunning().not()){
+        if (kernelContext.isKernelRunning().not()) {
             val report = ErrorReport(
                 header = KernelErrors.KernelDown.header,
                 data = KernelErrors.KernelDown.Data("${this.javaClass.canonicalName}:start")
@@ -79,7 +73,7 @@ class IOPubListenerServiceImpl @AssistedInject constructor(
         }
 
         // x: add default handler
-        if(defaultHandler!=null){
+        if (defaultHandler != null) {
             this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
         }
         this.job = externalScope.launch(dispatcher) {
@@ -109,14 +103,14 @@ class IOPubListenerServiceImpl @AssistedInject constructor(
             }
         }
         val waitRs = Sleeper.delayUntil(10, startTimeOut) { this.isRunning() }
-        if(waitRs is Err){
+        if (waitRs is Err) {
             this.job?.cancel()
             val report = ErrorReport(
-                header= IOPubServiceErrors.CantStartIOPubServiceTimeOut.header,
+                header = IOPubServiceErrors.CantStartIOPubServiceTimeOut.header,
                 data = IOPubServiceErrors.CantStartIOPubServiceTimeOut.Data("Time out when trying to start IOPub service"),
             )
             return Err(report)
-        }else{
+        } else {
             return Ok(Unit)
         }
     }

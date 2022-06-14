@@ -4,10 +4,7 @@ import com.github.michaelbull.result.Result
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.service.Service
 import com.emeraldblast.p6.message.api.connection.service.iopub.handler.MsgHandler
-import com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler.BusyExecutionStatusHandler
-import com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler.ExecuteErrorHandler
-import com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler.ExecuteResultHandler
-import com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler.IdleExecutionStatusHandler
+import com.emeraldblast.p6.message.api.connection.service.iopub.handler.execution_handler.*
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
 
 /**
@@ -44,5 +41,6 @@ interface IOPubListenerService : MsgHandlerContainer, Service{
     val executeErrorHandler: ExecuteErrorHandler
     val idleExecutionStatusHandler : IdleExecutionStatusHandler
     val busyExecutionStatusHandler : BusyExecutionStatusHandler
+    val displayDataHandler: DisplayDataHandler
 }
 

@@ -3,7 +3,7 @@ package com.emeraldblast.p6.message.api.message.listener
 import com.github.michaelbull.result.*
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlerContainerImp
-import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
+import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImp
 import com.emeraldblast.p6.message.api.connection.service.iopub.handler.MsgHandlers
 import com.emeraldblast.p6.message.api.message.protocol.JPRawMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertFalse
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class IOPubListenerServiceImplTest : TestOnJupyter() {
+internal class IOPubListenerServiceImpTest : TestOnJupyter() {
     @BeforeEach
     fun beforeEach(){
         this.setUp()
@@ -89,7 +89,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
         val handlerWasTriggered2 = AtomicInteger(0)
 
         // rmd: settup listener, handler
-        val listener1 = IOPubListenerServiceImpl(
+        val listener1 = IOPubListenerServiceImp(
             kernelContext = kernelContext,
             externalScope = GlobalScope,
             dispatcher = Dispatchers.IO,
@@ -111,7 +111,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
         listener1.start()
         assertTrue(listener1.isRunning(), "listener 1 should be running")
 
-        val listener2 = IOPubListenerServiceImpl(
+        val listener2 = IOPubListenerServiceImp(
             kernelContext = kernelContext,
             externalScope = GlobalScope,
             dispatcher = Dispatchers.IO
@@ -184,7 +184,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
 
         var exceptionHandlerTriggerCount = 0
 
-        val listener = IOPubListenerServiceImpl(
+        val listener = IOPubListenerServiceImp(
             mockContext,
             defaultHandler = { m -> },
             parseExceptionHandler={ e ->
@@ -214,7 +214,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     fun testTriggeringDefaultHandler() = runBlocking {
         var defaultHandlerTriggeredCount = 0
         var handlerTriggeredCount = 0
-        val listener = IOPubListenerServiceImpl(
+        val listener = IOPubListenerServiceImp(
             kernelContext,
             defaultHandler = { msg ->
                 defaultHandlerTriggeredCount++
@@ -244,7 +244,7 @@ internal class IOPubListenerServiceImplTest : TestOnJupyter() {
     fun fullLifeCycle() {
         runBlocking {
             val handlerWasTriggered = AtomicInteger(0)
-            val service = IOPubListenerServiceImpl(
+            val service = IOPubListenerServiceImp(
                 kernelContext = kernelContext,
                 externalScope = GlobalScope,
                 dispatcher = Dispatchers.IO

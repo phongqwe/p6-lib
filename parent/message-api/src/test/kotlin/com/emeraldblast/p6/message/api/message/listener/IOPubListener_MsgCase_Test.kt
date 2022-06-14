@@ -1,7 +1,7 @@
 package com.emeraldblast.p6.message.api.message.listener
 
 import com.github.michaelbull.result.unwrap
-import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
+import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImp
 import com.emeraldblast.p6.message.api.connection.service.iopub.handler.MsgHandlers
 import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.JPRawMessage
@@ -57,7 +57,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
                 "msg_id_abc_123_err"
             )
             var errHandlerWasTrigger = AtomicInteger(0)
-            val listener = IOPubListenerServiceImpl(
+            val listener = IOPubListenerServiceImp(
                 kernelContext = kernelContext,
                 externalScope = GlobalScope,
                 dispatcher = Dispatchers.Default
@@ -101,7 +101,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
             var handlerWasTriggered = 0
 
             // rmd: settup listener, handler
-            val listener = IOPubListenerServiceImpl(
+            val listener = IOPubListenerServiceImp(
                 kernelContext = kernelContext,
                 externalScope = GlobalScope,
                 dispatcher = Dispatchers.Default

@@ -5,7 +5,7 @@ import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.SenderProvider
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
-import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
+import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImp
 import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.Shell
 import com.emeraldblast.p6.message.api.message.sender.MsgSender
@@ -31,7 +31,7 @@ import kotlin.test.assertTrue
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class CodeExecutionSenderImpTest : TestOnJupyter() {
 
-    lateinit var ioPubService: IOPubListenerServiceImpl
+    lateinit var ioPubService: IOPubListenerServiceImp
 
     @BeforeEach
     fun beforeEach(){
@@ -260,7 +260,7 @@ b2.createNewWorksheet("Sheet2")
     @Test
     fun send_listenerServiceIsDown() = runBlocking {
         kernelContext.startAll()
-        val mockListener = mockk<IOPubListenerServiceImpl>().also {
+        val mockListener = mockk<IOPubListenerServiceImp>().also {
             every { it.isRunning() } returns false
             every { it.isNotRunning() } returns true
         }
