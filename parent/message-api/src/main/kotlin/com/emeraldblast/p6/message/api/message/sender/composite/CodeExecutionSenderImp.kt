@@ -93,6 +93,7 @@ class CodeExecutionSenderImp @Inject constructor(
                         launch(Dispatchers.IO) {
                             val executeResult = defExecuteResult.await()
                             rt = Ok(executeResult)
+                            // x: cancel other jobs, they are guaranteed to be not finished
                             defError.cancelIfPossible()
                             defIdleStatus.cancelIfPossible()
                             defBusyStatus.cancelIfPossible()
@@ -100,6 +101,7 @@ class CodeExecutionSenderImp @Inject constructor(
                         launch(Dispatchers.IO) {
                             val executeResult = defError.await()
                             rt = Err(executeResult)
+                            // x: cancel other jobs, they are guaranteed to be not finished
                             defExecuteResult.cancelIfPossible()
                             defIdleStatus.cancelIfPossible()
                             defBusyStatus.cancelIfPossible()
@@ -109,13 +111,14 @@ class CodeExecutionSenderImp @Inject constructor(
                             if(rt==null){
                                 rt = Ok(null)
                             }
+                            // x: cancel other jobs, they are guaranteed to be not finished
                             defExecuteResult.cancelIfPossible()
                             defBusyStatus.cancelIfPossible()
                             defError.cancelIfPossible()
                         }
                         launch(Dispatchers.IO) {
                             val busyStatus = defBusyStatus.await()
-                            // do nothing
+                            // x: do nothing because at this point, it is undetermined what will happen next
                         }
                     }
                     o.join()
