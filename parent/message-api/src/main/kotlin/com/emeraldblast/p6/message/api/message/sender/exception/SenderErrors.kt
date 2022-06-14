@@ -3,6 +3,9 @@ package com.emeraldblast.p6.message.api.message.sender.exception
 import com.emeraldblast.p6.common.exception.error.ErrorHeader
 import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgContent
+import com.emeraldblast.p6.message.api.message.protocol.MsgStatus
+import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.IOPub
+import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.Shell
 import com.emeraldblast.p6.message.api.message.sender.composite.SendingState
 import org.zeromq.ZMsg
 
@@ -19,7 +22,7 @@ object SenderErrors {
      */
     object CodeError{
         val header=ErrorHeader("${prefix}2","error in code")
-        class Data (val messageContent: MsgContent)
+        class Data (val messageContent: Shell.Execute.Reply.Content)
     }
 
     object UnableToQueueZMsg {
@@ -30,5 +33,10 @@ object SenderErrors {
     object UnableToSendMsg {
         val header=ErrorHeader("${prefix}4","unable to send message")
         class Data(val message: JPMessage<*, *>)
+    }
+
+    object IOPubExecuteError{
+        val header=ErrorHeader("${prefix}5","IOPub execute error")
+        class Data (val messageContent: IOPub.ExecuteError.Content)
     }
 }

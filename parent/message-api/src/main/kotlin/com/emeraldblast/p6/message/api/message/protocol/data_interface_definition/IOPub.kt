@@ -3,6 +3,7 @@ package com.emeraldblast.p6.message.api.message.protocol.data_interface_definiti
 import com.emeraldblast.p6.message.api.message.protocol.MapMsgMetaData
 import com.emeraldblast.p6.message.api.message.protocol.MsgContent
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
+import com.emeraldblast.p6.message.api.message.sender.exception.SenderErrors
 import com.google.gson.annotations.SerializedName
 
 object IOPub {
@@ -10,7 +11,7 @@ object IOPub {
     object ExecuteError : MsgDefinitionEncapsulation {
         override val msgType = MsgType.IOPub_error
 
-        class Content(
+        open class Content(
             val traceback: List<String>,
             val ename:String,
             val evalue:String

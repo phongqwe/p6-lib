@@ -20,8 +20,8 @@ class ExecuteErrorHandlerImp @Inject constructor() : AbsDeferredJobHandler<Messa
             deferredJobMap[parentHeader]?.also {job->
                 job.complete(
                     ErrorReport(
-                        header = SenderErrors.CodeError.header,
-                        data = SenderErrors.CodeError.Data(receivedMsg.content),
+                        header = SenderErrors.IOPubExecuteError.header,
+                        data = SenderErrors.IOPubExecuteError.Data(receivedMsg.content),
                     )
                 )
                 this.removeJob(parentHeader)

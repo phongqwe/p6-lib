@@ -1,6 +1,7 @@
 package com.emeraldblast.p6.message.api.message.protocol.data_interface_definition
 
 import com.emeraldblast.p6.message.api.message.protocol.*
+import com.emeraldblast.p6.message.api.message.sender.exception.SenderErrors
 import com.google.gson.annotations.SerializedName
 import java.util.*
 
@@ -32,7 +33,7 @@ object Shell{
 
             override val msgType = MsgType.Shell_execute_reply
 
-            class Content(
+            open class Content(
                 status: MsgStatus,
                 @SerializedName("execution_count")
                 val executionCount: Int,
