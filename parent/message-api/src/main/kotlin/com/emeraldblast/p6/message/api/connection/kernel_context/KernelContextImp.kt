@@ -141,7 +141,7 @@ class KernelContextImp @Inject internal constructor(
                 return Err(report)
             }
 
-            this.connectionFileContent = this.kernelConfig.kernelConnectionFileContent!!
+            this.connectionFileContent = this.kernelConfig.kernelConnectionFileContent
             val connectionFiles = this.connectionFileContent!!
 
             // x: create resources, careful with the order of resource initiation,

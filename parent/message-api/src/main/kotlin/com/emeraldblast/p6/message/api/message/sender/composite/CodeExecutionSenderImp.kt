@@ -6,21 +6,17 @@ import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerService
-import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandler
-import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlers
 import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
-import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgStatus
-import com.emeraldblast.p6.message.api.message.protocol.MsgType
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.IOPub
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.Shell
 import com.emeraldblast.p6.message.api.message.sender.MsgSender
 import com.emeraldblast.p6.message.api.message.sender.exception.SenderErrors
 import com.emeraldblast.p6.message.api.message.sender.shell.ExecuteReply
 import com.emeraldblast.p6.message.api.message.sender.shell.ExecuteRequest
-import com.emeraldblast.p6.message.api.other.Sleeper
+import com.emeraldblast.p6.message.utils.Utils.cancelIfPossible
+import kotlinx.coroutines.*
 import javax.inject.Inject
-
 
 /**
  * Send an piece of code to be executed in the kernel. Return the result of the computation itself.
@@ -37,6 +33,7 @@ class CodeExecutionSenderImp @Inject constructor(
      * - send input message
      * - wait for listener service to catch returned result
      * - remove handlers from listener service when done
+     * what is the reason for using temporary handler.
      */
     override suspend fun send(
         message: ExecuteRequest
@@ -45,7 +42,6 @@ class CodeExecutionSenderImp @Inject constructor(
         if (kernelContext.isKernelNotRunning()) {
             val report = ErrorReport(
                 header = KernelErrors.KernelDown.header,
-                data = KernelErrors.KernelDown.Data(""),
             )
             return Err(report)
         }
@@ -62,56 +58,29 @@ class CodeExecutionSenderImp @Inject constructor(
         }
 
         val ioPubListenerService: IOPubListenerService = ioPubServiceRs.unwrap()
+
+        if (ioPubListenerService.isNotRunning()) {
+            return Err(
+                ErrorReport(
+                    header = IOPubServiceErrors.IOPubServiceNotRunning.header,
+                    data = IOPubServiceErrors.IOPubServiceNotRunning.Data("occur at ${this.javaClass.canonicalName}.send"),
+                )
+            )
+        }
         val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> =
             senderProviderRs.unwrap().executeRequestSender()
 
-        if (ioPubListenerService.isNotRunning()) {
-            return Err(ErrorReport(
-                header = IOPubServiceErrors.IOPubServiceNotRunning.header,
-                data = IOPubServiceErrors.IOPubServiceNotRunning.Data("occur at ${this.javaClass.canonicalName}.send"),
-            ))
-        }
+        var rt: Result<ExecuteResult?, ErrorReport> ? = null
+        // x: setup deferred jobs
+        val defExecuteResult: CompletableDeferred<ExecuteResult> = CompletableDeferred()
+        val defError: CompletableDeferred<ErrorReport> = CompletableDeferred()
+        val defIdleStatus: CompletableDeferred<IOPub.Status.ExecutionState> = CompletableDeferred()
+        val defBusyStatus: CompletableDeferred<IOPub.Status.ExecutionState> = CompletableDeferred()
 
-        var rt: Result<ExecuteResult?, ErrorReport>? = null
-        var executionState = IOPub.Status.ExecutionState.undefined
-        var state = SendingState.Start
-
-        // x: create handlers
-        val handlers: List<MsgHandler> = listOf(
-            IOPub.Status.handler { msg ->
-                // x: code pieces that do not return a value or only do side effects will not trigger execution_result
-                // x: so I must rely on execution state to terminate this call
-                val receivedMsg: JPMessage<IOPub.Status.MetaData, IOPub.Status.Content> = msg.toModel()
-                executionState = receivedMsg.content.executionState
-                state = state.transit(rt, kernelContext, executionState)
-            },
-            // x: catch execute_result message
-            IOPub.ExecuteResult.handler { msg ->
-                val receivedMsg: ExecuteResult = msg.toModel()
-                if (receivedMsg.parentHeader == message.header) {
-                    rt = Ok(receivedMsg)
-                    state = state.transit(rt, kernelContext, executionState)
-                }
-            },
-            // x: handler for execution err
-            IOPub.ExecuteError.handler { msg ->
-                val receivedMsg: JPMessage<IOPub.ExecuteError.MetaData, IOPub.ExecuteError.Content> = msg.toModel()
-                if (receivedMsg.parentHeader == message.header) {
-                    val report = ErrorReport(
-                        header = SenderErrors.CodeError.header,
-                        data = SenderErrors.CodeError.Data(receivedMsg.content),
-                    )
-                    rt = Err(report)
-                    state = state.transit(rt, kernelContext, executionState)
-                }
-            },
-            //TODO something to do with message that return display data
-            MsgHandlers.withUUID(MsgType.IOPub_display_data) { msg ->
-                println(msg)
-            }
-        )
-        // x: add temp handlers to catch the result
-        ioPubListenerService.addHandlers(handlers)
+        ioPubListenerService.executeResultHandler.addJob(message.header, defExecuteResult)
+        ioPubListenerService.executeErrorHandler.addJob(message.header, defError)
+        ioPubListenerService.idleExecutionStatusHandler.addJob(message.header, defIdleStatus)
+        ioPubListenerService.busyExecutionStatusHandler.addJob(message.header, defBusyStatus)
 
         // x: sending the computing request
         val sendRs: Result<ExecuteReply, ErrorReport> = executeSender.send(message)
@@ -120,7 +89,36 @@ class CodeExecutionSenderImp @Inject constructor(
             val msgStatus: MsgStatus = content.status
             when (msgStatus) {
                 MsgStatus.OK -> {
-                    //dont do anything, wait for result from the listener
+                    val o = coroutineScope {
+                        launch(Dispatchers.IO) {
+                            val executeResult = defExecuteResult.await()
+                            rt = Ok(executeResult)
+                            defError.cancelIfPossible()
+                            defIdleStatus.cancelIfPossible()
+                            defBusyStatus.cancelIfPossible()
+                        }
+                        launch(Dispatchers.IO) {
+                            val executeResult = defError.await()
+                            rt = Err(executeResult)
+                            defExecuteResult.cancelIfPossible()
+                            defIdleStatus.cancelIfPossible()
+                            defBusyStatus.cancelIfPossible()
+                        }
+                        launch(Dispatchers.IO) {
+                            val idleStatus = defIdleStatus.await()
+                            if(rt==null){
+                                rt = Ok(null)
+                            }
+                            defExecuteResult.cancelIfPossible()
+                            defBusyStatus.cancelIfPossible()
+                            defError.cancelIfPossible()
+                        }
+                        launch(Dispatchers.IO) {
+                            val busyStatus = defBusyStatus.await()
+                            // do nothing
+                        }
+                    }
+                    o.join()
                 }
                 MsgStatus.ERROR -> {
                     val report = ErrorReport(
@@ -144,134 +142,11 @@ class CodeExecutionSenderImp @Inject constructor(
                     rt = Err(report)
                 }
             }
-            state = state.transit(rt, kernelContext, executionState)
         } else {
             rt = Err(sendRs.unwrapError())
-            state = state.transit(rt, kernelContext, executionState)
         }
-
-        if (rt != null) {
-            return rt as Result<ExecuteResult?, ErrorReport>
-        }
-
-        // x: this ensure that this sender will wait until state reach terminal states
-        Sleeper.delayUntil(10) {
-            state = state.transit(rt, kernelContext, executionState)
-            val waitRt = when (state) {
-                SendingState.HasResult, SendingState.DoneButNoResult, SendingState.KernelDieMidway -> true
-                else -> false
-            }
-            waitRt
-        }
-
-        ioPubListenerService.removeHandlers(handlers)
-
-        val rt2: Result<ExecuteResult?, ErrorReport> = when (state) {
-            SendingState.HasResult -> rt!!
-            SendingState.DoneButNoResult -> Ok(null)
-            SendingState.KernelDieMidway -> {
-                val report = ErrorReport(
-                    header = KernelErrors.KernelDown.header,
-                    data = KernelErrors.KernelDown.Data("Kernel is killed before result is returned"),
-                )
-                Err(report)
-            }
-            else -> Err(
-                ErrorReport(
-                    header = SenderErrors.InvalidSendState.header,
-                    data = SenderErrors.InvalidSendState.Data(state)
-                )
-            )
-        }
-        return rt2
-    }
-
-    /**
-     * state of the sending action
-     */
-    enum class SendingState {
-        Start {
-            override fun transit(
-                hasResult: Boolean,
-                kernelIsRunning: Boolean,
-                executionState: IOPub.Status.ExecutionState,
-            ): SendingState {
-                return Working.transit(hasResult, kernelIsRunning, executionState)
-            }
-        },
-        KernelDieMidway {
-            override fun transit(
-                hasResult: Boolean,
-                kernelIsRunning: Boolean,
-                executionState: IOPub.Status.ExecutionState,
-            ): SendingState {
-                return this
-            }
-        },
-        Working {
-            override fun transit(
-                hasResult: Boolean,
-                kernelIsRunning: Boolean,
-                executionState: IOPub.Status.ExecutionState,
-            ): SendingState {
-
-                if (hasResult) {
-                    return HasResult
-                }
-                if (executionState == IOPub.Status.ExecutionState.idle) {
-                    return DoneButNoResult
-                }
-                if (kernelIsRunning.not()) {
-                    return KernelDieMidway
-                }
-
-                return this
-            }
-        },
-        DoneButNoResult {
-            override fun transit(
-                hasResult: Boolean,
-                kernelIsRunning: Boolean,
-                executionState: IOPub.Status.ExecutionState,
-            ): SendingState {
-                return this
-            }
-        },
-        HasResult {
-            override fun transit(
-                hasResult: Boolean,
-                kernelIsRunning: Boolean,
-                executionState: IOPub.Status.ExecutionState,
-            ): SendingState {
-                return this
-            }
-        }
-
-        ;
-
-        /**
-         * transit state with direct value
-         */
-        abstract fun transit(
-            hasResult: Boolean,
-            kernelIsRunning: Boolean,
-            executionState: IOPub.Status.ExecutionState,
-        ): SendingState
-
-        /**
-         * interpret state from objects, then transit
-         */
-        fun transit(
-            rt: Result<*, *>?,
-            kernelContext: KernelContextReadOnly,
-            executionState: IOPub.Status.ExecutionState,
-        ): SendingState {
-
-            return this.transit(
-                hasResult = rt != null,
-                kernelIsRunning = kernelContext.isKernelRunning(),
-                executionState = executionState
-            )
-        }
+        ioPubListenerService.executeResultHandler.removeJob(message.header)
+        ioPubListenerService.executeErrorHandler.removeJob(message.header)
+        return rt!!
     }
 }

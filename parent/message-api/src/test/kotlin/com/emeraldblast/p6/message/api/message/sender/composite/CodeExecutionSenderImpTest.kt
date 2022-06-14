@@ -5,7 +5,6 @@ import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.SenderProvider
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
-import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlerContainerImp
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImpl
 import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.Shell
@@ -39,20 +38,20 @@ internal class CodeExecutionSenderImpTest : TestOnJupyter() {
         this.setUp()
         runBlocking {
             kernelContext.startAll()
-            ioPubService = IOPubListenerServiceImpl(
-                kernelContext = kernelContext,
-                defaultHandler = { msg ->
-                    println(msg)
-                },
-                parseExceptionHandler = { e ->
-                    println(e)
-                },
-                handlerContainer = MsgHandlerContainerImp(),
-                externalScope =  GlobalScope,
-                dispatcher = Dispatchers.Default,
-                startTimeOut = 50000
-            )
-            ioPubService.start()
+//            ioPubService = IOPubListenerServiceImpl(
+//                kernelContext = kernelContext,
+//                defaultHandler = { msg ->
+//                    println(msg)
+//                },
+//                parseExceptionHandler = { e ->
+//                    println(e)
+//                },
+//                handlerContainer = MsgHandlerContainerImp(),
+//                externalScope =  GlobalScope,
+//                dispatcher = Dispatchers.Default,
+//                startTimeOut = 50000
+//            )
+//            ioPubService.start()
         }
     }
 
@@ -60,27 +59,49 @@ internal class CodeExecutionSenderImpTest : TestOnJupyter() {
     fun afterEach(){
         runBlocking {
             kernelContext.stopAll()
-            ioPubService.stop()
+//            ioPubService.stop()
         }
     }
+    val msgList:List<ExecuteRequest> = listOf(
+        """x=0""", """1+1""",
+        """
+import json
+from com.emeraldblast.p6.document_structure.app.TopLevel import *
+from com.emeraldblast.p6.document_structure.app.worksheet_functions.WorksheetFunctions import WorksheetFunctions
+from com.emeraldblast.p6.document_structure.app.GlobalScope import * 
+from com.emeraldblast.p6.document_structure.workbook.key.WorkbookKeys import WorkbookKeys
+from com.emeraldblast.p6.document_structure.range.address.RangeAddresses import RangeAddresses
+import zmq
+from com.emeraldblast.p6.document_structure.cell.address.CellAddresses import CellAddresses
+setIPythonGlobals(globals())
+startApp()
+b1=getApp().createNewWorkbook("Book1")
+b1.createNewWorksheet("Sheet1")
+b1.createNewWorksheet("Sheet2")
+b2=getApp().createNewWorkbook("Book2")
+b2.createNewWorksheet("Sheet1")
+b2.createNewWorksheet("Sheet2")
+    """.trimIndent()
+    ).map{
+        ExecuteRequest.autoCreate(
+            sessionId = "session_id",
+            username = "user_name",
+            msgType = Shell.Execute.Request.msgType,
+            msgContent = Shell.Execute.Request.Content(
+                code =it.trimIndent(),
+                silent = false,
+                storeHistory = true,
+                userExpressions = mapOf(),
+                allowStdin = false,
+                stopOnError = true
+            ),
+            "msg_id_abc_123"
+        )
 
+    }
 
-    val message: ExecuteRequest = ExecuteRequest.autoCreate(
-        sessionId = "session_id",
-        username = "user_name",
-        msgType = Shell.Execute.Request.msgType,
-        msgContent = Shell.Execute.Request.Content(
-            code ="""
-                x=0
-            """.trimIndent(),
-            silent = false,
-            storeHistory = true,
-            userExpressions = mapOf(),
-            allowStdin = false,
-            stopOnError = true
-        ),
-        "msg_id_abc_123"
-    )
+    val message: ExecuteRequest = msgList[0]
+    val message2: ExecuteRequest = msgList[1]
 
     /**
      * See if it is feasible to bombard kernel with many request at the same time
@@ -127,8 +148,15 @@ internal class CodeExecutionSenderImpTest : TestOnJupyter() {
     fun send_Ok() {
         runBlocking {
             val sender = CodeExecutionSenderImp(kernelContext)
-            val o = sender.send(message)
-            assertTrue(o is Ok, o.toString())
+
+            for (msg in listOf(msgList[1],msgList[2])){
+                val o = sender.send(msg)
+                println(message.header.msgId)
+                assertNotNull(o.unwrap())
+                println(o.unwrap()!!.header.msgId)
+                println(o.unwrap()!!)
+                assertTrue(o is Ok, o.toString())
+            }
         }
     }
 

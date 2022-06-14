@@ -2,15 +2,11 @@ package com.emeraldblast.p6.message.api.connection.kernel_context.context_object
 
 import com.github.michaelbull.result.Result
 import com.emeraldblast.p6.common.exception.error.ErrorReport
-import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.emeraldblast.p6.message.api.message.sender.MsgSender
 import com.emeraldblast.p6.message.api.message.sender.composite.CodeExecutionSender
-import com.emeraldblast.p6.message.api.message.sender.composite.CodeExecutionSenderImp
 import com.emeraldblast.p6.message.api.message.sender.composite.ExecuteResult
 import com.emeraldblast.p6.message.api.message.sender.shell.*
-import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import javax.inject.Inject
 
 
 /**

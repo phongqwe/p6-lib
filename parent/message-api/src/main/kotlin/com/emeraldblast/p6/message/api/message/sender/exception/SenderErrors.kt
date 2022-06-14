@@ -3,7 +3,6 @@ package com.emeraldblast.p6.message.api.message.sender.exception
 import com.emeraldblast.p6.common.exception.error.ErrorHeader
 import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgContent
-import com.emeraldblast.p6.message.api.message.sender.composite.CodeExecutionSenderImp
 import org.zeromq.ZMsg
 
 object SenderErrors {
