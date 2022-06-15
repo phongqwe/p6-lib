@@ -12,10 +12,10 @@ object IOPub {
         override val msgType = MsgType.IOPub_error
 
         open class Content(
-            val traceback: List<String>,
-            val ename:String,
-            val evalue:String
-        ) : MsgContent
+            override val traceback: List<String> = emptyList(),
+            val ename:String = "",
+            val evalue:String ="",
+        ) : MsgContent,WithTraceBack
 
         class MetaData : MapMsgMetaData()
 

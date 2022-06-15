@@ -43,6 +43,10 @@ data: ${data}
         val s = this.toException().stackTraceToString()
         return s
     }
+    fun identicalTo(another:ErrorReport):Boolean{
+        val c1 = this.isType(another)
+        return c1 && this.data == another.data && this.exception == another.exception
+    }
 }
 
 

@@ -5,8 +5,8 @@ import com.emeraldblast.p6.message.api.message.protocol.MsgStatus
 
 sealed class CommonReplyContent(
     val status: MsgStatus,
-    val traceback: List<String>,
+    override val traceback: List<String>,
     val ename:String,
     val evalue:String
-)
+):WithTraceBack
 

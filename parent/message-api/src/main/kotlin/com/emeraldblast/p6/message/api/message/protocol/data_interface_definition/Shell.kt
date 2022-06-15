@@ -34,15 +34,15 @@ object Shell{
             override val msgType = MsgType.Shell_execute_reply
 
             open class Content(
-                status: MsgStatus,
+                status: MsgStatus = MsgStatus.OK,
                 @SerializedName("execution_count")
-                val executionCount: Int,
+                val executionCount: Int = 0,
                 @SerializedName("user_expressions")
-                val userExpressions: Map<String, Any>,
-                val payload: List<Map<String, Any>>,
-                traceback: List<String>,
-                ename:String,
-                evalue:String
+                val userExpressions: Map<String, Any> = emptyMap(),
+                val payload: List<Map<String, Any>> = emptyList(),
+                traceback: List<String> = emptyList(),
+                ename:String = "",
+                evalue:String = "",
             ) : MsgContent, CommonReplyContent(status,traceback, ename, evalue)
 
             data class MetaData(
