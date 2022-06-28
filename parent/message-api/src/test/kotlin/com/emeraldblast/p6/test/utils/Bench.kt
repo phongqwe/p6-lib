@@ -1,15 +1,11 @@
 package com.emeraldblast.p6.test.utils
 
-import com.emeraldblast.p6.message.di.DaggerMessageApiComponent
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.*
-import java.math.BigInteger
 import java.util.*
-import java.util.concurrent.Executors
 import kotlin.concurrent.thread
-import kotlin.system.measureTimeMillis
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -23,6 +19,29 @@ class Bench {
     suspend fun susFunc2() {
         delay(1000)
         println("f2")
+    }
+
+    @Test
+    fun sender(){
+        runBlocking {
+            val zContext = ZContext()
+            val socket = zContext.createSocket(SocketType.DEALER)
+            val port = 7777
+
+            socket.connect("tcp://localhost:${port}")
+
+            for (x in 0 .. 10){
+                launch (Dispatchers.IO){
+                    val msg = ZMsg().apply {
+                        add("")
+                        add("ABC_${x}")
+                    }
+                    msg.send(socket)
+                    val res=ZMsg.recvMsg(socket)
+                    println(res.toString())
+                }
+            }
+        }
     }
 
     @Test

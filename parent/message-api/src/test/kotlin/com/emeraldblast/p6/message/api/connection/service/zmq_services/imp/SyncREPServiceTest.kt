@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.zeromq.SocketType
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class REPServiceTest : TestOnJupyter() {
+internal class SyncREPServiceTest : TestOnJupyter() {
     val cellEvent = P6Event("code","cell_value_update")
 
 
@@ -39,7 +39,7 @@ internal class REPServiceTest : TestOnJupyter() {
     @Test
     fun testStandardFlow() {
         runBlocking {
-            val sv = REPService(kernelContext, GlobalScope, Dispatchers.IO)
+            val sv = SyncREPService(kernelContext, GlobalScope, Dispatchers.IO)
             sv.start()
             var x = 0
             var parsedMsg: P6Response? = null

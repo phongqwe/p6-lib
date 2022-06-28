@@ -14,7 +14,7 @@ import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerSer
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceFactory
 import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.ZMQListenerService
-import com.emeraldblast.p6.message.api.connection.service.zmq_services.imp.REPServiceFactory
+import com.emeraldblast.p6.message.api.connection.service.zmq_services.imp.SyncREPServiceFactory
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Response
 import com.emeraldblast.p6.message.api.message.protocol.KernelConnectionFileContent
 import com.emeraldblast.p6.message.api.message.protocol.other.MsgIdGenerator
@@ -55,7 +55,7 @@ class KernelContextImp @Inject internal constructor(
     private val senderProviderFactory: SenderProviderFactory,
     private val heartBeatServiceFactory: HeartBeatServiceFactory,
     private val ioPubListenerServiceFactory: IOPubListenerServiceFactory,
-    private val repServiceFactory: REPServiceFactory,
+    private val syncRepServiceFactory: SyncREPServiceFactory,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
@@ -204,7 +204,7 @@ class KernelContextImp @Inject internal constructor(
                 return ioPubStartRs
             }
 
-            val zmqREPService = repServiceFactory.create(
+            val zmqREPService = syncRepServiceFactory.create(
                 kernelContext = this,
             )
 

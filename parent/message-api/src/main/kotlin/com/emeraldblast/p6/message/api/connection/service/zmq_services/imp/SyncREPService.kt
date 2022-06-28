@@ -10,7 +10,6 @@ import com.emeraldblast.p6.message.di.RepServiceLogger
 import com.emeraldblast.p6.message.di.ServiceCoroutineDispatcher
 import com.emeraldblast.p6.proto.P6MsgProtos
 import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -21,14 +20,10 @@ import org.zeromq.SocketType
 import org.zeromq.ZMQ
 import org.zeromq.ZMsg
 
-@AssistedFactory
-interface REPServiceFactory{
-    fun create(
-        kernelContext: KernelContextReadOnly
-    ):REPService
-}
-
-class REPService @AssistedInject constructor(
+/**
+ * A rep service that handles incoming messages in a synchronized function, so it's thread-safe
+ */
+class SyncREPService @AssistedInject constructor(
     @Assisted private val kernelContext: KernelContextReadOnly,
     @KernelCoroutineScope
      coroutineScope: CoroutineScope,
@@ -42,7 +37,7 @@ class REPService @AssistedInject constructor(
 
     companion object {
         val serviceName = "RepService"
-        val marker = MarkerFactory.getMarker(REPService::class.java.canonicalName).also {
+        val marker = MarkerFactory.getMarker(SyncREPService::class.java.canonicalName).also {
             it.add(ZMQListenerService.marker)
         }
     }
@@ -54,7 +49,7 @@ class REPService @AssistedInject constructor(
         socket.bind("tcp://*:${this.zmqPort}")
         return socket
     }
-
+    @Synchronized
     override fun receiveMessage(socket: ZMQ.Socket) {
         try {
             val msg: ZMsg? = ZMsg.recvMsg(socket)

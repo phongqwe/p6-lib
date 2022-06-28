@@ -25,7 +25,7 @@ abstract class AbstractZMQService<T>(
     protected abstract fun makeSocket(): ZMQ.Socket
 
     /**
-     * implement this method to provde code to receive messages
+     * implement this method to provide code to receive messages
      */
     protected abstract fun receiveMessage(socket: ZMQ.Socket)
 
