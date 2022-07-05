@@ -1,4 +1,4 @@
-package com.emeraldblast.p6.formula.translator
+package com.emeraldblast.p6.formula.translator.python_translator
 
 /**
  * Map formula syntax to the equivalence in Python

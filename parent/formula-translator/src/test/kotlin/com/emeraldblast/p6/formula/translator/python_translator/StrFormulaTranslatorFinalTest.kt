@@ -1,14 +1,11 @@
-package com.emeraldblast.p6.formula.translator
+package com.emeraldblast.p6.formula.translator.python_translator
 
-import com.emeraldblast.p6.formula.translator.FormulaTranslatorFinal
-import com.emeraldblast.p6.formula.translator.PythonFormulaTranslator
-import com.emeraldblast.p6.formula.translator.PythonLangElements
 import com.github.michaelbull.result.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-internal class FormulaTranslatorFinalTest {
+internal class StrFormulaTranslatorFinalTest {
 
     @Test
     fun translate_Ok() {
@@ -85,7 +82,7 @@ internal class FormulaTranslatorFinalTest {
             """.trimIndent() to "x=1;\n"+"while x < 10:\n"+"    x= x+1\n"+"x"
         )
         val all = literalInput + functionLiteralInput + range +composite+scripts + directLiteral
-        val translator = FormulaTranslatorFinal()
+        val translator = StrFormulaTranslatorFinal()
         for ((i, o) in directLiteral) {
             val ors = translator.translate(i)
             assertTrue(ors is Ok, ors.getError().toString())

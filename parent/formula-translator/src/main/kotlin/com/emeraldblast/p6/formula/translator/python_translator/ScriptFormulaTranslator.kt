@@ -1,4 +1,4 @@
-package com.emeraldblast.p6.formula.translator
+package com.emeraldblast.p6.formula.translator.python_translator
 
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
@@ -10,7 +10,7 @@ import java.util.regex.Pattern
 /**
  * A special translator to handle Python script wrapped inside SCRIPT function
  */
-class ScriptFormulaTranslator : FormulaTranslator {
+class ScriptFormulaTranslator : StrFormulaTranslator {
     // TODO add pattern to match heading and trailing white space + new line
     companion object{
         val codePattern = Pattern.compile("\\s*=\\s*SCRIPT\\s*\\(.*\\)\\s*",Pattern.CASE_INSENSITIVE or Pattern.DOTALL or Pattern.MULTILINE or Pattern.UNICODE_CASE or Pattern.UNICODE_CHARACTER_CLASS or Pattern.UNIX_LINES)

@@ -15,6 +15,7 @@
         <module>message-api</module>
         <module>formula-translator</module>
         <module>p6-common</module>
+        <module>p6-formula-lib</module>
     </modules>
 
 

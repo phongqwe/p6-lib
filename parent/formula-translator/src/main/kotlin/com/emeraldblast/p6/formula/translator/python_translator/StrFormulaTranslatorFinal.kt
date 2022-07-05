@@ -1,9 +1,9 @@
-package com.emeraldblast.p6.formula.translator
+package com.emeraldblast.p6.formula.translator.python_translator
 
 import com.github.michaelbull.result.Result
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 
-class FormulaTranslatorFinal : FormulaTranslator {
+class StrFormulaTranslatorFinal : StrFormulaTranslator {
     private val pythonTranslator = PythonFormulaTranslator()
     private val directLiteralTranslator = DirectLiteralTranslator()
     override fun translate(formula: String): Result<String, ErrorReport> {

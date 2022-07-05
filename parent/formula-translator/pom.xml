@@ -17,9 +17,15 @@
 
 
     <dependencies>
+
         <dependency>
             <groupId>com.emeraldblast.p6</groupId>
             <artifactId>p6-common</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.emeraldblast.p6</groupId>
+            <artifactId>p6-formula-lib</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>

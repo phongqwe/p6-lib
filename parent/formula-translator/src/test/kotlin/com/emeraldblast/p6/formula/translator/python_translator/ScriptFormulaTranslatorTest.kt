@@ -1,6 +1,5 @@
-package com.emeraldblast.p6.formula.translator
+package com.emeraldblast.p6.formula.translator.python_translator
 
-import com.emeraldblast.p6.formula.translator.ScriptFormulaTranslator
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.get
 import org.junit.jupiter.api.Assertions.assertEquals

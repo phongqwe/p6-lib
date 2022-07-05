@@ -1,4 +1,4 @@
-package com.emeraldblast.p6.formula.translator
+package com.emeraldblast.p6.formula.translator.python_translator
 
 import com.emeraldblast.p6.formula.translator.antlr.FormulaBaseVisitor
 import com.emeraldblast.p6.formula.translator.antlr.FormulaParser
@@ -32,10 +32,10 @@ class PythonFormularVisitor : FormulaBaseVisitor<String>() {
         return ctx?.text ?: ""
     }
 
-    override fun visitUnExpr(ctx: FormulaParser.UnExprContext?): String {
-        val expr: String = ctx?.expr()?.let { this.visit(it) } ?: ""
-        return "${ctx?.op?.text ?: ""}${expr}"
-    }
+//    override fun visitUnExpr(ctx: FormulaParser.UnExprContext?): String {
+//        val expr: String = ctx?.expr()?.let { this.visit(it) } ?: ""
+//        return "${ctx?.op?.text ?: ""}${expr}"
+//    }
 
     override fun visitPowExpr(ctx: FormulaParser.PowExprContext): String {
         val expr0 = this.visit(ctx.expr(0))

@@ -1,4 +1,4 @@
-package com.emeraldblast.p6.formula.translator
+package com.emeraldblast.p6.formula.translator.python_translator
 
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
@@ -11,7 +11,7 @@ import java.util.regex.Pattern
  * abc -> "\"abc\""
  * "abc" -> "\"abc\""
  */
-class DirectLiteralTranslator: FormulaTranslator {
+class DirectLiteralTranslator: StrFormulaTranslator {
     companion object{
         private val strPattern = Pattern.compile("^\".*\"$", Pattern.CASE_INSENSITIVE or Pattern.DOTALL or Pattern.MULTILINE or Pattern.UNICODE_CASE or Pattern.UNICODE_CHARACTER_CLASS or Pattern.UNIX_LINES)
     }

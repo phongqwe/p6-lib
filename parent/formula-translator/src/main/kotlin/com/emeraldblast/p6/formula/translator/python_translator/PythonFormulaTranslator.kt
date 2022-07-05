@@ -1,4 +1,4 @@
-package com.emeraldblast.p6.formula.translator
+package com.emeraldblast.p6.formula.translator.python_translator
 
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
@@ -13,7 +13,7 @@ import org.antlr.v4.runtime.tree.ParseTree
 /**
  * translate worksheet formula (=...) to Python
  */
-class PythonFormulaTranslator : FormulaTranslator {
+class PythonFormulaTranslator : StrFormulaTranslator {
 
     companion object {
         private val scriptTranslator = ScriptFormulaTranslator()
