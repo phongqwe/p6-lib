@@ -68,7 +68,7 @@ class JvmFormulaVisitor(
                 if (exUnit != null) {
                     val rt = ExUnit.UnarySubtract(exUnit)
                     return rt
-                }else{
+                } else {
                     return ExUnit.Nothing
                 }
             }
@@ -83,22 +83,39 @@ class JvmFormulaVisitor(
     override fun visitPowExpr(ctx: FormulaParser.PowExprContext): ExUnit {
         val expr0 = this.visit(ctx.expr(0))
         val expr1 = this.visit(ctx.expr(1))
-        return ExUnit.PowerBy(expr0,expr1)
+        return ExUnit.PowerBy(expr0, expr1)
     }
-//
-//    override fun visitMulDivModExpr(ctx: FormulaParser.MulDivModExprContext): String {
-//        val expr0 = this.visit(ctx.expr(0))
-//        val op = ctx.op.text
-//        val expr1 = this.visit(ctx.expr(1))
-//        return "$expr0${op}${expr1}"
-//    }
-//
-//    override fun visitAddSubExpr(ctx: FormulaParser.AddSubExprContext): String {
-//        val expr0 = this.visit(ctx.expr(0))
-//        val op = ctx.op.text
-//        val expr1 = this.visit(ctx.expr(1))
-//        return "$expr0${op}${expr1}"
-//    }
+
+    override fun visitMulDivModExpr(ctx: FormulaParser.MulDivModExprContext): ExUnit {
+        val expr0 = this.visit(ctx.expr(0))
+        val expr1 = this.visit(ctx.expr(1))
+        val op = ctx.op
+        when (op?.type) {
+            FormulaParser.MUL -> {
+                return ExUnit.Mul(expr0, expr1)
+            }
+            FormulaParser.DIV -> {
+                return ExUnit.Div(expr0, expr1)
+            }
+            else -> return ExUnit.Nothing
+        }
+    }
+
+    //
+    override fun visitAddSubExpr(ctx: FormulaParser.AddSubExprContext): ExUnit {
+        val expr0 = this.visit(ctx.expr(0))
+        val expr1 = this.visit(ctx.expr(1))
+        val op = ctx.op
+        when (op?.type) {
+            FormulaParser.ADD -> {
+                return ExUnit.Add(expr0, expr1)
+            }
+            FormulaParser.SUB -> {
+                return ExUnit.Sub(expr0, expr1)
+            }
+            else -> return ExUnit.Nothing
+        }
+    }
 //
 //    override fun visitSheetRangeAddrExpr(ctx: FormulaParser.SheetRangeAddrExprContext): String {
 //        val sheetName = this.extractSheetName(ctx.SHEET_PREFIX()?.text)

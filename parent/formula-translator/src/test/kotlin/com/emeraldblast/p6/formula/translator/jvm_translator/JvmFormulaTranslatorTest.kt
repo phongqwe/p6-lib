@@ -7,16 +7,19 @@ import com.github.michaelbull.result.Ok
 import kotlin.math.pow
 
 import kotlin.test.*
+
 internal class JvmFormulaTranslatorTest {
 
-    lateinit var functionMap:FunctionMap
-    lateinit var translator:JvmFormulaTranslator
+    lateinit var functionMap: FunctionMap
+    lateinit var translator: JvmFormulaTranslator
+
     @BeforeTest
-    fun b(){
-        fun add(n1:Int,n2:Int):Int{
-            return n1+n2
+    fun b() {
+        fun add(n1: Int, n2: Int): Int {
+            return n1 + n2
         }
-        fun toUpper(str:String):String{
+
+        fun toUpper(str: String): String {
             return str.uppercase()
         }
         functionMap = FunctionMapImp(
@@ -25,7 +28,7 @@ internal class JvmFormulaTranslatorTest {
                 "toUpper" to ::toUpper
             )
         )
-        translator=JvmFormulaTranslator(
+        translator = JvmFormulaTranslator(
             treeExtractor = TreeExtractorImp(),
             visitor = JvmFormulaVisitor(functionMap)
         )
@@ -72,18 +75,40 @@ internal class JvmFormulaTranslatorTest {
     }
 
     @Test
-    fun `translate power by`(){
-        testTranslate(mapOf(
-            "=2^3" to 8.0,
-            "=(2^3)" to 8.0,
-            "=(2.5^3)" to 2.5.pow(3),
-        ))
+    fun `translate power by`() {
+        testTranslate(
+            mapOf(
+                "=2^3" to 8.0,
+                "=(2^3)" to 8.0,
+                "=(2.5^3)" to 2.5.pow(3),
+            )
+        )
     }
 
+    @Test
+    fun `translate add, sub`() {
+        testTranslate(
+            mapOf(
+                "=2+3" to 2 + 3.0,
+                "=(2-3)" to 2 - 3.0,
+                "=(2.5+3)" to 2.5+ 3,
+            )
+        )
+    }
+    @Test
+    fun `translate multiply, division`() {
+        testTranslate(
+            mapOf(
+                "=2/3" to 2 / 3.0,
+                "=(2*3)" to 2 * 3.0,
+                "=(2.5*3)" to 2.5 * 3,
+            )
+        )
+    }
 
-    fun testTranslate(input:Map<String,Any>){
-        for ((i,o) in input){
-            val output=translator.translate(i)
+    fun testTranslate(input: Map<String, Any>) {
+        for ((i, o) in input) {
+            val output = translator.translate(i)
             assertTrue { output is Ok }
             assertEquals(o, output.component1()!!.run())
         }

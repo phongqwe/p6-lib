@@ -13,7 +13,6 @@ interface ExUnit {
      * when this run, it returns something
      */
     fun run(): Any?
-//    val ttype:KClass<Any>
 
     companion object {
         val Nothing = object : ExUnit {
@@ -25,26 +24,75 @@ interface ExUnit {
         val TRUE = Bool(true)
         val FALSE = Bool(false)
     }
-
-    class PowerBy(val u1:ExUnit,val u2:ExUnit):ExUnit{
+    class Add(val u1: ExUnit, val u2: ExUnit) : ExUnit {
         override fun run(): Any? {
             val r1 = u1.run()
             val r2 = u2.run()
-            if (r1 is Number && r2 is Number){
-                return r1.toDouble().pow(r2.toDouble())
-            }else{
+            if (r1 is Number && r2 is Number) {
+                return r1.toDouble() + (r2.toDouble())
+            } else {
                 return null
             }
         }
     }
 
-    class UnarySubtract(val u: ExUnit):ExUnit{
+    class Sub(val u1: ExUnit, val u2: ExUnit) : ExUnit {
+        override fun run(): Any? {
+            val r1 = u1.run()
+            val r2 = u2.run()
+            if (r1 is Number && r2 is Number) {
+                return r1.toDouble() - (r2.toDouble())
+            } else {
+                return null
+            }
+        }
+    }
+
+
+
+    class Mul(val u1: ExUnit, val u2: ExUnit) : ExUnit {
+        override fun run(): Any? {
+            val r1 = u1.run()
+            val r2 = u2.run()
+            if (r1 is Number && r2 is Number) {
+                return r1.toDouble() * (r2.toDouble())
+            } else {
+                return null
+            }
+        }
+    }
+
+    class Div(val u1: ExUnit, val u2: ExUnit) : ExUnit {
+        override fun run(): Any? {
+            val r1 = u1.run()
+            val r2 = u2.run()
+            if (r1 is Number && r2 is Number) {
+                return r1.toDouble() / (r2.toDouble())
+            } else {
+                return null
+            }
+        }
+    }
+
+    class PowerBy(val u1: ExUnit, val u2: ExUnit) : ExUnit {
+        override fun run(): Any? {
+            val r1 = u1.run()
+            val r2 = u2.run()
+            if (r1 is Number && r2 is Number) {
+                return r1.toDouble().pow(r2.toDouble())
+            } else {
+                return null
+            }
+        }
+    }
+
+    class UnarySubtract(val u: ExUnit) : ExUnit {
         override fun run(): Any? {
             val rs = u.run()
-            return when(rs){
+            return when (rs) {
                 is Int -> -rs
-                is Double-> -rs
-                is Float-> -rs
+                is Double -> -rs
+                is Float -> -rs
                 else -> null
             }
         }
