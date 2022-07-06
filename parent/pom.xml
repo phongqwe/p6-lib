@@ -16,6 +16,7 @@
         <module>formula-translator</module>
         <module>p6-common</module>
         <module>p6-formula-lib</module>
+        <module>p6-antlr</module>
     </modules>
 
 

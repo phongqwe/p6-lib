@@ -2,7 +2,6 @@ package com.emeraldblast.p6.formula.execution_unit
 
 import com.emeraldblast.p6.formula.FunctionMap
 import kotlin.math.pow
-import kotlin.reflect.KClass
 
 /**
  * An execution unit is a provider obj that when run will return something
@@ -20,10 +19,10 @@ interface ExUnit {
                 return null
             }
         }
-
-        val TRUE = Bool(true)
-        val FALSE = Bool(false)
+        val TRUE = BoolUnit(true)
+        val FALSE = BoolUnit(false)
     }
+
     class Add(val u1: ExUnit, val u2: ExUnit) : ExUnit {
         override fun run(): Any? {
             val r1 = u1.run()
@@ -122,7 +121,7 @@ interface ExUnit {
         }
     }
 
-    class Bool(val v: Boolean) : ExUnit {
+    class BoolUnit(val v: Boolean) : ExUnit {
         override fun run(): Boolean {
             return v
         }

@@ -101,7 +101,6 @@ class JvmFormulaVisitor(
         }
     }
 
-    //
     override fun visitAddSubExpr(ctx: FormulaParser.AddSubExprContext): ExUnit {
         val expr0 = this.visit(ctx.expr(0))
         val expr1 = this.visit(ctx.expr(1))
@@ -116,8 +115,8 @@ class JvmFormulaVisitor(
             else -> return ExUnit.Nothing
         }
     }
-//
-//    override fun visitSheetRangeAddrExpr(ctx: FormulaParser.SheetRangeAddrExprContext): String {
+
+//    override fun visitSheetRangeAddrExpr(ctx: FormulaParser.SheetRangeAddrExprContext): ExUnit {
 //        val sheetName = this.extractSheetName(ctx.SHEET_PREFIX()?.text)
 //        val getSheet = if(sheetName.isEmpty()){
 //            ""
@@ -172,20 +171,24 @@ class JvmFormulaVisitor(
 //        return ctx.text
 //    }
 //
-//    private fun extractSheetName(rawSheetName: String?): String {
-//        if(rawSheetName==null){
-//            return ""
-//        }
-//        if (rawSheetName.isBlank() || rawSheetName.isEmpty()) {
-//            return ""
-//        } else {
-//            val rt = if (rawSheetName.startsWith('\'')) {
-//                rawSheetName.substring(1, rawSheetName.length - 2)
-//
-//            } else {
-//                rawSheetName.substring(0, rawSheetName.length - 1)
-//            }
-//            return rt
-//        }
-//    }
+    /**
+     * Extract sheet name from this format:
+     * !'SheetName' -> SheetName
+     * !SheetName -> SheetName
+     */
+    private fun extractSheetName(rawSheetName: String?): String {
+        if(rawSheetName==null){
+            return ""
+        }
+        if (rawSheetName.isBlank() || rawSheetName.isEmpty()) {
+            return ""
+        } else {
+            val rt = if (rawSheetName.startsWith('\'')) {
+                rawSheetName.substring(1, rawSheetName.length - 2)
+            } else {
+                rawSheetName.substring(0, rawSheetName.length - 1)
+            }
+            return rt
+        }
+    }
 }
