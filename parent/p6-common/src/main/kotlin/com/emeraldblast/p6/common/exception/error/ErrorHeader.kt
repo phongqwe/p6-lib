@@ -19,4 +19,7 @@ data class ErrorHeader(val errorCode: String, val errorDescription: String){
     fun appendDescription(moreInfo:String):ErrorHeader{
         return this.copy(errorDescription = this.errorDescription + moreInfo)
     }
+    fun setDescription(newDescription:String):ErrorHeader{
+        return this.copy(errorDescription =  newDescription)
+    }
 }

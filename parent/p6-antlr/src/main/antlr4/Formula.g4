@@ -2,8 +2,6 @@ grammar Formula;
 
 // a formula always start with '='
 formula: '='expr EOF #zFormula
-//        | lit EOF #directLiteral
-//        | (~('='))+ .*? EOF #any
         ;
 
 // an expression always returns something
