@@ -21,11 +21,11 @@ expr: functionCall #funCall
 
 functionCall: functionName'('(expr)?(','expr)* ','?')';
 
-rangeAddress:cellAddress':'cellAddress  #pairCellAddress
-            | cellAddress  #oneCellAddress
-            | ID ':' ID  #colAddress
-            | INT':'INT #rowAddress
-            |'('rangeAddress')' #parensAddress
+rangeAddress:cellAddress':'cellAddress  #rangeAsPairCellAddress
+            | cellAddress  #rangeAsOneCellAddress
+            | ID ':' ID  #rangeAsColAddress
+            | INT':'INT #rangeAsRowAddress
+            |'('rangeAddress')' #rangeInparens
             ;
 
 // A1,A123, ABC123
