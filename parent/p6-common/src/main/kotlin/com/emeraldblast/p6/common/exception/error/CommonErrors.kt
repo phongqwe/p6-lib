@@ -8,6 +8,9 @@ object CommonErrors {
     object TimeOut {
         val header = ErrorHeader("${prefix}1", "Timeout")
         data class Data(val detail: String)
+        fun report(detail:String):ErrorReport{
+            return header.setDescription(detail).toErrorReport()
+        }
     }
 
     /**
@@ -17,6 +20,9 @@ object CommonErrors {
         val header = ErrorHeader("${prefix}2", "Unknown error")
 
         data class Data(val additionalInfo: String, val exception: Exception?)
+        fun report(detail: String):ErrorReport{
+            return header.setDescription(detail).toErrorReport()
+        }
     }
 
     /**
@@ -51,5 +57,12 @@ object CommonErrors {
         val header = ErrorHeader("$prefix 3", "Multiple errors")
 
         data class Data(val errorList: List<ErrorReport>)
+
+        fun report(errorList: List<ErrorReport>):ErrorReport{
+            return ErrorReport(
+                header = header,
+                data =Data(errorList)
+            )
+        }
     }
 }
