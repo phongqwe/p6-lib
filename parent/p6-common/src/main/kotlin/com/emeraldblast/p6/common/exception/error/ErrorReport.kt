@@ -3,12 +3,12 @@ package com.emeraldblast.p6.common.exception.error
 class ErrorReport(
     val header: ErrorHeader,
     val data: Any? = null,
-    val exception: Exception? = null,
+    val exception: Throwable? = null,
 ) {
     /**
      * Convert this into an exception. If already hold an exception, return that exception
      */
-    fun toException(): Exception {
+    fun toException(): Throwable {
         if (exception != null) {
             return exception
         }

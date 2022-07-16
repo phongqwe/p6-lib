@@ -167,10 +167,7 @@ class LiveCountHeartBeatServiceCoroutine @AssistedInject constructor(
                 return Err(report)
             }
         } catch (e: Exception) {
-            val report = ErrorReport(
-                header = CommonErrors.ExceptionError.header,
-                data = CommonErrors.ExceptionError.Data(e)
-            )
+            val report = CommonErrors.ExceptionError.report(e)
             return Err(report)
         }
     }

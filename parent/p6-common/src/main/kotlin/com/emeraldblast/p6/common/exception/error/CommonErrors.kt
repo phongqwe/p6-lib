@@ -31,12 +31,10 @@ object CommonErrors {
     object ExceptionError {
         val header = ErrorHeader("${prefix}3", "Exception error")
 
-        data class Data(val exception: Exception)
-
-        fun report(exception: Exception): ErrorReport {
+        fun report(exception: Throwable): ErrorReport {
             return ErrorReport(
                 header = header.appendDescription(":${exception}"),
-                data = Data(exception)
+                exception = exception
             )
         }
 
