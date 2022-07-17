@@ -65,10 +65,7 @@ class IOPubListenerServiceImp @AssistedInject constructor(
         }
 
         if (kernelContext.isKernelRunning().not()) {
-            val report = ErrorReport(
-                header = KernelErrors.KernelDown.header,
-                data = KernelErrors.KernelDown.Data("${this.javaClass.canonicalName}:start")
-            )
+            val report = KernelErrors.KernelDown.report("Can't start IOPub listener service because the kernel is down")
             return Err(report)
         }
 

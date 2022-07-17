@@ -18,8 +18,8 @@ class CommOpenSender(
 ) : MsgSender<CommOpenRequest, Result<Unit, ErrorReport>> {
     override suspend fun send(message: CommOpenRequest): Result<Unit, ErrorReport> {
         if (this.kernelContext.isKernelNotRunning()) {
-            return Err(ErrorReport(header = KernelErrors.KernelDown.header,
-                data = KernelErrors.KernelDown.Data(""),
+            return Err(KernelErrors.KernelDown.report("CommOpenSender can't send message because the kernel is down. Message header is:\n"+
+                    "${message.header}"
             ))
         }
 

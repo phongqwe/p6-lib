@@ -32,10 +32,7 @@ class ExecuteSenderImp @Inject constructor(
     ): Result<ExecuteReply, ErrorReport> {
         if (this.kernelContext.isKernelNotRunning()) {
             return Err(
-                ErrorReport(
-                    header = KernelErrors.KernelDown.header,
-                    data = KernelErrors.KernelDown.Data(""),
-                )
+                KernelErrors.KernelDown.report("ExecuteSenderImp can't send message because the kernel is down. Message header is:\n"+"${message.header}")
             )
         }
         val pcSender = PCSender<ExecuteRequest, ExecuteReply>(

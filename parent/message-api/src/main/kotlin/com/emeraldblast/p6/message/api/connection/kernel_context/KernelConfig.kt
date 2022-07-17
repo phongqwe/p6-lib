@@ -16,9 +16,9 @@ import java.nio.file.Path
  *
  */
 data class KernelConfig constructor(
-    private val launchCmd: List<String>,
-    private val connectionFilePath: String,
-    val timeOut: KernelTimeOut
+    private val launchCmd: List<String> = emptyList(),
+    private val connectionFilePath: String = "",
+    val timeOut: KernelTimeOut = KernelTimeOut()
 ) {
 
     companion object {

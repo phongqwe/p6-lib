@@ -1,5 +1,7 @@
 package com.emeraldblast.p6.common.exception.error
 
+import com.github.michaelbull.result.Err
+
 class ErrorReport(
     val header: ErrorHeader,
     val data: Any? = null,

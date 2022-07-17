@@ -35,15 +35,8 @@ import javax.inject.Inject
  */
 class KernelContextImp @Inject internal constructor(
     // x: kernelConfig is created from an external file.
-    private val kernelConfig: KernelConfig,
+    private var kernelConfig: KernelConfig,
     private val zcontext: ZContext,
-//    @KernelCoroutineScope
-//    private val kernelCoroutineScope: CoroutineScope,
-//    // x: dispatcher (a group of threads) on which network communication services run on
-//    @ServiceCoroutineDispatcher
-//    private val networkServiceDispatcher: CoroutineDispatcher = Dispatchers.IO,
-//    @RepServiceLogger
-//    private val repServiceLogger:Logger?=null,
     @MsgApiCommonLogger
     private val commonLogger:Logger?=null,
     private var msgCounter: MsgCounter,
@@ -69,7 +62,6 @@ class KernelContextImp @Inject internal constructor(
     private var channelProvider: ChannelProvider? = null
     private var msgEncoder: MsgEncoder? = null
 
-
     private var senderProvider: SenderProvider? = null
     private var socketFactory: SocketFactory? = null
 
@@ -84,15 +76,19 @@ class KernelContextImp @Inject internal constructor(
     private var onKernelStartedListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
 
     companion object {
-        private val kernelDownReport = ErrorReport(
-            header = KernelErrors.KernelDown.header,
-            data = KernelErrors.KernelDown.Data(""),
-        )
     }
 
     override fun getZmqREPService(): Result<ZMQListenerService<P6Response>,ErrorReport> {
         val sv = getService<ZMQListenerService<P6Response>>(this.zmqREPService, "ZMQ REP listener service")
         return sv
+    }
+
+    override fun setKernelConfig(kernelConfig: KernelConfig): KernelContext {
+        if(this.isKernelRunning()){
+            throw IllegalStateException("Cannot set kernel config while the kernel is running. Stop it first.")
+        }
+        this.kernelConfig = kernelConfig
+        return this
     }
 
     override suspend fun startAll(): Result<Unit, ErrorReport> {
@@ -110,11 +106,11 @@ class KernelContextImp @Inject internal constructor(
             return Ok(Unit)
         } else {
 
-            val skrs = this.startKernelProcess()
-            if (skrs is Err) {
-                return Err(skrs.unwrapError())
+            val startKernelRs = this.startKernelProcess()
+            if (startKernelRs is Err) {
+                return Err(startKernelRs.unwrapError())
             } else {
-                this.process = skrs.unwrap()
+                this.process = startKernelRs.unwrap()
             }
 
             this.connectionFilePath = Paths.get(kernelConfig.getConnectionFilePath())
@@ -219,11 +215,7 @@ class KernelContextImp @Inject internal constructor(
             return Ok(Unit)
 
         } else {
-            val report = ErrorReport(
-                header = KernelErrors.KernelDown.header,
-                data = KernelErrors.KernelDown.Data(this::class.java.canonicalName)
-            )
-            return Err(report)
+            return Err(KernelErrors.KernelDown.report("Can't start kernel services because the kernel is down"))
         }
     }
 
@@ -261,7 +253,7 @@ class KernelContextImp @Inject internal constructor(
         if (this.isKernelRunning()) {
             return Ok(this.socketFactory!!)
         } else {
-            return Err(kernelDownReport)
+            return Err(KernelErrors.KernelDown.report("Can't get socket provider because the kernel is down"))
         }
     }
 
@@ -347,11 +339,7 @@ class KernelContextImp @Inject internal constructor(
         if (this.process!=null && this.process?.isAlive == true) {
             return Ok(this.process!!)
         } else {
-            val report = ErrorReport(
-                header = KernelErrors.KernelDown.header,
-                data = KernelErrors.KernelDown.Data("getKernelProcess")
-            )
-            return Err(report)
+            return Err(KernelErrors.KernelDown.report("Can't get kernel process because the kernel is down"))
         }
     }
 
@@ -387,7 +375,7 @@ class KernelContextImp @Inject internal constructor(
         if (this.isKernelRunning()) {
             return Ok(this.connectionFileContent!!)
         } else {
-            return Err(kernelDownReport)
+            return Err(KernelErrors.KernelDown.report("Can't get connection file content because the kernel is down"))
         }
     }
 
@@ -396,7 +384,7 @@ class KernelContextImp @Inject internal constructor(
         if (this.isKernelRunning()) {
             return Ok(this.session!!)
         } else {
-            return Err(kernelDownReport)
+            return Err(KernelErrors.KernelDown.report("Can't get session object because the kernel is down"))
         }
     }
 

@@ -1,6 +1,7 @@
 package com.emeraldblast.p6.message.api.connection.kernel_context.errors
 
 import com.emeraldblast.p6.common.exception.error.ErrorHeader
+import com.emeraldblast.p6.common.exception.error.ErrorReport
 import java.nio.file.Path
 
 object KernelErrors {
@@ -27,12 +28,16 @@ object KernelErrors {
 
     object KernelDown{
         val header=ErrorHeader("${prefix}5","Kernel is down")
-        class Data(val additionalInfo:String)
+        fun report(detail:String):ErrorReport{
+            val report = ErrorReport(
+                header = header.setDescription(detail),
+            )
+            return report
+        }
     }
 
     object KernelServiceDown{
         val header = ErrorHeader("${prefix}6","a kernel service is down")
-        class Data(val serviceName:String)
     }
 
     object GetKernelObjectError{

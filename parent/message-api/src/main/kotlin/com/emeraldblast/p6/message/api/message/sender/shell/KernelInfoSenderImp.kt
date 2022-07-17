@@ -28,10 +28,7 @@ class KernelInfoSenderImp @Inject constructor(
     ): Result<KernelInfoOutput, ErrorReport> {
         if (kernelContext.isKernelNotRunning()) {
             return Err(
-                ErrorReport(
-                    header = KernelErrors.KernelDown.header,
-                    data = KernelErrors.KernelDown.Data(""),
-                )
+                KernelErrors.KernelDown.report("${this::class.simpleName} can't send message because the kernel is down. Message header:\n" + "${message.header}")
             )
         }
 
