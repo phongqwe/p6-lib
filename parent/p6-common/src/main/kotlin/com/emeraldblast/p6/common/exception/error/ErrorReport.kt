@@ -6,7 +6,12 @@ class ErrorReport(
     val header: ErrorHeader,
     val data: Any? = null,
     val exception: Throwable? = null,
-) {
+) : Throwable() {
+
+    fun toErr():Err<ErrorReport>{
+        return Err(this)
+    }
+
     /**
      * Convert this into an exception. If already hold an exception, return that exception
      */
@@ -14,14 +19,14 @@ class ErrorReport(
         if (exception != null) {
             return exception
         }
-        return this.toErrorException()
+        return this
     }
 
     /**
      * convert this [ErrorReport] into an [ErrorException]
      */
-    fun toErrorException(): ErrorException {
-        return ErrorException(this)
+    fun toErrorException(): Throwable {
+        return this
     }
 
     override fun toString(): String {
@@ -29,7 +34,6 @@ class ErrorReport(
 type: ${this.header}
 ${if (data != null) "data:${data}" else ""}
         """.trimIndent()
-        // loc: ${loc}
         return rt
     }
 
