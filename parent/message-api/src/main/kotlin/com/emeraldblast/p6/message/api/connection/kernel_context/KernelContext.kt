@@ -11,6 +11,11 @@ import java.io.OutputStream
  * There is a risk of memory leak here. It is crucial that consumers of instances of this interface must not cache any derivative objects
  */
 interface KernelContext : KernelContextReadOnly {
+
+    fun enableLogger():KernelContext
+
+    fun disableLogger():KernelContext
+
     fun setKernelConfig(kernelConfig: KernelConfig):KernelContext
     /**
      * startCore() + startServices

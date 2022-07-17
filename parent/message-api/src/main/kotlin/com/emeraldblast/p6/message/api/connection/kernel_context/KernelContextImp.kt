@@ -49,6 +49,7 @@ class KernelContextImp @Inject internal constructor(
     private val heartBeatServiceFactory: HeartBeatServiceFactory,
     private val ioPubListenerServiceFactory: IOPubListenerServiceFactory,
     private val syncRepServiceFactory: SyncREPServiceFactory,
+    private var isLoggerEnabled:Boolean = false,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
@@ -83,6 +84,16 @@ class KernelContextImp @Inject internal constructor(
         return sv
     }
 
+    override fun enableLogger(): KernelContext {
+        isLoggerEnabled = true
+        return this
+    }
+
+    override fun disableLogger(): KernelContext {
+        isLoggerEnabled = false
+        return this
+    }
+
     override fun setKernelConfig(kernelConfig: KernelConfig): KernelContext {
         if(this.isKernelRunning()){
             throw IllegalStateException("Cannot set kernel config while the kernel is running. Stop it first.")
@@ -107,13 +118,13 @@ class KernelContextImp @Inject internal constructor(
         } else {
 
             val startKernelRs = this.startKernelProcess()
-            if (startKernelRs is Err) {
-                return Err(startKernelRs.unwrapError())
-            } else {
-                this.process = startKernelRs.unwrap()
+            when(startKernelRs){
+                is Ok -> this.process = startKernelRs.value
+                is Err ->return Err(startKernelRs.error)
             }
 
             this.connectionFilePath = Paths.get(kernelConfig.getConnectionFilePath())
+            // TODO this can be improved using Deferred job
             // x: wait for connection file to be written to disk by the kernel
             val waitConnectionFileWritten: Result<Unit, ErrorReport> =
                 Sleeper.delayUntil(50,
