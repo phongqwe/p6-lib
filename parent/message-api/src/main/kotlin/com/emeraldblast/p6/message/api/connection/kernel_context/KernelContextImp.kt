@@ -6,16 +6,6 @@ import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.*
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.ChannelProvider
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
-import com.emeraldblast.p6.message.api.connection.service.Service
-import com.emeraldblast.p6.message.api.connection.service.errors.ServiceErrors
-import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatService
-import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatServiceFactory
-import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerService
-import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceFactory
-import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
-import com.emeraldblast.p6.message.api.connection.service.zmq_services.ZMQListenerService
-import com.emeraldblast.p6.message.api.connection.service.zmq_services.imp.SyncREPServiceFactory
-import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Response
 import com.emeraldblast.p6.message.api.message.protocol.KernelConnectionFileContent
 import com.emeraldblast.p6.message.api.message.protocol.other.MsgIdGenerator
 import com.emeraldblast.p6.message.api.other.Sleeper
@@ -50,8 +40,8 @@ class KernelContextImp @Inject internal constructor(
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
-
-    // x: Context-related objects
+    private var _isLoggerEnabled:Boolean = false
+    override val isLoggerEnabled:Boolean get()=_isLoggerEnabled
 
     /**
      * process represent the python process
@@ -67,27 +57,18 @@ class KernelContextImp @Inject internal constructor(
     private var senderProvider: SenderProvider? = null
     private var socketFactory: SocketFactory? = null
 
-    // x: Context-related services
-    private var hbService: HeartBeatService? = null
-    private var ioPubService: IOPubListenerService? = null
-    private var zmqREPService: ZMQListenerService<P6Response>? = null
-
     // x: events listeners
     private var onBeforeStopListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
     private var onAfterStopListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
     private var onKernelStartedListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
 
-    companion object {
-    }
-
-
     override fun enableLogger(): KernelContext {
-//        isLoggerEnabled = true
+        _isLoggerEnabled = true
         return this
     }
 
     override fun disableLogger(): KernelContext {
-//        isLoggerEnabled = false
+        _isLoggerEnabled = false
         return this
     }
 

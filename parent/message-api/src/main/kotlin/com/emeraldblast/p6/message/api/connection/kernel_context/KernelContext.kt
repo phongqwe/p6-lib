@@ -15,8 +15,8 @@ interface KernelContext : KernelContextReadOnly {
 
     val kernelStatus:KernelStatus
 
+    val isLoggerEnabled:Boolean
     fun enableLogger():KernelContext
-
     fun disableLogger():KernelContext
 
     fun setKernelConfig(kernelConfig: KernelConfig):KernelContext
