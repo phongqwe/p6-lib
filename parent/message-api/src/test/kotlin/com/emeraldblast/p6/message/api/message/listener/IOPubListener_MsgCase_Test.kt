@@ -29,6 +29,7 @@ internal class IOPubListener_MsgCase_Test : TestOnJupyter() {
         this.setUp()
         runBlocking {
             kernelContext.startAll()
+            kernelServiceManager.startAll()
         }
     }
 

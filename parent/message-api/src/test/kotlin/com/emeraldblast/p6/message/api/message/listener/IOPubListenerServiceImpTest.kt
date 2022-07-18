@@ -2,6 +2,7 @@ package com.emeraldblast.p6.message.api.message.listener
 
 import com.github.michaelbull.result.*
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
+import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.emeraldblast.p6.message.api.connection.service.iopub.MsgHandlerContainerImp
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImp
 import com.emeraldblast.p6.message.api.connection.service.iopub.handler.MsgHandlers
@@ -31,11 +32,14 @@ import kotlin.test.assertFalse
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class IOPubListenerServiceImpTest : TestOnJupyter() {
+    var iopSv: IOPubListenerService? = null
     @BeforeEach
     fun beforeEach(){
         this.setUp()
         runBlocking {
             kernelContext.startAll()
+            kernelServiceManager.startAll()
+            iopSv = kernelServiceManager.ioPubService
         }
     }
 
@@ -93,8 +97,6 @@ internal class IOPubListenerServiceImpTest : TestOnJupyter() {
             kernelContext = kernelContext,
             externalScope = GlobalScope,
             dispatcher = Dispatchers.IO,
-
-
         )
 
         listener1.addHandler(
@@ -179,7 +181,7 @@ internal class IOPubListenerServiceImpTest : TestOnJupyter() {
             every { it.getSocketProvider().unwrap().ioPubSocket() } returns subSocket
             every { it.isKernelRunning() } returns true
             every { it.isKernelNotRunning() } returns false
-            every { it.getHeartBeatService().get()?.isHBAlive() } returns true
+//            every { kernelServiceManager.isHBAlive() } returns true
         }
 
         var exceptionHandlerTriggerCount = 0

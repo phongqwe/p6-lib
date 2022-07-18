@@ -1,15 +1,14 @@
 package com.emeraldblast.p6.message.api.message.sender.shell
 
-import com.github.michaelbull.result.Err
-import com.github.michaelbull.result.Result
-import com.github.michaelbull.result.unwrap
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManager
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.Shell
 import com.emeraldblast.p6.message.api.message.sender.MsgSender
 import com.emeraldblast.p6.message.api.message.sender.PCSender
+import com.github.michaelbull.result.*
 import javax.inject.Inject
 
 typealias ExecuteReply = JPMessage<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>
@@ -25,6 +24,7 @@ interface ExecuteSender : MsgSender<ExecuteRequest,
  */
 class ExecuteSenderImp @Inject constructor(
     private val kernelContext: KernelContextReadOnly,
+    private val kernelServiceManager: KernelServiceManager,
 ) : ExecuteSender {
 
     override suspend fun send(
@@ -32,18 +32,34 @@ class ExecuteSenderImp @Inject constructor(
     ): Result<ExecuteReply, ErrorReport> {
         if (this.kernelContext.isKernelNotRunning()) {
             return Err(
-                KernelErrors.KernelDown.report("ExecuteSenderImp can't send message because the kernel is down. Message header is:\n"+"${message.header}")
+                KernelErrors.KernelDown.report("ExecuteSenderImp can't send message because the kernel is down. Message header is:\n" + "${message.header}")
             )
         }
-        val pcSender = PCSender<ExecuteRequest, ExecuteReply>(
-            kernelContext.getSocketProvider().unwrap().shellSocket(),
-            kernelContext.getMsgEncoder().unwrap(),
-            kernelContext.getHeartBeatService().unwrap(),
-            kernelContext.zContext(),
-            kernelContext.kernelConfig.timeOut.messageTimeOut
-        )
-        val rt: Result<ExecuteReply, ErrorReport> =
-            pcSender.send2<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
+        val rt = kernelContext.getSocketProvider().map { it.shellSocket() }
+            .andThen { shellSocket ->
+                kernelContext.getMsgEncoder().andThen { msgEncoder ->
+                    kernelServiceManager.getHeartBeatServiceRs().andThen { hbs ->
+                        val pcSender = PCSender<ExecuteRequest, ExecuteReply>(
+                            shellSocket,
+                            msgEncoder,
+                            hbs,
+                            kernelContext.zContext(),
+                            kernelContext.kernelConfig.timeOut.messageTimeOut
+                        )
+                        pcSender.send2<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
+                    }
+                }
+            }
         return rt
+//        val pcSender = PCSender<ExecuteRequest, ExecuteReply>(
+//            kernelContext.getSocketProvider().unwrap().shellSocket(),
+//            kernelContext.getMsgEncoder().unwrap(),
+//            kernelContext.getHeartBeatService().unwrap(),
+//            kernelContext.zContext(),
+//            kernelContext.kernelConfig.timeOut.messageTimeOut
+//        )
+//        val rt: Result<ExecuteReply, ErrorReport> =
+//            pcSender.send2<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
+//        return rt
     }
 }

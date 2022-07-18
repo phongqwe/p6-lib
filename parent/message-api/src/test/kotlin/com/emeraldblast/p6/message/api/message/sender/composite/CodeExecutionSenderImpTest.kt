@@ -2,7 +2,7 @@ package com.emeraldblast.p6.message.api.message.sender.composite
 
 import com.github.michaelbull.result.*
 import com.emeraldblast.p6.common.exception.error.ErrorReport
-import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManager
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.SenderProvider
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImp
@@ -34,10 +34,11 @@ internal class CodeExecutionSenderImpTest : TestOnJupyter() {
     lateinit var ioPubService: IOPubListenerServiceImp
 
     @BeforeEach
-    fun beforeEach(){
+    fun beforeEach() {
         this.setUp()
         runBlocking {
             kernelContext.startAll()
+            kernelServiceManager.startAll()
 //            ioPubService = IOPubListenerServiceImpl(
 //                kernelContext = kernelContext,
 //                defaultHandler = { msg ->
@@ -56,13 +57,14 @@ internal class CodeExecutionSenderImpTest : TestOnJupyter() {
     }
 
     @AfterEach
-    fun afterEach(){
+    fun afterEach() {
         runBlocking {
             kernelContext.stopAll()
 //            ioPubService.stop()
         }
     }
-    val msgList:List<ExecuteRequest> = listOf(
+
+    val msgList: List<ExecuteRequest> = listOf(
         """x=0""", """1+1""",
         """
 import json
@@ -82,13 +84,13 @@ b2=getApp().createNewWorkbook("Book2")
 b2.createNewWorksheet("Sheet1")
 b2.createNewWorksheet("Sheet2")
     """.trimIndent()
-    ).map{
+    ).map {
         ExecuteRequest.autoCreate(
             sessionId = "session_id",
             username = "user_name",
             msgType = Shell.Execute.Request.msgType,
             msgContent = Shell.Execute.Request.Content(
-                code =it.trimIndent(),
+                code = it.trimIndent(),
                 silent = false,
                 storeHistory = true,
                 userExpressions = mapOf(),
@@ -132,6 +134,7 @@ b2.createNewWorksheet("Sheet2")
 
                     val sender = CodeExecutionSenderImp(
                         kernelContext = kernelContext,
+                        kernelServiceManager = kernelServiceManager
                     )
 
                     val o = sender.send(message)
@@ -147,15 +150,18 @@ b2.createNewWorksheet("Sheet2")
     @Test
     fun send_Ok() {
         runBlocking {
-            val sender = CodeExecutionSenderImp(kernelContext)
+            val sender = CodeExecutionSenderImp(
+                kernelContext = kernelContext,
+                kernelServiceManager = kernelServiceManager
+            )
 
-            for (msg in listOf(msgList[1],msgList[2])){
+            for (msg in listOf(msgList[1], msgList[2])) {
                 val o = sender.send(msg)
+                assertTrue(o is Ok, o.toString())
                 println(message.header.msgId)
                 assertNotNull(o.unwrap())
                 println(o.unwrap()!!.header.msgId)
                 println(o.unwrap()!!)
-                assertTrue(o is Ok, o.toString())
             }
         }
     }
@@ -172,12 +178,11 @@ b2.createNewWorksheet("Sheet2")
                 msgType = Shell.Execute.Request.msgType,
                 msgContent = Shell.Execute.Request.Content(
                     code =
-                            "x=0\n" + "" +
-                            "while(True):\n"+
-                            "    x=x+1\n"+
-                            "    if(x>200000000):\n"+
-                            "        break\n"
-                    ,
+                    "x=0\n" + "" +
+                            "while(True):\n" +
+                            "    x=x+1\n" +
+                            "    if(x>200000000):\n" +
+                            "        break\n",
                     silent = false,
                     storeHistory = true,
                     userExpressions = mapOf(),
@@ -200,9 +205,12 @@ b2.createNewWorksheet("Sheet2")
                 ),
                 "msg_id_abc_1"
             )
-            val sender = CodeExecutionSenderImp(kernelContext)
+            val sender = CodeExecutionSenderImp(
+                kernelContext = kernelContext,
+                kernelServiceManager = kernelServiceManager
+            )
             val o2 = sender.send(message2)
-            assertTrue(o2 is Ok,o2.toString())
+            assertTrue(o2 is Ok, o2.toString())
             assertNull(o2.value)
 
             val o = sender.send(message)
@@ -227,21 +235,21 @@ b2.createNewWorksheet("Sheet2")
                 ): Result<ExecuteReply, ErrorReport> {
                     return Err(
                         ErrorReport(
-                        header = SenderErrors.UnableToSendMsg.header,
-                        data = SenderErrors.UnableToSendMsg.Data(message)
-                    )
+                            header = SenderErrors.UnableToSendMsg.header,
+                            data = SenderErrors.UnableToSendMsg.Data(message)
+                        )
                     )
                 }
             }
 
             val mockSenderProvider = mockk<SenderProvider>().also {
-                every{it.executeRequestSender()} returns mockSender
+                every { it.executeRequestSender() } returns mockSender
             }
             val mockContext = spyk(kernelContext).also {
-                every{it.getSenderProvider()} returns Ok(mockSenderProvider)
+                every { it.getSenderProvider() } returns Ok(mockSenderProvider)
             }
 
-            val sender = CodeExecutionSenderImp(mockContext)
+            val sender = CodeExecutionSenderImp(mockContext, kernelServiceManager = kernelServiceManager)
             val o = sender.send(message)
             assertTrue(o is Err, o.toString())
             assertTrue(o.unwrapError().isType(SenderErrors.UnableToSendMsg.header))
@@ -251,10 +259,10 @@ b2.createNewWorksheet("Sheet2")
     @Test
     fun send_kernelNotRunning() = runBlocking {
         kernelContext.stopAll()
-        val sender = CodeExecutionSenderImp(kernelContext)
+        val sender = CodeExecutionSenderImp(kernelContext, kernelServiceManager = kernelServiceManager)
         val o = sender.send(message)
         assertTrue(o is Err)
-        assertTrue((o.unwrapError().isType(KernelErrors.KernelDown.header)),"should return the correct exception")
+        assertTrue((o.unwrapError().isType(KernelErrors.KernelDown.header)), "should return the correct exception")
     }
 
     @Test
@@ -265,19 +273,25 @@ b2.createNewWorksheet("Sheet2")
             every { it.isNotRunning() } returns true
         }
 
-        val mockContext: KernelContextReadOnly = spyk(kernelContext).also {
-            every {it.getIOPubListenerService()} returns Ok(mockListener)
+        val mockKSM: KernelServiceManager = spyk(kernelServiceManager).also {
+            every { it.getIOPubListenerServiceRs() } returns Ok(mockListener)
         }
 
-        val sender = CodeExecutionSenderImp(mockContext)
+        val sender = CodeExecutionSenderImp(
+            kernelContext = kernelContext,
+            kernelServiceManager = mockKSM
+        )
         val o = sender.send(message)
         assertTrue(o is Err)
-        assertTrue((o.unwrapError().isType(IOPubServiceErrors.IOPubServiceNotRunning.header)),"should return the correct exception")
+        assertTrue(
+            (o.unwrapError().isType(IOPubServiceErrors.IOPubServiceNotRunning.header)),
+            "should return the correct exception"
+        )
     }
 
     @Test
     fun test_sendMalformedCode() {
-        runBlocking{
+        runBlocking {
             kernelContext.startAll()
             val malformedCodeMsg: ExecuteRequest = ExecuteRequest.autoCreate(
                 sessionId = "session_id",
@@ -293,7 +307,10 @@ b2.createNewWorksheet("Sheet2")
                 ),
                 "msg_id_abc_123"
             )
-            val sender = CodeExecutionSenderImp(kernelContext)
+            val sender = CodeExecutionSenderImp(
+                kernelContext = kernelContext,
+                kernelServiceManager = kernelServiceManager
+            )
             val o = sender.send(malformedCodeMsg)
             assertTrue(o is Err)
         }

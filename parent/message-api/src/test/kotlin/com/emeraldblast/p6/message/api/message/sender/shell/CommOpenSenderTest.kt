@@ -23,6 +23,7 @@ internal class CommOpenSenderTest : TestOnJupyter() {
         this.setUp()
         runBlocking {
             kernelContext.startAll()
+            kernelServiceManager.startAll()
         }
     }
 
@@ -50,6 +51,7 @@ internal class CommOpenSenderTest : TestOnJupyter() {
 
         val sender = CommOpenSender(
             kernelContext = kernelContext,
+            kernelServiceManager = kernelServiceManager
         )
 
         val o = sender.send(message)

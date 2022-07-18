@@ -39,7 +39,7 @@ interface KernelContext : KernelContextReadOnly {
     /**
      * start services
      */
-    suspend fun startServices():Result<Unit, ErrorReport>
+//    suspend fun startServices():Result<Unit, ErrorReport>
 
     /**
      * Kill the current kernel process and delete the current connection file.
@@ -51,7 +51,7 @@ interface KernelContext : KernelContextReadOnly {
     /**
      * stop the services depending on the kernel
      */
-    suspend fun stopServices():Result<Unit, ErrorReport>
+//    suspend fun stopServices():Result<Unit, ErrorReport>
 
     /**
      * stop the kernel thread

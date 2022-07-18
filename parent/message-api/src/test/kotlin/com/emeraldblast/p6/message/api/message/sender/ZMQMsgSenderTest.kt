@@ -19,6 +19,7 @@ internal class ZMQMsgSenderTest : TestOnJupyter() {
         this.setUp()
         runBlocking {
             kernelContext.startAll()
+            kernelServiceManager.startAll()
         }
     }
 
@@ -39,7 +40,7 @@ internal class ZMQMsgSenderTest : TestOnJupyter() {
             socket= zcontext.createSocket(SocketType.REQ).also {
                 it.connect(kernelContext.getHeartBeatAddress().unwrap())
             },
-            hbs= kernelContext.getHeartBeatService().unwrap(),
+            hbs= kernelServiceManager.getHeartBeatServiceRs().unwrap(),
             interval = 1000,
             zContext = kernelContext.zContext()
         )

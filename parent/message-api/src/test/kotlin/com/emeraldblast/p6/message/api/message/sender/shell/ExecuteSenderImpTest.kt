@@ -22,6 +22,7 @@ internal class ExecuteSenderImpTest : TestOnJupyter() {
         this.setUp()
         runBlocking {
             kernelContext.startAll()
+            kernelServiceManager.startAll()
         }
     }
 
@@ -65,7 +66,8 @@ internal class ExecuteSenderImpTest : TestOnJupyter() {
     fun send_ok() {
         runBlocking {
             val sender2 = ExecuteSenderImp(
-                kernelContext
+                kernelContext = kernelContext,
+                kernelServiceManager = kernelServiceManager
             )
 
             val out = sender2.send(message)
@@ -84,7 +86,8 @@ internal class ExecuteSenderImpTest : TestOnJupyter() {
     fun send_malformedCode() {
         runBlocking {
             val sender2 = ExecuteSenderImp(
-                kernelContext
+                kernelContext = kernelContext,
+                kernelServiceManager = kernelServiceManager
             )
 
             val out = sender2.send(malformedCodeMsg)
@@ -102,8 +105,10 @@ internal class ExecuteSenderImpTest : TestOnJupyter() {
     @Test
     fun send_fail() {
         runBlocking {
-            val sender2 = ExecuteSenderImp(kernelContext)
+            val sender2 = ExecuteSenderImp(kernelContext = kernelContext,
+                kernelServiceManager = kernelServiceManager)
             kernelContext.stopAll()
+            kernelServiceManager.stopAll()
             val out = sender2.send(message)
             assertTrue(out is Err, out.toString())
             println(out)

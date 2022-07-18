@@ -17,6 +17,7 @@ internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
         this.setUp()
         runBlocking{
             kernelContext.startAll()
+            kernelServiceManager.startAll()
         }
         hbService = LiveCountHeartBeatService(
             kernelContext=kernelContext,

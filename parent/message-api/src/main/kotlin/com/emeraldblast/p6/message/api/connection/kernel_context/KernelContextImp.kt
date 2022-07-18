@@ -47,10 +47,6 @@ class KernelContextImp @Inject internal constructor(
     private val socketFactoryFactory: SocketFactoryFactory,
     private val sessionFactory: SessionFactory,
     private val senderProviderFactory: SenderProviderFactory,
-    private val heartBeatServiceFactory: HeartBeatServiceFactory,
-    private val ioPubListenerServiceFactory: IOPubListenerServiceFactory,
-    private val syncRepServiceFactory: SyncREPServiceFactory,
-//    private var isLoggerEnabled: Boolean = false,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
@@ -84,10 +80,6 @@ class KernelContextImp @Inject internal constructor(
     companion object {
     }
 
-    override fun getZmqREPService(): Result<ZMQListenerService<P6Response>, ErrorReport> {
-        val sv = getService<ZMQListenerService<P6Response>>(this.zmqREPService, "ZMQ REP listener service")
-        return sv
-    }
 
     override fun enableLogger(): KernelContext {
 //        isLoggerEnabled = true
@@ -112,12 +104,7 @@ class KernelContextImp @Inject internal constructor(
 
     override suspend fun startAll(): Result<Unit, ErrorReport> {
         val kernelRS: Result<Unit, ErrorReport> = this.startKernel()
-        if (kernelRS is Ok) {
-            val serviceRs: Result<Unit, ErrorReport> = this.startServices()
-            return serviceRs
-        } else {
-            return kernelRS
-        }
+        return kernelRS
     }
 
     override suspend fun startKernel(): Result<Unit, ErrorReport> {
@@ -192,65 +179,8 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-
-    override suspend fun startServices(): Result<Unit, ErrorReport> {
-        if (this.isKernelRunning()) {
-
-            val hbSv = heartBeatServiceFactory.create(
-                kernelContext = this,
-                liveCount = 20,
-                pollTimeOut = 1000,
-                startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
-            )
-            this.hbService = hbSv
-
-            val hbStartRs: Result<Unit, ErrorReport> = hbSv.start()
-            if (hbStartRs is Err) {
-                this.hbService?.stop()
-                this.hbService = null
-                return hbStartRs
-            }
-
-            val ioPubSv = ioPubListenerServiceFactory.create(
-                kernelContext = this,
-                defaultHandler = {},
-                parseExceptionHandler = {},
-                startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
-            )
-            this.ioPubService = ioPubSv
-
-            val ioPubStartRs: Result<Unit, ErrorReport> = ioPubSv.start()
-            if (ioPubStartRs is Err) {
-                this.ioPubService?.stop()
-                this.ioPubService = null
-                return ioPubStartRs
-            }
-
-            val zmqREPService = syncRepServiceFactory.create(
-                kernelContext = this,
-            )
-
-            this.zmqREPService = zmqREPService
-            val zmqListenerServiceStartRs = zmqREPService.start()
-            if (zmqListenerServiceStartRs is Err) {
-                this.zmqREPService?.stop()
-                this.zmqREPService = null
-                return zmqListenerServiceStartRs
-            }
-
-            return Ok(Unit)
-
-        } else {
-            return Err(KernelErrors.KernelDown.report("Can't start kernel services because the kernel is down"))
-        }
-    }
-
-
     override suspend fun stopAll(): Result<Unit, ErrorReport> {
-        val r: Result<Unit, ErrorReport> = stopServices().andThen {
-            stopKernel()
-        }
-        return r
+        return stopKernel()
     }
 
     private suspend fun stopKernelProcess(): Result<Unit, ErrorReport> {
@@ -283,41 +213,6 @@ class KernelContextImp @Inject internal constructor(
     }
 
 
-    override suspend fun stopServices(): Result<Unit, ErrorReport> {
-
-        val errorList = mutableListOf<ErrorReport>()
-        val ioPubStopRs = this.ioPubService?.stop() ?: Ok(Unit)
-        if (ioPubStopRs is Err) {
-            errorList.add(ioPubStopRs.error)
-        } else {
-            this.ioPubService = null
-        }
-
-        val hbStopRs = this.hbService?.stop() ?: Ok(Unit)
-        if (hbStopRs is Err) {
-            errorList.add(hbStopRs.error)
-        } else {
-            this.hbService = null
-        }
-
-        val zmqRepStopRs = this.zmqREPService?.stop() ?: Ok(Unit)
-        if (zmqRepStopRs is Err) {
-            errorList.add(zmqRepStopRs.error)
-        } else {
-            this.zmqREPService = null
-        }
-
-        if (errorList.isNotEmpty()) {
-            return Err(
-                ErrorReport(
-                    header = CommonErrors.MultipleErrors.header,
-                    data = CommonErrors.MultipleErrors.Data(errorList)
-                )
-            )
-        } else {
-            return Ok(Unit)
-        }
-    }
 
     override suspend fun stopKernel(): Result<Unit, ErrorReport> {
         if (this.isKernelNotRunning()) {
@@ -451,14 +346,10 @@ class KernelContextImp @Inject internal constructor(
         return rt
     }
 
-    override fun areServicesRunning(): Boolean {
-        val hbRunning = this.hbService?.isServiceRunning() ?: false
-        val ioPubRunning = this.ioPubService?.isRunning() ?: false
-        return hbRunning && ioPubRunning
-    }
+
 
     override fun isAllRunning(): Boolean {
-        return areServicesRunning() && isKernelRunning()
+        return  isKernelRunning()
     }
 
     override fun isKernelNotRunning(): Boolean {
@@ -512,42 +403,6 @@ class KernelContextImp @Inject internal constructor(
 
     override fun removeOnProcessStartListener() {
         this.onKernelStartedListener = OnKernelContextEvent.Nothing
-    }
-
-//    override fun getKernelConfig(): KernelConfig {
-//        return this.kernelConfig
-//    }
-
-
-    override fun getIOPubListenerService(): Result<IOPubListenerService, ErrorReport> {
-        val sv = getService<IOPubListenerService>(this.ioPubService, "IO Pub service")
-        return sv
-    }
-
-
-    override fun getHeartBeatService(): Result<HeartBeatService, ErrorReport> {
-        val sv = getService<HeartBeatService>(this.hbService, "heart beat service")
-        return sv
-    }
-
-    private fun <T> getService(service: Service?, serviceName: String): Result<T, ErrorReport> {
-        if (service != null) {
-            if (service.isRunning()) {
-                return Ok(service as T)
-            } else {
-                val report = ErrorReport(
-                    header = IOPubServiceErrors.IOPubServiceNotRunning.header,
-                    data = IOPubServiceErrors.IOPubServiceNotRunning.Data("${this.javaClass.canonicalName}:getService")
-                )
-                return Err(report)
-            }
-        } else {
-            val report = ErrorReport(
-                header = ServiceErrors.ServiceNull.header,
-                data = ServiceErrors.ServiceNull.Data(serviceName)
-            )
-            return Err(report)
-        }
     }
 
     override fun zContext(): ZContext {

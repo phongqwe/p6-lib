@@ -13,15 +13,18 @@ abstract class TestOnJupyter {
     lateinit var kernelConfig: KernelConfig
     lateinit var kernelContext: KernelContext
     lateinit var zcontext: ZContext
+    lateinit var kernelServiceManager: KernelServiceManager
 
 
     fun setUp(){
         this.zcontext = ZContext()
         this.kernelConfig = TestResources.kernelConfigForTest()
-        this.kernelContext = DaggerMessageApiComponent.builder()
+        val dgComp = DaggerMessageApiComponent.builder()
             .kernelConfig(this.kernelConfig)
             .kernelCoroutineScope(GlobalScope)
             .networkServiceCoroutineDispatcher(Dispatchers.IO)
-            .build().kernelContext()
+            .build()
+        this.kernelContext = dgComp.kernelContext()
+        this.kernelServiceManager = dgComp.kernelServiceManager()
     }
 }

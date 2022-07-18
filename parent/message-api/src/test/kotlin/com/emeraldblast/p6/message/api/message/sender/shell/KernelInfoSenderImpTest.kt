@@ -19,6 +19,7 @@ class KernelInfoSenderImpTest : TestOnJupyter() {
         this.setUp()
         runBlocking {
             kernelContext.startAll()
+            kernelServiceManager.startAll()
         }
     }
 

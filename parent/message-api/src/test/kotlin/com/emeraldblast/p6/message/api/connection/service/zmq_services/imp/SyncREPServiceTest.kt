@@ -26,6 +26,7 @@ internal class SyncREPServiceTest : TestOnJupyter() {
         this.setUp()
         runBlocking {
             kernelContext.startAll()
+            kernelServiceManager.startAll()
         }
     }
 
@@ -33,6 +34,7 @@ internal class SyncREPServiceTest : TestOnJupyter() {
     fun afterEach(){
         runBlocking {
             kernelContext.stopAll()
+            kernelServiceManager.stopAll()
         }
     }
 

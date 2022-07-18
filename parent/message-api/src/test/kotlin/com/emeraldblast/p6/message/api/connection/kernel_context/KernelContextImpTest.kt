@@ -28,17 +28,20 @@ internal class KernelContextImpTest {
     lateinit var kc: KernelContext
     lateinit var kernelConfig: KernelConfig
     lateinit var zContext: ZContext
+    lateinit var ksm: KernelServiceManager
 
     @BeforeEach
     fun beforeEach() {
         this.zContext = ZContext()
         kernelConfig = TestResources.kernelConfigForTest()
-        kc = DaggerMessageApiComponent.builder()
+        val dcomponent = DaggerMessageApiComponent.builder()
             .kernelConfig(kernelConfig)
             .kernelCoroutineScope(GlobalScope)
             .networkServiceCoroutineDispatcher(Dispatchers.IO)
             .build()
-            .kernelContext()
+
+        kc = dcomponent.kernelContext()
+        ksm = dcomponent.kernelServiceManager()
     }
 
     @AfterEach
@@ -79,7 +82,9 @@ internal class KernelContextImpTest {
     fun startKernel_FromNotStartedYet() = runBlocking {
         assertTrue(kc.getKernelProcess() is Err)
         val rs = kc.startAll()
+        val ksmRs = ksm.startAll()
         assertTrue(rs is Ok, rs.toString())
+        assertTrue(ksmRs is Ok, rs.toString())
         assertTrue(kc.isKernelRunning())
         assertTrue(kc.getKernelProcess() is Ok, kc.getKernelProcess().toString())
         assertTrue(kc.getKernelProcess().get()?.isAlive ?: false)
@@ -88,12 +93,12 @@ internal class KernelContextImpTest {
         assertTrue(kc.getSession() is Ok, kc.getSession().toString())
         assertTrue(kc.getMsgEncoder() is Ok, kc.getMsgEncoder().toString())
         assertTrue(kc.getMsgIdGenerator() is Ok, kc.getMsgIdGenerator().toString())
-        assertTrue(kc.getHeartBeatService() is Ok, kc.getHeartBeatService().toString())
-        assertTrue(kc.getHeartBeatService().unwrap().isRunning())
-        assertTrue(kc.getZmqREPService() is Ok)
-        assertTrue(kc.getZmqREPService().unwrap().isRunning())
-        assertTrue(kc.getIOPubListenerService() is Ok)
-        assertTrue(kc.getIOPubListenerService().unwrap().isRunning())
+        assertTrue(ksm.getHeartBeatServiceRs() is Ok)
+        assertTrue(ksm.hbService?.isRunning()?:false)
+        assertTrue(ksm.getZmqREPServiceRs() is Ok)
+        assertTrue(ksm.zmqREPService?.isRunning()?:false)
+        assertTrue(ksm.getIOPubListenerServiceRs() is Ok)
+        assertTrue(ksm.ioPubService?.isRunning()?:false)
         assertTrue(Files.exists(Paths.get(kernelConfig.getConnectionFilePath())))
     }
 
@@ -119,9 +124,9 @@ internal class KernelContextImpTest {
         assertTrue(kc.getSession() is Err)
         assertTrue(kc.getChannelProvider() is Err)
         assertTrue(kc.getMsgEncoder() is Err)
-        assertTrue(kc.getHeartBeatService() is Err)
-        assertTrue(kc.getZmqREPService() is Err)
-        assertTrue(kc.getIOPubListenerService() is Err)
+        assertTrue(ksm.getHeartBeatServiceRs() is Err)
+        assertTrue(ksm.getZmqREPServiceRs() is Err)
+        assertTrue(ksm.getIOPubListenerServiceRs() is Err)
         assertFalse(Files.exists(Paths.get(kernelConfig.getConnectionFilePath())))
     }
 

@@ -21,11 +21,10 @@ import org.zeromq.ZContext
  * This is for preventing changing kernel context state by mistake
  */
 interface KernelContextReadOnly {
-    fun getZmqREPService():Result<ZMQListenerService<P6Response>,ErrorReport>
 
-//    fun getKernelConfig(): KernelConfig
+
     val kernelConfig:KernelConfig
-    fun getIOPubListenerService(): Result<IOPubListenerService, ErrorReport>
+
 
     /**
      * Return content of connection file .
@@ -44,7 +43,7 @@ interface KernelContextReadOnly {
 
     fun getMsgIdGenerator(): Result<MsgIdGenerator, ErrorReport>
 
-    fun getHeartBeatService():Result<HeartBeatService, ErrorReport>
+//    fun getHeartBeatService():Result<HeartBeatService, ErrorReport>
 
     fun getSocketProvider():Result<SocketFactory, ErrorReport>
 
@@ -58,7 +57,7 @@ interface KernelContextReadOnly {
     /**
      * all context-related services are running
      */
-    fun areServicesRunning():Boolean
+//    fun areServicesRunning():Boolean
     /**
      * A running context guarantees that all context-related objects and services are up, running, not null
      */

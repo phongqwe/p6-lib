@@ -4,6 +4,8 @@ import com.github.michaelbull.result.*
 import com.emeraldblast.p6.common.exception.error.CommonErrors
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManager
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManagerImp
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
@@ -25,6 +27,7 @@ import javax.inject.Inject
  */
 class CodeExecutionSenderImp @Inject constructor(
     val kernelContext: KernelContextReadOnly,
+    val kernelServiceManager: KernelServiceManager,
 ) : CodeExecutionSender {
 
     /**
@@ -46,7 +49,7 @@ class CodeExecutionSenderImp @Inject constructor(
             return Err(report)
         }
 
-        val ioPubServiceRs = kernelContext.getIOPubListenerService()
+        val ioPubServiceRs = kernelServiceManager.getIOPubListenerServiceRs()
         val senderProviderRs = kernelContext.getSenderProvider()
 
         if (ioPubServiceRs is Err) {

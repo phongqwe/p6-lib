@@ -11,6 +11,12 @@ interface KernelServiceManager {
     val hbService: HeartBeatService?
     val ioPubService: IOPubListenerService?
     val zmqREPService: ZMQListenerService<P6Response>?
+
+    fun getHeartBeatServiceRs():Result<HeartBeatService, ErrorReport>
+    fun getZmqREPServiceRs():Result<ZMQListenerService<P6Response>,ErrorReport>
+    fun getIOPubListenerServiceRs(): Result<IOPubListenerService, ErrorReport>
+
     suspend fun startAll(): Result<Unit, ErrorReport>
     fun stopAll(): Result<Unit, ErrorReport>
+    fun areServicesRunning(): Boolean
 }
