@@ -7,4 +7,7 @@ class KernelTimeOut(
     val serviceInitTimeOut:Long=5000,
     val messageTimeOut:Long = 5000
 ) {
+    companion object{
+        const val defaultTimeOut:Long = 50_000
+    }
 }

@@ -38,7 +38,7 @@ interface MessageApiComponent {
         fun build(): MessageApiComponent
 
         @BindsInstance
-        fun kernelConfig(config: KernelConfig): Builder
+        fun kernelConfig(config: KernelConfig?=null): Builder
 
         @BindsInstance
         fun kernelCoroutineScope(@KernelCoroutineScope scope: CoroutineScope): Builder

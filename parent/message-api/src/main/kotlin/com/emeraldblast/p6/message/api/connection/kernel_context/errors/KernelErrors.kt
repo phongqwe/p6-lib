@@ -9,7 +9,7 @@ object KernelErrors {
     object CantStartKernelProcess {
         val header = ErrorHeader("${prefix}1", "Can't start kernel process")
         class Data (val startCommand:String)
-        fun report(command:String):ErrorReport{
+        fun reportForCommand(command:String):ErrorReport{
             return header.setDescription("Can't start kernel process with this command: ${command}").toErrorReport()
         }
     }
@@ -43,13 +43,17 @@ object KernelErrors {
         val header = ErrorHeader("${prefix}6","a kernel service is down")
     }
 
-    object GetKernelObjectError{
-        val header = ErrorHeader("${prefix}7","can't get kernel object")
-        class Data(val objectName:String)
+    object KernelConfigIsNull{
+        val header = ErrorHeader("${prefix}7","kernel config is null")
+        fun report(detail: String):ErrorReport{
+            return header.setDescription(detail).toErrorReport()
+        }
     }
 
     object CantCreateKernelConfig{
         val header = ErrorHeader("${prefix}8","can't create kernel config")
         class Data(val exception:Exception)
     }
+
+
 }

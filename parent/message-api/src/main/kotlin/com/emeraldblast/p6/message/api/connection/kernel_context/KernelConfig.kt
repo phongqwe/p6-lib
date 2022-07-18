@@ -9,17 +9,25 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 
+interface KernelConfig {
+    val launchCmd: List<String>
+    val connectionFilePath: String
+    val timeOut: KernelTimeOut
+    val kernelConnectionFileContent: KernelConnectionFileContent?
+    fun makeCompleteLaunchCmmd(): List<String>
+}
+
 /**
  * Information to start a kernel process
  * [launchCmd] a command line to start kernel process, not including connection file path
  * [connectionFilePath] path to connection file
  *
  */
-data class KernelConfig constructor(
-    private val launchCmd: List<String> = emptyList(),
-    private val connectionFilePath: String = "",
-    val timeOut: KernelTimeOut = KernelTimeOut()
-) {
+data class KernelConfigImp constructor(
+    override val launchCmd: List<String> = emptyList(),
+    override val connectionFilePath: String = "",
+    override val timeOut: KernelTimeOut = KernelTimeOut()
+) :KernelConfig{
 
     companion object {
         fun fromFile(filePath: Path): Result<KernelConfig, ErrorReport> {
@@ -41,20 +49,13 @@ data class KernelConfig constructor(
         }
     }
 
-    val kernelConnectionFileContent: KernelConnectionFileContent?
+    override val kernelConnectionFileContent: KernelConnectionFileContent?
         get() {
             return KernelConnectionFileContent.fromJsonFile2(this.connectionFilePath).getOr(null)
         }
 
-    fun makeCompleteLaunchCmmd(): List<String> {
+    override fun makeCompleteLaunchCmmd(): List<String> {
         return (launchCmd + connectionFilePath)
     }
 
-    fun getConnectionFilePath(): String {
-        return this.connectionFilePath
-    }
-
-    fun getLaunchCmd(): List<String> {
-        return this.launchCmd
-    }
 }

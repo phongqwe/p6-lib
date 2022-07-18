@@ -99,7 +99,7 @@ internal class KernelContextImpTest {
         assertTrue(ksm.zmqREPService?.isRunning()?:false)
         assertTrue(ksm.getIOPubListenerServiceRs() is Ok)
         assertTrue(ksm.ioPubService?.isRunning()?:false)
-        assertTrue(Files.exists(Paths.get(kernelConfig.getConnectionFilePath())))
+        assertTrue(Files.exists(Paths.get(kernelConfig.connectionFilePath)))
     }
 
     @Test
@@ -127,7 +127,7 @@ internal class KernelContextImpTest {
         assertTrue(ksm.getHeartBeatServiceRs() is Err)
         assertTrue(ksm.getZmqREPServiceRs() is Err)
         assertTrue(ksm.getIOPubListenerServiceRs() is Err)
-        assertFalse(Files.exists(Paths.get(kernelConfig.getConnectionFilePath())))
+        assertFalse(Files.exists(Paths.get(kernelConfig.connectionFilePath)))
     }
 
     @Test

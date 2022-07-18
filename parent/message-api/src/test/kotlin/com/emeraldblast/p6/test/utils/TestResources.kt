@@ -1,6 +1,7 @@
 package com.emeraldblast.p6.test.utils
 
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelConfig
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelConfigImp
 import com.google.gson.Gson
 import java.net.URL
 import java.nio.file.Files
@@ -14,7 +15,7 @@ class TestResources {
                 throw Exception("missing jupyterConfig.json")
             } else {
                 val fileContent = Files.readString(Paths.get(resource.toURI()))
-                val o = Gson().fromJson(fileContent, KernelConfig::class.java)
+                val o = Gson().fromJson(fileContent, KernelConfigImp::class.java)
                 return o
             }
         }

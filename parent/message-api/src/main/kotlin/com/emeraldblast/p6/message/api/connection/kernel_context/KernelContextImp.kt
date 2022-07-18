@@ -26,7 +26,7 @@ import javax.inject.Inject
  */
 class KernelContextImp @Inject internal constructor(
     // x: kernelConfig is created from an external file.
-    private var iKernelConfig: KernelConfig,
+    private var iKernelConfig: KernelConfig?,
     private val zContext: ZContext,
     @MsgApiCommonLogger
     private val commonLogger: Logger? = null,
@@ -39,7 +39,7 @@ class KernelContextImp @Inject internal constructor(
     private val senderProviderFactory: SenderProviderFactory,
 ) : KernelContext {
 
-    private val kernelTimeOut = kernelConfig.timeOut
+    private val kernelTimeOut get()= kernelConfig?.timeOut
     private var _isLoggerEnabled:Boolean = false
     override val isLoggerEnabled:Boolean get()=_isLoggerEnabled
 
@@ -80,7 +80,7 @@ class KernelContextImp @Inject internal constructor(
         return this
     }
 
-    override val kernelConfig: KernelConfig
+    override val kernelConfig: KernelConfig?
         get() = iKernelConfig
 
     override suspend fun startAll(): Result<Unit, ErrorReport> {
@@ -92,13 +92,18 @@ class KernelContextImp @Inject internal constructor(
         if (this.isKernelRunning()) {
             return Ok(Unit)
         } else {
+            val kernelConfig = this.kernelConfig
+            if(kernelConfig==null){
+                return KernelErrors.KernelConfigIsNull.report("Can't start kernel because kernel config is not available").toErr()
+            }
+            val kernelTimeOut = kernelConfig.timeOut
             val startKernelRs = this.startKernelProcess()
             when (startKernelRs) {
                 is Ok -> this.process = startKernelRs.value
                 is Err -> return Err(startKernelRs.error)
             }
 
-            this.connectionFilePath = Paths.get(kernelConfig.getConnectionFilePath())
+            this.connectionFilePath = Paths.get(kernelConfig.connectionFilePath)
 
             // x: wait for connection file to be written to disk by the kernel
             // x: TODO this can be improved using watch service of nio
@@ -114,7 +119,7 @@ class KernelContextImp @Inject internal constructor(
                     .toErr()
             }
 
-            this.connectionFileContent = this.kernelConfig.kernelConnectionFileContent
+            this.connectionFileContent = kernelConfig.kernelConnectionFileContent
             val connectionFiles = this.connectionFileContent!!
 
             // x: create resources, careful with the order of resource initiation,
@@ -138,13 +143,19 @@ class KernelContextImp @Inject internal constructor(
 
 
     private suspend fun startKernelProcess(): Result<Process, ErrorReport> {
-        val processBuilder = ProcessBuilder(this.kernelConfig.makeCompleteLaunchCmmd())
+        val kernelConfig = this.kernelConfig
+        if(kernelConfig==null){
+            return KernelErrors.KernelConfigIsNull.report("Can't start kernel because kernel config is not available").toErr()
+        }
+
+        val processBuilder = ProcessBuilder(kernelConfig.makeCompleteLaunchCmmd())
         try {
             val p: Process = processBuilder.inheritIO().start()
-            val waitForProcessRs = Sleeper.delayUntil(50, kernelTimeOut.processInitTimeOut) { p.isAlive }
+            val waitForProcessRs = Sleeper.delayUntil(50, kernelConfig.timeOut.processInitTimeOut) { p.isAlive }
             if (waitForProcessRs is Err) {
+                val command = kernelConfig.makeCompleteLaunchCmmd().joinToString(" ")
                 return KernelErrors.CantStartKernelProcess
-                    .report(this.kernelConfig.makeCompleteLaunchCmmd().joinToString(" "))
+                    .reportForCommand(command)
                     .toErr()
             }
             return Ok(p)
@@ -165,7 +176,7 @@ class KernelContextImp @Inject internal constructor(
             this.process?.destroyForcibly()
             // x: polling until the process is completely dead
             val waitForProcessStopRs: Result<Unit, ErrorReport> =
-                Sleeper.delayUntil(50, kernelTimeOut.processStopTimeout) { this.process?.isAlive == false }
+                Sleeper.delayUntil(50, kernelTimeOut?.processStopTimeout?:50_000) { this.process?.isAlive == false }
             val rs = waitForProcessStopRs.mapError {
                 val processId = this.process?.pid()
                 ErrorReport(

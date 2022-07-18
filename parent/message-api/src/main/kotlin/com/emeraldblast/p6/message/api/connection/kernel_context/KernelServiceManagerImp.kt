@@ -42,7 +42,7 @@ class KernelServiceManagerImp @Inject constructor(
                 kernelContext = kernel,
                 liveCount = 20,
                 pollTimeOut = 1000,
-                startTimeOut = kernel.kernelConfig.timeOut.serviceInitTimeOut
+                startTimeOut = kernel.kernelConfig?.timeOut?.serviceInitTimeOut ?: KernelTimeOut.defaultTimeOut
             )
             this._hbService = hbSv
 
@@ -57,7 +57,7 @@ class KernelServiceManagerImp @Inject constructor(
                 kernelContext = kernel,
                 defaultHandler = {},
                 parseExceptionHandler = {},
-                startTimeOut = kernel.kernelConfig.timeOut.serviceInitTimeOut
+                startTimeOut = kernel.kernelConfig?.timeOut?.serviceInitTimeOut ?: KernelTimeOut.defaultTimeOut
             )
             this._ioPubService = ioPubSv
 

@@ -23,7 +23,7 @@ import org.zeromq.ZContext
 interface KernelContextReadOnly {
 
 
-    val kernelConfig:KernelConfig
+    val kernelConfig: KernelConfig?
 
 
     /**
@@ -43,8 +43,6 @@ interface KernelContextReadOnly {
 
     fun getMsgIdGenerator(): Result<MsgIdGenerator, ErrorReport>
 
-//    fun getHeartBeatService():Result<HeartBeatService, ErrorReport>
-
     fun getSocketProvider():Result<SocketFactory, ErrorReport>
 
     fun zContext(): ZContext
@@ -54,10 +52,6 @@ interface KernelContextReadOnly {
      */
     fun isKernelRunning():Boolean
 
-    /**
-     * all context-related services are running
-     */
-//    fun areServicesRunning():Boolean
     /**
      * A running context guarantees that all context-related objects and services are up, running, not null
      */
@@ -99,7 +93,5 @@ interface KernelContextReadOnly {
     fun getControlAddress():Result<String, ErrorReport>{
         return this.getChannelProvider().map { it.controlAddress() }
     }
-
-
 }
 

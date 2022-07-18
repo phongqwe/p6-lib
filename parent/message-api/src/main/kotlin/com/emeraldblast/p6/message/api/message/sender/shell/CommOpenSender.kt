@@ -42,14 +42,6 @@ class CommOpenSender(
                 }
             }
         }
-
-//        val out: Result<Unit, ErrorReport> = ZMQMsgSender.sendJPMsgNoReply(
-//            message,
-//            kernelContext.getSocketProvider().unwrap().shellSocket(),
-//            kernelContext.getMsgEncoder().unwrap(),
-//            kernelServiceManager.getHeartBeatServiceRs().unwrap()
-//        )
-//        return out
     }
 }
 

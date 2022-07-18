@@ -1,7 +1,7 @@
 package com.emeraldblast.p6.message.api.connection.kernel_context.context_object
 
 /**
- * Provide username, encryption key, and session id. These are for making message
+ * Contain ipython session info
  */
 interface Session {
     fun getSystemUserName():String
