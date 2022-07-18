@@ -109,11 +109,9 @@ class KernelContextImp @Inject internal constructor(
                 ) { Files.exists(this.connectionFilePath!!) }
 
             if (waitConnectionFileWritten is Err) {
-                val report = ErrorReport(
-                    KernelErrors.CantWriteConnectionFile.header,
-                    KernelErrors.CantWriteConnectionFile.Data(this.connectionFilePath),
-                )
-                return Err(report)
+                return CommonErrors.TimeOut
+                    .report("Timeout while waiting (${kernelTimeOut.connectionFileWriteTimeout} milli seconds) for connection file to be written to disk at ${this.connectionFilePath}")
+                    .toErr()
             }
 
             this.connectionFileContent = this.kernelConfig.kernelConnectionFileContent
@@ -150,13 +148,11 @@ class KernelContextImp @Inject internal constructor(
                     .toErr()
             }
             return Ok(p)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             this.destroyResource()
-            val report = ErrorReport(
-                header = CommonErrors.Unknown.header,
-                data = CommonErrors.Unknown.Data("calling KernelContextImp.startKernelProcess()", e)
-            )
-            return Err(report)
+            return CommonErrors.ExceptionError
+                .report("Encounter exception when trying to start kernel process",e)
+                .toErr()
         }
     }
 
@@ -171,9 +167,9 @@ class KernelContextImp @Inject internal constructor(
             val waitForProcessStopRs: Result<Unit, ErrorReport> =
                 Sleeper.delayUntil(50, kernelTimeOut.processStopTimeout) { this.process?.isAlive == false }
             val rs = waitForProcessStopRs.mapError {
+                val processId = this.process?.pid()
                 ErrorReport(
-                    header = KernelErrors.CantStopKernelProcess.header,
-                    data = KernelErrors.CantStopKernelProcess.Data(this.process?.pid())
+                    header = KernelErrors.CantStopKernelProcess.header.setDescription("Can't stop kernel process." + if(processId!=null)"Process id = ${processId}." else "Process id is unknown."),
                 )
             }
             if (rs is Err) {
@@ -208,12 +204,10 @@ class KernelContextImp @Inject internal constructor(
             destroyResource()
             this.onAfterStopListener.run(this)
             return Ok(Unit)
-        } catch (e: Exception) {
-            val report = ErrorReport(
-                header = CommonErrors.Unknown.header,
-                data = CommonErrors.Unknown.Data("calling KernelContextImp.stopKernel()", e)
-            )
-            return Err(report)
+        } catch (e: Throwable) {
+            return CommonErrors.ExceptionError
+                .report("Encounter exception when trying to stop kernel",e)
+                .toErr()
         }
     }
 
@@ -265,11 +259,7 @@ class KernelContextImp @Inject internal constructor(
             return rt
         } else {
             val report = ErrorReport(
-                header = KernelErrors.KernelContextIllegalState.header,
-                data = KernelErrors.KernelContextIllegalState.Data(
-                    currentState = "not running",
-                    actionToPerform = "restart kernel"
-                )
+                header = KernelErrors.KernelContextIllegalState.header.setDescription("Can't restart kernel because it is not running."),
             )
             return Err(report)
         }
@@ -293,21 +283,17 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-
     override fun getChannelProvider(): Result<ChannelProvider, ErrorReport> {
         return this.checkKernelRunningAndGet2 { this.channelProvider!! }
     }
-
 
     override fun getSenderProvider(): Result<SenderProvider, ErrorReport> {
         return this.checkKernelRunningAndGet2 { this.senderProvider!! }
     }
 
-
     override fun getMsgEncoder(): Result<MsgEncoder, ErrorReport> {
         return this.checkKernelRunningAndGet2(MsgEncoder::class.simpleName ?: "MsgEncoder") { this.msgEncoder!! }
     }
-
 
     override fun getMsgIdGenerator(): Result<MsgIdGenerator, ErrorReport> {
         return Ok(this.msgIdGenerator)
@@ -317,11 +303,9 @@ class KernelContextImp @Inject internal constructor(
         if (this.isKernelRunning()) {
             return Ok(that())
         } else {
-            val report = ErrorReport(
-                header = KernelErrors.GetKernelObjectError.header,
-                data = KernelErrors.GetKernelObjectError.Data(objectName),
-            )
-            return Err(report)
+            return KernelErrors.KernelDown
+                .report("Can't get ${objectName} because the kernel is down.")
+                .toErr()
         }
     }
 
@@ -329,8 +313,6 @@ class KernelContextImp @Inject internal constructor(
         val rt = this.kernelStatus.isOk()
         return rt
     }
-
-
 
     override fun isAllRunning(): Boolean {
         return  isKernelRunning()

@@ -37,17 +37,11 @@ object CommonErrors {
                 exception = exception
             )
         }
-
-        /**
-         * try-catch some function, if an exception is caught, the exception is wrapped inside an error report and return, otherwise, return null
-         */
-        fun tryDo(f:()->Unit):ErrorReport?{
-            try{
-                f()
-                return null
-            }catch (e:Exception){
-                return report(e)
-            }
+        fun report(message:String,exception: Throwable): ErrorReport {
+            return ErrorReport(
+                header = header.setDescription(message),
+                exception = exception
+            )
         }
     }
 
