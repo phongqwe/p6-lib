@@ -27,7 +27,7 @@ import javax.inject.Inject
 class KernelContextImp @Inject internal constructor(
     // x: kernelConfig is created from an external file.
     private var iKernelConfig: KernelConfig,
-    private val zcontext: ZContext,
+    private val zContext: ZContext,
     @MsgApiCommonLogger
     private val commonLogger: Logger? = null,
     private var msgCounter: MsgCounter,
@@ -123,7 +123,7 @@ class KernelContextImp @Inject internal constructor(
             // x: some must be initialized first
             // x: must NOT use getters here because getters always check for kernel status before return derivative objects
             this.channelProvider = channelProviderFactory.create(connectionFiles)
-            this.socketFactory = socketFactoryFactory.create(this.channelProvider!!, this.zcontext)
+            this.socketFactory = socketFactoryFactory.create(this.channelProvider!!, this.zContext)
             this.session = sessionFactory.create(connectionFiles.key)
             this.msgEncoder = msgEncoderFactory.create(connectionFiles.key)
             this.senderProvider = senderProviderFactory.create()
@@ -253,7 +253,10 @@ class KernelContextImp @Inject internal constructor(
         return this.getKernelProcess().map { it.outputStream }
     }
 
-    override suspend fun restartKernel(): Result<Unit, ErrorReport> {
+    override suspend fun restartKernel(kernelConfig: KernelConfig?): Result<Unit, ErrorReport> {
+        if(kernelConfig!=null){
+            this.iKernelConfig = kernelConfig
+        }
         if (this.isKernelRunning()) {
             val rt = this.stopAll()
                 .andThen {
@@ -387,6 +390,6 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun zContext(): ZContext {
-        return this.zcontext
+        return this.zContext
     }
 }

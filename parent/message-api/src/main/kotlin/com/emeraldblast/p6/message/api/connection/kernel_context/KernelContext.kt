@@ -63,7 +63,7 @@ interface KernelContext : KernelContextReadOnly {
      * Connection file content is also updated.
      * This function can only be used on already running manager. Attempt to call it on stopped manager must be prohibited.
      */
-    suspend fun restartKernel(): Result<Unit, ErrorReport>
+    suspend fun restartKernel(kernelConfig: KernelConfig?=null): Result<Unit, ErrorReport>
 
     fun getKernelProcess(): Result<Process, ErrorReport>
 
