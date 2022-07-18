@@ -3,19 +3,14 @@ package com.emeraldblast.p6.message.api.connection.service.heart_beat
 import com.emeraldblast.p6.test.utils.TestOnJupyter
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
-    lateinit var hbService: LiveCountHeartBeatServiceCoroutine
-
-
+internal class LiveCountHeartBeatServiceTest : TestOnJupyter() {
+    lateinit var hbService: LiveCountHeartBeatService
 
     @BeforeEach
     fun beforeEach() {
@@ -23,12 +18,12 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
         runBlocking{
             kernelContext.startAll()
         }
-        hbService = LiveCountHeartBeatServiceCoroutine(
+        hbService = LiveCountHeartBeatService(
             kernelContext=kernelContext,
             liveCount = 3,
             pollTimeOut = 1000,
             startTimeOut = 5000,
-            coroutineScope = GlobalScope,
+            coroutineScopeX = GlobalScope,
             dispatcher = Dispatchers.IO
         )
     }
@@ -44,7 +39,8 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
     @Test
     fun start() {
         runBlocking {
-            hbService.start()
+            val startRs=hbService.start()
+            assertTrue { startRs is Ok }
             assertTrue(hbService.isServiceRunning())
             hbService.stop()
         }
@@ -52,10 +48,32 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
 
     @Test
     fun isAlive() = runBlocking {
-
         hbService.start()
-        delay(1000)
+        val rt = hbService.waitHBALive()
+        assertTrue { rt is Ok }
         assertTrue(hbService.isHBAlive())
+    }
+
+//    @Test
+    fun `turning kernel on-off while hb service is running`(): Unit = runBlocking {
+        hbService.start()
+        val rt = hbService.waitHBALive()
+        assertTrue { rt is Ok }
+        assertTrue(hbService.isHBAlive())
+
+        // turn off kernel
+        kernelContext.stopAll()
+        // wait for the live count to run out
+        delay(3000)
+        assertFalse(hbService.isHBAlive())
+        launch (Dispatchers.IO){
+            val rt2 = hbService.waitHBALive()
+            assertTrue { rt2 is Ok }
+        }
+        // wait a bit
+        delay(1000)
+        // turn on kernel
+        kernelContext.startAll()
     }
 
     @Test
@@ -65,33 +83,6 @@ internal class LiveCountHeartBeatServiceCoroutineTest : TestOnJupyter() {
             delay(1000)
             hbService.stop()
             assertFalse(hbService.isServiceRunning())
-        }
-    }
-
-//    @Test
-    fun `test recover from death`(){
-        runBlocking {
-            val o =hbService.start()
-            assertTrue(o is Ok)
-
-            if(o is Err){
-                println(o)
-            }
-            println(o)
-            if(!hbService.isServiceRunning()){
-                println()
-            }
-
-            assertTrue(hbService.isServiceRunning())
-            assertTrue(hbService.isHBAlive())
-            kernelContext.stopAll()
-            delay(6000)
-            assertTrue(hbService.isServiceRunning())
-            assertFalse(hbService.isHBAlive())
-            kernelContext.startAll()
-            delay(2000)
-            assertTrue(hbService.isServiceRunning())
-            assertTrue(hbService.isHBAlive())
         }
     }
 }

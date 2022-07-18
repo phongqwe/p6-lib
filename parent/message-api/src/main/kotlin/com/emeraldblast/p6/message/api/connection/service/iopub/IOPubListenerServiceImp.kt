@@ -11,7 +11,6 @@ import com.emeraldblast.p6.message.api.connection.service.iopub.handler.executio
 import com.emeraldblast.p6.message.api.message.protocol.JPRawMessage
 import com.emeraldblast.p6.message.api.message.protocol.MsgType
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.IOPub
-import com.emeraldblast.p6.message.api.other.Sleeper
 import com.emeraldblast.p6.message.di.ServiceCoroutineDispatcher
 import com.github.michaelbull.result.*
 import dagger.assisted.Assisted
@@ -73,44 +72,102 @@ class IOPubListenerServiceImp @AssistedInject constructor(
         if (defaultHandler != null) {
             this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
         }
-        this.job = externalScope.launch(dispatcher) {
-            val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
-            socket.use {
-                // x: start the service loop
-                // x: when the kernel is down, this service simply does not do anything. Just hang there.
-                while (isActive) {
-                    // x: this listener is passive, so it can start listening when the kernel is up, no need to wait for heartbeat service
-                    if (kernelContext.isKernelRunning()) {
-                        val msg = ZMsg.recvMsg(it)
-                        if (msg != null) {
-                            val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
-                            when (parseResult) {
-                                is Ok -> {
-                                    val rawMsg: JPRawMessage = parseResult.value
-                                    val msgType: MsgType = extractMsgType(rawMsg.identities)
-                                    dispatchMsgToHandlers(msgType, rawMsg)
-                                }
-                                else -> {
-                                    parseExceptionHandler(parseResult.unwrapError())
+
+        try {
+            withTimeout(startTimeOut) {
+                job = externalScope.launch(dispatcher) {
+                    val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
+                    socket.use {
+                        // x: start the service loop
+                        // x: when the kernel is down, this service simply does not do anything. Just hang there.
+                        while (isActive) {
+                            // x: this listener is passive, so it can start listening when the kernel is up, no need to wait for heartbeat service
+                            if (kernelContext.isKernelRunning()) {
+                                val msg = ZMsg.recvMsg(it)
+                                if (msg != null) {
+                                    val jpRawMsgRs = JPRawMessage.fromPayload(msg.map { f -> f.data })
+                                    when (jpRawMsgRs) {
+                                        is Ok -> {
+                                            val rawMsg: JPRawMessage = jpRawMsgRs.value
+                                            val msgType: MsgType = extractMsgType(rawMsg.identities)
+                                            dispatchMsgToHandlers(msgType, rawMsg)
+                                        }
+                                        else -> {
+                                            parseExceptionHandler(jpRawMsgRs.unwrapError())
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
-        val waitRs = Sleeper.delayUntil(10, startTimeOut) { this.isRunning() }
-        if (waitRs is Err) {
+        } catch (e: Throwable) {
             this.job?.cancel()
             val report = ErrorReport(
                 header = IOPubServiceErrors.CantStartIOPubServiceTimeOut.header,
                 data = IOPubServiceErrors.CantStartIOPubServiceTimeOut.Data("Time out when trying to start IOPub service"),
             )
             return Err(report)
-        } else {
-            return Ok(Unit)
         }
+
+        return Ok(Unit)
     }
+//    /**
+//     * this will start this listener on a coroutine that runs concurrently.
+//     */
+//    override suspend fun start(): Result<Unit, ErrorReport> {
+//        if (this.isRunning()) {
+//            return Ok(Unit)
+//        }
+//
+//        if (kernelContext.isKernelRunning().not()) {
+//            val report = KernelErrors.KernelDown.report("Can't start IOPub listener service because the kernel is down")
+//            return Err(report)
+//        }
+//
+//        // x: add default handler
+//        if (defaultHandler != null) {
+//            this.addDefaultHandler(MsgHandlers.withUUID(MsgType.DEFAULT, defaultHandler))
+//        }
+//        this.job = externalScope.launch(dispatcher) {
+//            val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
+//            socket.use {
+//                // x: start the service loop
+//                // x: when the kernel is down, this service simply does not do anything. Just hang there.
+//                while (isActive) {
+//                    // x: this listener is passive, so it can start listening when the kernel is up, no need to wait for heartbeat service
+//                    if (kernelContext.isKernelRunning()) {
+//                        val msg = ZMsg.recvMsg(it)
+//                        if (msg != null) {
+//                            val parseResult = JPRawMessage.fromPayload(msg.map { f -> f.data })
+//                            when (parseResult) {
+//                                is Ok -> {
+//                                    val rawMsg: JPRawMessage = parseResult.value
+//                                    val msgType: MsgType = extractMsgType(rawMsg.identities)
+//                                    dispatchMsgToHandlers(msgType, rawMsg)
+//                                }
+//                                else -> {
+//                                    parseExceptionHandler(parseResult.unwrapError())
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        val waitRs = Sleeper.delayUntil(10, startTimeOut) { this.isRunning() }
+//        if (waitRs is Err) {
+//            this.job?.cancel()
+//            val report = ErrorReport(
+//                header = IOPubServiceErrors.CantStartIOPubServiceTimeOut.header,
+//                data = IOPubServiceErrors.CantStartIOPubServiceTimeOut.Data("Time out when trying to start IOPub service"),
+//            )
+//            return Err(report)
+//        } else {
+//            return Ok(Unit)
+//        }
+//    }
 
     /**
      * [msgIdentity] always ends with msg type

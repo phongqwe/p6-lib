@@ -3,6 +3,7 @@ package com.emeraldblast.p6.message.di
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelConfig
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContext
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelCoroutineScope
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManager
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerService
 import dagger.BindsInstance
 import dagger.Component
@@ -22,6 +23,9 @@ import org.zeromq.ZContext
 )
 @MsgApiScope
 interface MessageApiComponent {
+
+    @MsgApiScope
+    fun kernelServiceManager(): KernelServiceManager
 
     @MsgApiScope
     fun zContext(): ZContext

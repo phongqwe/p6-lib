@@ -11,5 +11,5 @@ interface HeartBeatServiceFactory {
         liveCount: Int,
         @Assisted("pollTimeOut")pollTimeOut: Long,
         @Assisted("startTimeOut")startTimeOut: Long,
-    ): LiveCountHeartBeatServiceCoroutine
+    ): LiveCountHeartBeatService
 }

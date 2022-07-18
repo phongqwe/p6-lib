@@ -23,8 +23,8 @@ import org.zeromq.ZContext
 interface KernelContextReadOnly {
     fun getZmqREPService():Result<ZMQListenerService<P6Response>,ErrorReport>
 
-    fun getKernelConfig(): KernelConfig
-
+//    fun getKernelConfig(): KernelConfig
+    val kernelConfig:KernelConfig
     fun getIOPubListenerService(): Result<IOPubListenerService, ErrorReport>
 
     /**

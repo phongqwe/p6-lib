@@ -40,7 +40,7 @@ class ExecuteSenderImp @Inject constructor(
             kernelContext.getMsgEncoder().unwrap(),
             kernelContext.getHeartBeatService().unwrap(),
             kernelContext.zContext(),
-            kernelContext.getKernelConfig().timeOut.messageTimeOut
+            kernelContext.kernelConfig.timeOut.messageTimeOut
         )
         val rt: Result<ExecuteReply, ErrorReport> =
             pcSender.send2<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)

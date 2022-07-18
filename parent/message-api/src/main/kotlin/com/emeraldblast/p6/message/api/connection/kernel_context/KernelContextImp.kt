@@ -20,6 +20,7 @@ import com.emeraldblast.p6.message.api.message.protocol.KernelConnectionFileCont
 import com.emeraldblast.p6.message.api.message.protocol.other.MsgIdGenerator
 import com.emeraldblast.p6.message.api.other.Sleeper
 import com.emeraldblast.p6.message.di.MsgApiCommonLogger
+import kotlinx.coroutines.runBlocking
 import org.bitbucket.xadkile.myide.ide.jupyter.message.api.protocol.message.MsgCounter
 import org.slf4j.Logger
 import org.zeromq.ZContext
@@ -35,26 +36,30 @@ import javax.inject.Inject
  */
 class KernelContextImp @Inject internal constructor(
     // x: kernelConfig is created from an external file.
-    private var kernelConfig: KernelConfig,
+    private var iKernelConfig: KernelConfig,
     private val zcontext: ZContext,
     @MsgApiCommonLogger
-    private val commonLogger:Logger?=null,
+    private val commonLogger: Logger? = null,
     private var msgCounter: MsgCounter,
     private var msgIdGenerator: MsgIdGenerator,
-    private val channelProviderFactory:ChannelProviderFactory,
+    private val channelProviderFactory: ChannelProviderFactory,
     private val msgEncoderFactory: MsgEncoderFactory,
-    private val socketFactoryFactory:SocketFactoryFactory,
+    private val socketFactoryFactory: SocketFactoryFactory,
     private val sessionFactory: SessionFactory,
     private val senderProviderFactory: SenderProviderFactory,
     private val heartBeatServiceFactory: HeartBeatServiceFactory,
     private val ioPubListenerServiceFactory: IOPubListenerServiceFactory,
     private val syncRepServiceFactory: SyncREPServiceFactory,
-    private var isLoggerEnabled:Boolean = false,
+//    private var isLoggerEnabled: Boolean = false,
 ) : KernelContext {
 
     private val kernelTimeOut = kernelConfig.timeOut
 
     // x: Context-related objects
+
+    /**
+     * process represent the python process
+     */
     private var process: Process? = null
     private var connectionFileContent: KernelConnectionFileContent? = null
     private var connectionFilePath: Path? = null
@@ -69,7 +74,7 @@ class KernelContextImp @Inject internal constructor(
     // x: Context-related services
     private var hbService: HeartBeatService? = null
     private var ioPubService: IOPubListenerService? = null
-    private var zmqREPService:ZMQListenerService<P6Response>? = null
+    private var zmqREPService: ZMQListenerService<P6Response>? = null
 
     // x: events listeners
     private var onBeforeStopListener: OnKernelContextEvent = OnKernelContextEvent.Nothing
@@ -79,28 +84,31 @@ class KernelContextImp @Inject internal constructor(
     companion object {
     }
 
-    override fun getZmqREPService(): Result<ZMQListenerService<P6Response>,ErrorReport> {
+    override fun getZmqREPService(): Result<ZMQListenerService<P6Response>, ErrorReport> {
         val sv = getService<ZMQListenerService<P6Response>>(this.zmqREPService, "ZMQ REP listener service")
         return sv
     }
 
     override fun enableLogger(): KernelContext {
-        isLoggerEnabled = true
+//        isLoggerEnabled = true
         return this
     }
 
     override fun disableLogger(): KernelContext {
-        isLoggerEnabled = false
+//        isLoggerEnabled = false
         return this
     }
 
     override fun setKernelConfig(kernelConfig: KernelConfig): KernelContext {
-        if(this.isKernelRunning()){
+        if (this.isKernelRunning()) {
             throw IllegalStateException("Cannot set kernel config while the kernel is running. Stop it first.")
         }
-        this.kernelConfig = kernelConfig
+        this.iKernelConfig = kernelConfig
         return this
     }
+
+    override val kernelConfig: KernelConfig
+        get() = iKernelConfig
 
     override suspend fun startAll(): Result<Unit, ErrorReport> {
         val kernelRS: Result<Unit, ErrorReport> = this.startKernel()
@@ -116,24 +124,27 @@ class KernelContextImp @Inject internal constructor(
         if (this.isKernelRunning()) {
             return Ok(Unit)
         } else {
-
             val startKernelRs = this.startKernelProcess()
-            when(startKernelRs){
+            when (startKernelRs) {
                 is Ok -> this.process = startKernelRs.value
-                is Err ->return Err(startKernelRs.error)
+                is Err -> return Err(startKernelRs.error)
             }
 
             this.connectionFilePath = Paths.get(kernelConfig.getConnectionFilePath())
-            // TODO this can be improved using Deferred job
+
             // x: wait for connection file to be written to disk by the kernel
+            // x: TODO this can be improved using watch service of nio
             val waitConnectionFileWritten: Result<Unit, ErrorReport> =
-                Sleeper.delayUntil(50,
-                    kernelTimeOut.connectionFileWriteTimeout) { Files.exists(this.connectionFilePath!!) }
+                Sleeper.delayUntil(
+                    50,
+                    kernelTimeOut.connectionFileWriteTimeout
+                ) { Files.exists(this.connectionFilePath!!) }
 
             if (waitConnectionFileWritten is Err) {
-                val report = ErrorReport(KernelErrors.CantWriteConnectionFile.header,
+                val report = ErrorReport(
+                    KernelErrors.CantWriteConnectionFile.header,
                     KernelErrors.CantWriteConnectionFile.Data(this.connectionFilePath),
-                    )
+                )
                 return Err(report)
             }
 
@@ -149,6 +160,12 @@ class KernelContextImp @Inject internal constructor(
             this.msgEncoder = msgEncoderFactory.create(connectionFiles.key)
             this.senderProvider = senderProviderFactory.create()
             this.onKernelStartedListener.run(this)
+            Runtime.getRuntime().addShutdownHook(Thread {
+                // x: kill kernel context when jvm stops
+                runBlocking {
+                    stopAll()
+                }
+            })
             return Ok(Unit)
         }
     }
@@ -158,12 +175,11 @@ class KernelContextImp @Inject internal constructor(
         val processBuilder = ProcessBuilder(this.kernelConfig.makeCompleteLaunchCmmd())
         try {
             val p: Process = processBuilder.inheritIO().start()
-            val waitRs = Sleeper.delayUntil(50, kernelTimeOut.processInitTimeOut) { p.isAlive }
-            if (waitRs is Err) {
-                val report = ErrorReport(
-                    KernelErrors.CantStartProcess.header,
-                    KernelErrors.CantStartProcess.Data(this.kernelConfig.makeCompleteLaunchCmmd().joinToString(" ")))
-                return Err(report)
+            val waitForProcessRs = Sleeper.delayUntil(50, kernelTimeOut.processInitTimeOut) { p.isAlive }
+            if (waitForProcessRs is Err) {
+                return KernelErrors.CantStartKernelProcess
+                    .report(this.kernelConfig.makeCompleteLaunchCmmd().joinToString(" "))
+                    .toErr()
             }
             return Ok(p)
         } catch (e: Exception) {
@@ -177,7 +193,6 @@ class KernelContextImp @Inject internal constructor(
     }
 
 
-
     override suspend fun startServices(): Result<Unit, ErrorReport> {
         if (this.isKernelRunning()) {
 
@@ -189,7 +204,7 @@ class KernelContextImp @Inject internal constructor(
             )
             this.hbService = hbSv
 
-            val hbStartRs:Result<Unit, ErrorReport> = hbSv.start()
+            val hbStartRs: Result<Unit, ErrorReport> = hbSv.start()
             if (hbStartRs is Err) {
                 this.hbService?.stop()
                 this.hbService = null
@@ -202,9 +217,9 @@ class KernelContextImp @Inject internal constructor(
                 parseExceptionHandler = {},
                 startTimeOut = this.kernelConfig.timeOut.serviceInitTimeOut
             )
-            this.ioPubService=ioPubSv
+            this.ioPubService = ioPubSv
 
-            val ioPubStartRs:Result<Unit, ErrorReport> = ioPubSv.start()
+            val ioPubStartRs: Result<Unit, ErrorReport> = ioPubSv.start()
             if (ioPubStartRs is Err) {
                 this.ioPubService?.stop()
                 this.ioPubService = null
@@ -217,7 +232,7 @@ class KernelContextImp @Inject internal constructor(
 
             this.zmqREPService = zmqREPService
             val zmqListenerServiceStartRs = zmqREPService.start()
-            if(zmqListenerServiceStartRs is Err){
+            if (zmqListenerServiceStartRs is Err) {
                 this.zmqREPService?.stop()
                 this.zmqREPService = null
                 return zmqListenerServiceStartRs
@@ -238,13 +253,13 @@ class KernelContextImp @Inject internal constructor(
         return r
     }
 
-    private suspend fun stopKernelProcess2(): Result<Unit, ErrorReport> {
+    private suspend fun stopKernelProcess(): Result<Unit, ErrorReport> {
         if (this.process != null) {
             this.process?.destroyForcibly()
             // x: polling until the process is completely dead
-            val stopRs: Result<Unit, ErrorReport> =
+            val waitForProcessStopRs: Result<Unit, ErrorReport> =
                 Sleeper.delayUntil(50, kernelTimeOut.processStopTimeout) { this.process?.isAlive == false }
-            val rs = stopRs.mapError {
+            val rs = waitForProcessStopRs.mapError {
                 ErrorReport(
                     header = KernelErrors.CantStopKernelProcess.header,
                     data = KernelErrors.CantStopKernelProcess.Data(this.process?.pid())
@@ -257,7 +272,6 @@ class KernelContextImp @Inject internal constructor(
         }
         return Ok(Unit)
     }
-
 
 
     override fun getSocketProvider(): Result<SocketFactory, ErrorReport> {
@@ -275,30 +289,32 @@ class KernelContextImp @Inject internal constructor(
         val ioPubStopRs = this.ioPubService?.stop() ?: Ok(Unit)
         if (ioPubStopRs is Err) {
             errorList.add(ioPubStopRs.error)
-        }else{
+        } else {
             this.ioPubService = null
         }
 
         val hbStopRs = this.hbService?.stop() ?: Ok(Unit)
         if (hbStopRs is Err) {
             errorList.add(hbStopRs.error)
-        }else{
+        } else {
             this.hbService = null
         }
 
         val zmqRepStopRs = this.zmqREPService?.stop() ?: Ok(Unit)
-        if(zmqRepStopRs is Err){
+        if (zmqRepStopRs is Err) {
             errorList.add(zmqRepStopRs.error)
-        }else{
+        } else {
             this.zmqREPService = null
         }
 
-        if(errorList.isNotEmpty()){
-            return Err(ErrorReport(
-                header = CommonErrors.MultipleErrors.header,
-                data = CommonErrors.MultipleErrors.Data(errorList)
-            ))
-        }else{
+        if (errorList.isNotEmpty()) {
+            return Err(
+                ErrorReport(
+                    header = CommonErrors.MultipleErrors.header,
+                    data = CommonErrors.MultipleErrors.Data(errorList)
+                )
+            )
+        } else {
             return Ok(Unit)
         }
     }
@@ -309,7 +325,7 @@ class KernelContextImp @Inject internal constructor(
         }
         try {
             this.onBeforeStopListener.run(this)
-            val stopRs: Result<Unit, ErrorReport> = this.stopKernelProcess2()
+            val stopRs: Result<Unit, ErrorReport> = this.stopKernelProcess()
             if (stopRs is Err) {
                 return stopRs
             }
@@ -323,7 +339,6 @@ class KernelContextImp @Inject internal constructor(
             )
             return Err(report)
         }
-
     }
 
     private suspend fun destroyResource() {
@@ -347,7 +362,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getKernelProcess(): Result<Process, ErrorReport> {
-        if (this.process!=null && this.process?.isAlive == true) {
+        if (this.process != null && this.process?.isAlive == true) {
             return Ok(this.process!!)
         } else {
             return Err(KernelErrors.KernelDown.report("Can't get kernel process because the kernel is down"))
@@ -432,7 +447,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun isKernelRunning(): Boolean {
-        val rt = this.getKernelStatus().all { it }
+        val rt = this.kernelStatus.isOk()
         return rt
     }
 
@@ -451,23 +466,29 @@ class KernelContextImp @Inject internal constructor(
     }
 
     /**
-     * Kernel status does NOT include service status
+     * Kernel status does NOT include service status.
      */
-    private fun getKernelStatus(): List<Boolean> {
-        val isProcessLive = this.process?.isAlive ?: false
-        val isFileWritten = this.connectionFilePath?.let { Files.exists(it) } ?: false
-        val connectionFileIsRead = this.connectionFileContent != null
-        val isSessonOk = this.session != null
-        val isChannelProviderOk = this.channelProvider != null
-        val isMsgEncodeOk = this.msgEncoder != null
-        val isSenderProviderOk = this.senderProvider != null
+    override val kernelStatus: KernelStatus
+        get() {
+            val isProcessLive = this.process?.isAlive ?: false
+            val isConnectionFileWritten = this.connectionFilePath?.let { Files.exists(it) } ?: false
+            val connectionFileIsRead = this.connectionFileContent != null
+            val isSessonOk = this.session != null
+            val isChannelProviderOk = this.channelProvider != null
+            val isMsgEncodeOk = this.msgEncoder != null
+            val isSenderProviderOk = this.senderProvider != null
 
-        val rt = listOf(
-            isProcessLive, isFileWritten, connectionFileIsRead,
-            isSessonOk, isChannelProviderOk, isMsgEncodeOk, isSenderProviderOk,
-        )
-        return rt
-    }
+            val rt = KernelStatus(
+                isProcessLive = isProcessLive,
+                isConnectionFileWritten = isConnectionFileWritten,
+                connectionFileIsRead = connectionFileIsRead,
+                isSessonOk = isSessonOk,
+                isChannelProviderOk = isChannelProviderOk,
+                isMsgEncodeOk = isMsgEncodeOk,
+                isSenderProviderOk = isSenderProviderOk,
+            )
+            return rt
+        }
 
     override fun setOnBeforeStopListener(listener: OnKernelContextEvent) {
         this.onBeforeStopListener = listener
@@ -493,9 +514,9 @@ class KernelContextImp @Inject internal constructor(
         this.onKernelStartedListener = OnKernelContextEvent.Nothing
     }
 
-    override fun getKernelConfig(): KernelConfig {
-        return this.kernelConfig
-    }
+//    override fun getKernelConfig(): KernelConfig {
+//        return this.kernelConfig
+//    }
 
 
     override fun getIOPubListenerService(): Result<IOPubListenerService, ErrorReport> {

@@ -6,9 +6,12 @@ import java.nio.file.Path
 
 object KernelErrors {
     private const val prefix = "Kernel Error "
-    object CantStartProcess {
+    object CantStartKernelProcess {
         val header = ErrorHeader("${prefix}1", "Can't start kernel process")
         class Data (val startCommand:String)
+        fun report(command:String):ErrorReport{
+            return header.setDescription("Can't start kernel process with this command: ${command}").toErrorReport()
+        }
     }
 
     object CantStopKernelProcess {

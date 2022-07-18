@@ -12,6 +12,9 @@ import java.io.OutputStream
  */
 interface KernelContext : KernelContextReadOnly {
 
+
+    val kernelStatus:KernelStatus
+
     fun enableLogger():KernelContext
 
     fun disableLogger():KernelContext
@@ -23,7 +26,7 @@ interface KernelContext : KernelContextReadOnly {
     suspend fun startAll(): Result<Unit, ErrorReport>
 
     /**
-     * Start IPython process and read connection file.
+     * Start IPython process and read connection file produced by Ipython.
      *
      * It is guarantee that once IPython start, components objects are available for use. They include: IPython Process, connection file object, session object, channel provider, sender factory.
      *
@@ -40,22 +43,24 @@ interface KernelContext : KernelContextReadOnly {
 
     /**
      * Kill the current kernel process and delete the current connection file.
-     *
-     * Stop an already stopped manager does nothing, return Ok result.
-     *
-     * It must be guaranteed that connection file is deleted, process is completely killed after calling stop.
+     * Calling this on an already stopped kernel context does nothing.
+     * It guarantees that connection file is deleted, kernel process is completely killed after calling stop.
      */
     suspend fun stopAll(): Result<Unit, ErrorReport>
 
+    /**
+     * stop the services depending on the kernel
+     */
     suspend fun stopServices():Result<Unit, ErrorReport>
 
+    /**
+     * stop the kernel thread
+     */
     suspend fun stopKernel():Result<Unit, ErrorReport>
 
     /**
      * Terminate the current process and launch a new IPython Process.
-     *
      * Connection file content is also updated.
-     *
      * This function can only be used on already running manager. Attempt to call it on stopped manager must be prohibited.
      */
     suspend fun restartKernel(): Result<Unit, ErrorReport>
