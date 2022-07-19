@@ -1,15 +1,15 @@
-package com.emeraldblast.p6.message.api.connection.kernel_context
+package com.emeraldblast.p6.message.api.connection.kernel_services
 
 import com.emeraldblast.p6.common.exception.error.CommonErrors
 import com.emeraldblast.p6.common.exception.error.ErrorReport
-import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContext
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelTimeOut
 import com.emeraldblast.p6.message.api.connection.service.Service
 import com.emeraldblast.p6.message.api.connection.service.errors.ServiceErrors
 import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatServiceFactory
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceFactory
-import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.ZMQListenerService
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.imp.SyncREPServiceFactory
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Response
@@ -35,6 +35,12 @@ class KernelServiceManagerImp @Inject constructor(
         get() = _ioPubService
     override val zmqREPService: ZMQListenerService<P6Response>?
         get() = _zmqREPService
+    override val status: ServiceManagerStatus
+        get() = ServiceManagerStatus(
+            HBServiceRunning = this.hbService?.isRunning() ?: false,
+            ioPubListenerServiceRunning = this.ioPubService?.isRunning() ?: false,
+            zmqRepServiceRunning = this.zmqREPService?.isRunning() ?: false,
+        )
 
     override suspend fun startAll(): Result<Unit, ErrorReport> {
         if (kernel.isKernelRunning()) {
@@ -83,21 +89,19 @@ class KernelServiceManagerImp @Inject constructor(
             return Ok(Unit)
 
         } else {
-            return KernelServiceManagerErrors.CantStartServices
-                .report("Can't start kernel services because kernel is down")
+            return KernelServiceManagerErrors.CantStartServices.report("Can't start kernel services because kernel is down")
                 .toErr()
         }
     }
 
     override fun areServicesRunning(): Boolean {
-        val hbRunning = this.hbService?.isServiceRunning() ?: false
-        val ioPubRunning = this.ioPubService?.isRunning() ?: false
-        return hbRunning && ioPubRunning
+        return status.areAllRunning()
     }
 
     override fun stopAll(): Result<Unit, ErrorReport> {
 
         val errorList = mutableListOf<ErrorReport>()
+
         val ioPubStopRs = this.ioPubService?.stop() ?: Ok(Unit)
         if (ioPubStopRs is Err) {
             errorList.add(ioPubStopRs.error)

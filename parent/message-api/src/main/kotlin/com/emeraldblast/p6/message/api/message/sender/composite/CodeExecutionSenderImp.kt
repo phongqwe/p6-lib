@@ -4,8 +4,7 @@ import com.github.michaelbull.result.*
 import com.emeraldblast.p6.common.exception.error.CommonErrors
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
-import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManager
-import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManagerImp
+import com.emeraldblast.p6.message.api.connection.kernel_services.KernelServiceManager
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerService
 import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors

@@ -3,8 +3,8 @@ package com.emeraldblast.p6.message.di
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelConfig
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContext
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelCoroutineScope
-import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManager
-import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerService
+import com.emeraldblast.p6.message.api.connection.kernel_services.KernelServiceManager
+import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatServiceFactory
 import dagger.BindsInstance
 import dagger.Component
 import kotlinx.coroutines.CoroutineDispatcher
@@ -32,6 +32,9 @@ interface MessageApiComponent {
 
     @MsgApiScope
     fun kernelContext(): KernelContext
+
+//    @MsgApiScope
+//    fun heartBeatServiceFactory():HeartBeatServiceFactory
 
     @Component.Builder
     interface Builder {

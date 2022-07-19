@@ -2,7 +2,7 @@ package com.emeraldblast.p6.message.api.message.sender.shell
 
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
-import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManager
+import com.emeraldblast.p6.message.api.connection.kernel_services.KernelServiceManager
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.Shell
@@ -11,7 +11,6 @@ import com.emeraldblast.p6.message.api.message.sender.ZMQMsgSender
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.andThen
-import com.github.michaelbull.result.unwrap
 
 typealias CommOpenRequest = JPMessage<Shell.Comm.Open.MetaData, Shell.Comm.Open.Content>
 

@@ -2,7 +2,7 @@ package com.emeraldblast.p6.message.api.message.sender.composite
 
 import com.github.michaelbull.result.*
 import com.emeraldblast.p6.common.exception.error.ErrorReport
-import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManager
+import com.emeraldblast.p6.message.api.connection.kernel_services.KernelServiceManager
 import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.SenderProvider
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceImp

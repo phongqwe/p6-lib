@@ -2,19 +2,14 @@ package com.emeraldblast.p6.message.api.message.sender.shell
 
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
-import com.emeraldblast.p6.message.api.connection.kernel_context.KernelServiceManager
+import com.emeraldblast.p6.message.api.connection.kernel_services.KernelServiceManager
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelTimeOut
-import com.emeraldblast.p6.message.api.connection.kernel_context.context_object.MsgEncoder
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
-import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatService
 import com.emeraldblast.p6.message.api.message.protocol.JPMessage
 import com.emeraldblast.p6.message.api.message.protocol.data_interface_definition.Shell
 import com.emeraldblast.p6.message.api.message.sender.MsgSender
 import com.emeraldblast.p6.message.api.message.sender.PCSender
-import com.emeraldblast.p6.message.api.message.sender.SenderConstant
 import com.github.michaelbull.result.*
-import org.zeromq.ZContext
-import org.zeromq.ZMQ
 import javax.inject.Inject
 
 typealias ExecuteReply = JPMessage<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>

@@ -1,6 +1,7 @@
 package com.emeraldblast.p6.message.api.connection.service.zmq_services.imp
 
 
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelConfigImp
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.P6MsgHandlers
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Event
 import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Response
@@ -26,7 +27,6 @@ internal class SyncREPServiceTest : TestOnJupyter() {
         this.setUp()
         runBlocking {
             kernelContext.startAll()
-            kernelServiceManager.startAll()
         }
     }
 
@@ -34,7 +34,6 @@ internal class SyncREPServiceTest : TestOnJupyter() {
     fun afterEach(){
         runBlocking {
             kernelContext.stopAll()
-            kernelServiceManager.stopAll()
         }
     }
 

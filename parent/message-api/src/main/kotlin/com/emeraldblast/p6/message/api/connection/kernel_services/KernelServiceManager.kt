@@ -1,4 +1,4 @@
-package com.emeraldblast.p6.message.api.connection.kernel_context
+package com.emeraldblast.p6.message.api.connection.kernel_services
 
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatService
@@ -11,6 +11,8 @@ interface KernelServiceManager {
     val hbService: HeartBeatService?
     val ioPubService: IOPubListenerService?
     val zmqREPService: ZMQListenerService<P6Response>?
+
+    val status:ServiceManagerStatus
 
     fun getHeartBeatServiceRs():Result<HeartBeatService, ErrorReport>
     fun getZmqREPServiceRs():Result<ZMQListenerService<P6Response>,ErrorReport>

@@ -1,4 +1,4 @@
-package com.emeraldblast.p6.message.api.connection.kernel_context
+package com.emeraldblast.p6.message.api.connection.kernel_services
 
 import com.emeraldblast.p6.common.exception.error.ErrorHeader
 import com.emeraldblast.p6.common.exception.error.ErrorReport

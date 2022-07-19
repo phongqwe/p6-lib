@@ -3,8 +3,8 @@ package com.emeraldblast.p6.message.api.connection.kernel_context
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.get
-import com.github.michaelbull.result.unwrap
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
+import com.emeraldblast.p6.message.api.connection.kernel_services.KernelServiceManager
 import com.emeraldblast.p6.message.di.DaggerMessageApiComponent
 import com.emeraldblast.p6.test.utils.TestResources
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +50,52 @@ internal class KernelContextImpTest {
             kc.stopAll()
         }
     }
+
+    @Test
+    fun testKernelOnOff() {
+        runBlocking {
+            val cfLoc = "/tmp/kernel4.json"
+            val cfLoc2 = "/tmp/kernel5.json"
+            val l1 = listOf("/home/abc/Applications/anaconda3/envs/p6/bin/python", "-m", "ipykernel_launcher", "-f")
+            val l2 = listOf("/home/abc/Applications/anaconda3/envs/p7/bin/python", "-m", "ipykernel_launcher", "-f")
+            val config1 = KernelConfigImp(
+                launchCmd = l1,
+                connectionFilePath = cfLoc
+            )
+            val config2 = KernelConfigImp(
+                launchCmd = l1,
+                connectionFilePath = cfLoc2
+            )
+
+            val cmp = DaggerMessageApiComponent.builder()
+                .kernelConfig(null)
+                .kernelCoroutineScope(GlobalScope)
+                .networkServiceCoroutineDispatcher(Dispatchers.IO)
+                .build()
+
+            val kernel = cmp.kernelContext()
+            val msgMan = cmp.kernelServiceManager()
+
+            println("CONFIG 1")
+            kernel.setKernelConfig(config1)
+            assertTrue(kernel.startAll() is Ok)
+            assertTrue(msgMan.startAll() is Ok)
+
+            delay(2000)
+
+            assertTrue(kernel.stopAll() is Ok)
+            assertTrue(msgMan.stopAll() is Ok)
+
+            println("CONFIG 2")
+            kernel.setKernelConfig(config2)
+            assertTrue(kernel.startAll() is Ok)
+            assertTrue(msgMan.startAll() is Ok)
+            delay(3000)
+            assertTrue(kernel.stopAll() is Ok)
+            assertTrue(msgMan.stopAll() is Ok)
+        }
+    }
+
 
     @Test
     fun testStartAndStopListeners() {

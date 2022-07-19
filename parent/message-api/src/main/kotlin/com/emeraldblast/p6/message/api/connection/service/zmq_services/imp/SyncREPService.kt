@@ -36,7 +36,6 @@ class SyncREPService @AssistedInject constructor(
     override val socketType: SocketType = SocketType.REP
 
     companion object {
-        val serviceName = "RepService"
         val marker = MarkerFactory.getMarker(SyncREPService::class.java.canonicalName).also {
             it.add(ZMQListenerService.marker)
         }

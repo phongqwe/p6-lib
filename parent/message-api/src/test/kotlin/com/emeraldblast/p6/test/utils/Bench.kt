@@ -1,12 +1,17 @@
 package com.emeraldblast.p6.test.utils
 
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelConfigImp
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelTimeOut
+import com.emeraldblast.p6.message.api.connection.service.zmq_services.imp.SyncREPService
+import com.emeraldblast.p6.message.di.DaggerMessageApiComponent
+import com.github.michaelbull.result.Ok
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.zeromq.*
 import java.util.*
 import kotlin.concurrent.thread
-
+import kotlin.test.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench {
@@ -21,8 +26,8 @@ class Bench {
         println("f2")
     }
 
-//    @Test
-    fun sender(){
+    //    @Test
+    fun sender() {
         runBlocking {
             val zContext = ZContext()
             val socket = zContext.createSocket(SocketType.DEALER)
@@ -30,14 +35,14 @@ class Bench {
 
             socket.connect("tcp://localhost:${port}")
 
-            for (x in 0 .. 10){
-                launch (Dispatchers.IO){
+            for (x in 0..10) {
+                launch(Dispatchers.IO) {
                     val msg = ZMsg().apply {
                         add("")
                         add("ABC_${x}")
                     }
                     msg.send(socket)
-                    val res=ZMsg.recvMsg(socket)
+                    val res = ZMsg.recvMsg(socket)
                     println(res.toString())
                 }
             }
@@ -69,14 +74,14 @@ class Bench {
         }
     }
 
-    suspend fun susF3(f:suspend ()->Unit, coroutineScope: CoroutineScope){
+    suspend fun susF3(f: suspend () -> Unit, coroutineScope: CoroutineScope) {
         withContext(Dispatchers.IO) {
-            launch(Dispatchers.IO)  {
+            launch(Dispatchers.IO) {
                 susFunc1()
                 println("f1 is on: ${Thread.currentThread()}")
                 println("======")
             }
-            launch(Dispatchers.IO)  {
+            launch(Dispatchers.IO) {
                 delay(500)
                 println("done f3")
                 println("f3 is on: ${Thread.currentThread()}")

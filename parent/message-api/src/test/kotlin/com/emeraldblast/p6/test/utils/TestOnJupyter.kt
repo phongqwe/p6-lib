@@ -1,6 +1,7 @@
 package com.emeraldblast.p6.test.utils
 
 import com.emeraldblast.p6.message.api.connection.kernel_context.*
+import com.emeraldblast.p6.message.api.connection.kernel_services.KernelServiceManager
 import com.emeraldblast.p6.message.di.DaggerMessageApiComponent
 import kotlinx.coroutines.*
 import org.zeromq.ZContext
