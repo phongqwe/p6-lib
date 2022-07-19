@@ -14,7 +14,7 @@ interface KernelConfig {
     val connectionFilePath: String
     val timeOut: KernelTimeOut
     val kernelConnectionFileContent: KernelConnectionFileContent?
-    fun makeCompleteLaunchCmmd(): List<String>
+    fun makeCompleteLaunchCmd(): List<String>
 }
 
 /**
@@ -54,7 +54,7 @@ data class KernelConfigImp constructor(
             return KernelConnectionFileContent.fromJsonFile2(this.connectionFilePath).getOr(null)
         }
 
-    override fun makeCompleteLaunchCmmd(): List<String> {
+    override fun makeCompleteLaunchCmd(): List<String> {
         return (launchCmd + connectionFilePath)
     }
 

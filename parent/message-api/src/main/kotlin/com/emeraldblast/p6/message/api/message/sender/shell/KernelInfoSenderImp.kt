@@ -37,7 +37,7 @@ class KernelInfoSenderImp @Inject constructor(
                         val zSender =
                             PCSender<KernelInfoInput, KernelInfoOutput>(socket, msgEncoder, hbService, zContext)
                         val o =
-                            zSender.send2<Shell.KernelInfo.Request.MetaData, Shell.KernelInfo.Request.Content>(message)
+                            zSender.send<Shell.KernelInfo.Request.MetaData, Shell.KernelInfo.Request.Content>(message)
                         o
                     }
                 }

@@ -31,7 +31,6 @@ import kotlin.test.assertTrue
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class CodeExecutionSenderImpTest : TestOnJupyter() {
 
-    lateinit var ioPubService: IOPubListenerServiceImp
 
     @BeforeEach
     fun beforeEach() {
@@ -39,20 +38,6 @@ internal class CodeExecutionSenderImpTest : TestOnJupyter() {
         runBlocking {
             kernelContext.startAll()
             kernelServiceManager.startAll()
-//            ioPubService = IOPubListenerServiceImpl(
-//                kernelContext = kernelContext,
-//                defaultHandler = { msg ->
-//                    println(msg)
-//                },
-//                parseExceptionHandler = { e ->
-//                    println(e)
-//                },
-//                handlerContainer = MsgHandlerContainerImp(),
-//                externalScope =  GlobalScope,
-//                dispatcher = Dispatchers.Default,
-//                startTimeOut = 50000
-//            )
-//            ioPubService.start()
         }
     }
 
@@ -60,7 +45,7 @@ internal class CodeExecutionSenderImpTest : TestOnJupyter() {
     fun afterEach() {
         runBlocking {
             kernelContext.stopAll()
-//            ioPubService.stop()
+            kernelServiceManager.stopAll()
         }
     }
 
@@ -260,9 +245,12 @@ b2.createNewWorksheet("Sheet2")
     fun send_kernelNotRunning() = runBlocking {
         kernelContext.stopAll()
         val sender = CodeExecutionSenderImp(kernelContext, kernelServiceManager = kernelServiceManager)
+        println(kernelContext.isKernelRunning())
         val o = sender.send(message)
+        println("3")
         assertTrue(o is Err)
         assertTrue((o.unwrapError().isType(KernelErrors.KernelDown.header)), "should return the correct exception")
+        println(o)
     }
 
     @Test

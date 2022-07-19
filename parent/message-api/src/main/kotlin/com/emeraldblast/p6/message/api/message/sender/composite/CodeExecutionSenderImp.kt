@@ -31,11 +31,10 @@ class CodeExecutionSenderImp @Inject constructor(
 
     /**
      * This works like this:
-     * - add handlers to ioPub listener service to catch incoming messages
+     * - add handlers (in the form of deferred jobs) to ioPub listener service to handle incoming messages
      * - send input message
-     * - wait for listener service to catch returned result
+     * - wait for handlers to handle returned result
      * - remove handlers from listener service when done
-     * what is the reason for using temporary handler.
      */
     override suspend fun send(
         message: ExecuteRequest
@@ -62,12 +61,7 @@ class CodeExecutionSenderImp @Inject constructor(
         val ioPubListenerService: IOPubListenerService = ioPubServiceRs.unwrap()
 
         if (ioPubListenerService.isNotRunning()) {
-            return Err(
-                ErrorReport(
-                    header = IOPubServiceErrors.IOPubServiceNotRunning.header,
-                    data = IOPubServiceErrors.IOPubServiceNotRunning.Data("occur at ${this.javaClass.canonicalName}.send"),
-                )
-            )
+            return IOPubServiceErrors.IOPubServiceNotRunning.report("Can't run code execution sender because io pub service is not running").toErr()
         }
         val executeSender: MsgSender<ExecuteRequest, Result<ExecuteReply, ErrorReport>> =
             senderProviderRs.unwrap().executeRequestSender()

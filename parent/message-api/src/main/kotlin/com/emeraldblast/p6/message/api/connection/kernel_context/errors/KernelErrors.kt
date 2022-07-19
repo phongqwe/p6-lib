@@ -22,11 +22,17 @@ object KernelErrors {
     object CantWriteConnectionFile {
         val header=ErrorHeader("${prefix}3", "Can't write connection file to disk")
         class Data(val connectionFilePath:Path?)
+        fun report(detail:String):ErrorReport{
+            return header.setDescription(detail).toErrorReport()
+        }
     }
 
     object KernelContextIllegalState {
-        val header = ErrorHeader("${prefix}4","Kernel is in an illegal state to perform certain action")
+        val header = ErrorHeader("${prefix}4","Kernel context is in an illegal state to perform certain action")
         class Data(val currentState:String, val actionToPerform:String)
+        fun report(detail:String):ErrorReport{
+            return header.setDescription(detail).toErrorReport()
+        }
     }
 
     object KernelDown{
@@ -39,8 +45,11 @@ object KernelErrors {
         }
     }
 
-    object KernelServiceDown{
-        val header = ErrorHeader("${prefix}6","a kernel service is down")
+    object KernelProcessIsNotAvailable{
+        val header = ErrorHeader("${prefix}6","kernel process is not available because either the kernel is down, or the kernel is not under the management of the app")
+        fun report():ErrorReport{
+            return header.toErrorReport()
+        }
     }
 
     object KernelConfigIsNull{
@@ -55,5 +64,10 @@ object KernelErrors {
         class Data(val exception:Exception)
     }
 
-
+    object CantStartKernelContext{
+        val header = ErrorHeader("${prefix}9","can't start kernel context")
+        fun report(detail: String):ErrorReport{
+            return KernelConfigIsNull.header.setDescription(detail).toErrorReport()
+        }
+    }
 }

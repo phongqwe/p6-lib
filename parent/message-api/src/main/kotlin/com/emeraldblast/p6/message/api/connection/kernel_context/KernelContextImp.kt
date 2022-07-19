@@ -39,14 +39,16 @@ class KernelContextImp @Inject internal constructor(
     private val senderProviderFactory: SenderProviderFactory,
 ) : KernelContext {
 
-    private val kernelTimeOut get()= kernelConfig?.timeOut
-    private var _isLoggerEnabled:Boolean = false
-    override val isLoggerEnabled:Boolean get()=_isLoggerEnabled
+    private val kernelTimeOut get() = kernelConfig?.timeOut
+    private var _isLoggerEnabled: Boolean = false
+    override val isLoggerEnabled: Boolean get() = _isLoggerEnabled
+    private var deleteConnectionFile = false
 
     /**
      * process represent the python process
      */
     private var process: Process? = null
+    private var processIsUnderManagement = false
     private var connectionFileContent: KernelConnectionFileContent? = null
     private var connectionFilePath: Path? = null
     private var session: Session? = null
@@ -76,121 +78,191 @@ class KernelContextImp @Inject internal constructor(
         if (this.isKernelRunning()) {
             throw IllegalStateException("Cannot set kernel config while the kernel is running. Stop it first.")
         }
+        this.clearConfig()
         this.iKernelConfig = kernelConfig
+        deleteConnectionFile = true
+        return this
+    }
+
+    override fun setConnectionFileContent(connectionFileContent: KernelConnectionFileContent): KernelContext {
+        if (this.isKernelRunning()) {
+            throw IllegalStateException("Cannot set connection file content while the kernel is running. Stop it first.")
+        }
+        this.clearConfig()
+        this.connectionFileContent = connectionFileContent
+        deleteConnectionFile = false
+        return this
+    }
+
+    override fun setConnectionFilePath(connectionFilePath: Path): KernelContext {
+        if (this.isKernelRunning()) {
+            throw IllegalStateException("Cannot set connection file path while the kernel is running. Stop it first.")
+        }
+        this.clearConfig()
+        this.connectionFilePath = connectionFilePath
+        deleteConnectionFile = false
         return this
     }
 
     override val kernelConfig: KernelConfig?
         get() = iKernelConfig
 
-    override suspend fun startAll(): Result<Unit, ErrorReport> {
+    override fun startAll(): Result<Unit, ErrorReport> {
         val kernelRS: Result<Unit, ErrorReport> = this.startKernel()
         return kernelRS
     }
 
-    override suspend fun startKernel(): Result<Unit, ErrorReport> {
+    override fun startKernel(): Result<Unit, ErrorReport> {
         if (this.isKernelRunning()) {
             return Ok(Unit)
         } else {
             val kernelConfig = this.kernelConfig
-            if(kernelConfig==null){
-                return KernelErrors.KernelConfigIsNull.report("Can't start kernel because kernel config is not available").toErr()
-            }
-            val kernelTimeOut = kernelConfig.timeOut
-            val startKernelRs = this.startKernelProcess()
-            when (startKernelRs) {
-                is Ok -> this.process = startKernelRs.value
-                is Err -> return Err(startKernelRs.error)
-            }
-
-            this.connectionFilePath = Paths.get(kernelConfig.connectionFilePath)
-
-            // x: wait for connection file to be written to disk by the kernel
-            // x: TODO this can be improved using watch service of nio
-            val waitConnectionFileWritten: Result<Unit, ErrorReport> =
-                Sleeper.delayUntil(
-                    50,
-                    kernelTimeOut.connectionFileWriteTimeout
-                ) { Files.exists(this.connectionFilePath!!) }
-
-            if (waitConnectionFileWritten is Err) {
-                return CommonErrors.TimeOut
-                    .report("Timeout while waiting (${kernelTimeOut.connectionFileWriteTimeout} milli seconds) for connection file to be written to disk at ${this.connectionFilePath}")
+            if (kernelConfig == null && connectionFileContent == null && connectionFilePath == null) {
+                return KernelErrors.CantStartKernelContext
+                    .report(
+                        "Can't start kernel because kernel config and connection file are not available. At least one of these must be provided:\n" +
+                                "- kernel config object\n" +
+                                "- connection file path\n" +
+                                "- connection file content"
+                    )
                     .toErr()
-            }
+            } else {
+                if (kernelConfig != null) {
+                    val kernelTimeOut = kernelConfig.timeOut
+                    when (val startKernelRs = this.startKernelProcess()) {
+                        is Ok -> this.process = startKernelRs.value
+                        is Err -> {
+                            this.stopAll()
+                            return Err(startKernelRs.error)
+                        }
+                    }
+                    this.connectionFilePath = Paths.get(kernelConfig.connectionFilePath)
+                    // x: wait for connection file to be written to disk by the kernel
+                    val waitConnectionFileWritten: Result<Unit, ErrorReport> =
+                        Sleeper.waitBlockUntil(
+                            50,
+                            kernelTimeOut.connectionFileWriteTimeout
+                        ) { Files.exists(this.connectionFilePath!!) }
 
-            this.connectionFileContent = kernelConfig.kernelConnectionFileContent
-            val connectionFiles = this.connectionFileContent!!
-
-            // x: create resources, careful with the order of resource initiation,
-            // x: some must be initialized first
-            // x: must NOT use getters here because getters always check for kernel status before return derivative objects
-            this.channelProvider = channelProviderFactory.create(connectionFiles)
-            this.socketFactory = socketFactoryFactory.create(this.channelProvider!!, this.zContext)
-            this.session = sessionFactory.create(connectionFiles.key)
-            this.msgEncoder = msgEncoderFactory.create(connectionFiles.key)
-            this.senderProvider = senderProviderFactory.create()
-            this.onKernelStartedListener.run(this)
-            Runtime.getRuntime().addShutdownHook(Thread {
-                // x: kill kernel context when jvm stops
-                runBlocking {
-                    stopAll()
+                    if (waitConnectionFileWritten is Err) {
+                        this.stopAll()
+                        return KernelErrors.CantWriteConnectionFile
+                            .report("Timeout while waiting (${kernelTimeOut.connectionFileWriteTimeout} milli seconds) for connection file to be written to disk at ${this.connectionFilePath}.")
+                            .toErr()
+                    }
+                    this.connectionFileContent = kernelConfig.kernelConnectionFileContent
+                } else if (this.connectionFilePath != null) {
+                    processIsUnderManagement = false
+                    this.connectionFileContent =
+                        KernelConnectionFileContent.fromJsonFile2(this.connectionFilePath!!).getOr(null)
+                } else if (this.connectionFileContent != null) {
+                    processIsUnderManagement = false
                 }
-            })
-            return Ok(Unit)
+
+                val connectionFiles = this.connectionFileContent
+                if (connectionFiles != null) {
+                    // x: create resources, careful with the order of resource initiation,
+                    // x: some must be initialized first
+                    // x: must NOT use getters here because getters always check for kernel status before return resource objects
+                    this.channelProvider = channelProviderFactory.create(connectionFiles)
+                    this.socketFactory = socketFactoryFactory.create(this.channelProvider!!, this.zContext)
+                    this.session = sessionFactory.create(connectionFiles.key)
+                    this.msgEncoder = msgEncoderFactory.create(connectionFiles.key)
+                    this.senderProvider = senderProviderFactory.create()
+                    this.onKernelStartedListener.run(this)
+                    Runtime.getRuntime().addShutdownHook(Thread {
+                        // x: kill kernel context when jvm stops
+                        runBlocking {
+                            stopAll()
+                        }
+                    })
+                    return Ok(Unit)
+                } else {
+                    stopAll()
+                    return KernelErrors.CantStartKernelContext
+                        .report("Can't start kernel context because connection file content is not available.")
+                        .toErr()
+                }
+            }
         }
     }
 
-
-    private suspend fun startKernelProcess(): Result<Process, ErrorReport> {
-        val kernelConfig = this.kernelConfig
-        if(kernelConfig==null){
-            return KernelErrors.KernelConfigIsNull.report("Can't start kernel because kernel config is not available").toErr()
+    override fun startKernel(kernelConfig: KernelConfig): Result<Unit, ErrorReport> {
+        if (this.isKernelRunning()) {
+            return Ok(Unit)
+        } else {
+            this.clearConfig()
+            this.setKernelConfig(kernelConfig)
+            return this.startKernel()
         }
+    }
 
-        val processBuilder = ProcessBuilder(kernelConfig.makeCompleteLaunchCmmd())
-        try {
-            val p: Process = processBuilder.inheritIO().start()
-            val waitForProcessRs = Sleeper.delayUntil(50, kernelConfig.timeOut.processInitTimeOut) { p.isAlive }
-            if (waitForProcessRs is Err) {
-                val command = kernelConfig.makeCompleteLaunchCmmd().joinToString(" ")
-                return KernelErrors.CantStartKernelProcess
-                    .reportForCommand(command)
+    override fun startKernel(connectionFilePath: Path): Result<Unit, ErrorReport> {
+        if (this.isKernelRunning()) {
+            return Ok(Unit)
+        } else {
+            this.clearConfig()
+            this.setConnectionFilePath(connectionFilePath)
+            return this.startKernel()
+        }
+    }
+
+    override fun startKernel(connectionFileContent: KernelConnectionFileContent): Result<Unit, ErrorReport> {
+        if (this.isKernelRunning()) {
+            return Ok(Unit)
+        } else {
+            this.clearConfig()
+            this.setConnectionFileContent(connectionFileContent)
+            return this.startKernel()
+        }
+    }
+
+    private fun startKernelProcess(): Result<Process, ErrorReport> {
+        val kernelConfig = this.kernelConfig
+        if (kernelConfig != null) {
+            val processBuilder = ProcessBuilder(kernelConfig.makeCompleteLaunchCmd())
+            try {
+                val p: Process = processBuilder.inheritIO().start()
+                val waitForProcessRs = Sleeper.waitBlockUntil(50, kernelConfig.timeOut.processInitTimeOut) { p.isAlive }
+                if (waitForProcessRs is Err) {
+                    val command = kernelConfig.makeCompleteLaunchCmd().joinToString(" ")
+                    return KernelErrors.CantStartKernelProcess
+                        .reportForCommand(command)
+                        .toErr()
+                }
+                processIsUnderManagement = true
+                return Ok(p)
+            } catch (e: Throwable) {
+                this.destroyResource()
+                return CommonErrors.ExceptionError
+                    .report("Encounter exception when trying to start kernel process", e)
                     .toErr()
             }
-            return Ok(p)
-        } catch (e: Throwable) {
-            this.destroyResource()
-            return CommonErrors.ExceptionError
-                .report("Encounter exception when trying to start kernel process",e)
+        } else {
+            return KernelErrors.KernelConfigIsNull.report("Can't start kernel because kernel config is not available")
                 .toErr()
         }
     }
 
-    override suspend fun stopAll(): Result<Unit, ErrorReport> {
+    override fun stopAll(): Result<Unit, ErrorReport> {
         return stopKernel()
     }
 
-    private suspend fun stopKernelProcess(): Result<Unit, ErrorReport> {
+    private fun stopKernelProcess(): Result<Unit, ErrorReport> {
         if (this.process != null) {
             this.process?.destroyForcibly()
-            // x: polling until the process is completely dead
-            val waitForProcessStopRs: Result<Unit, ErrorReport> =
-                Sleeper.delayUntil(50, kernelTimeOut?.processStopTimeout?:50_000) { this.process?.isAlive == false }
-            val rs = waitForProcessStopRs.mapError {
-                val processId = this.process?.pid()
-                ErrorReport(
-                    header = KernelErrors.CantStopKernelProcess.header.setDescription("Can't stop kernel process." + if(processId!=null)"Process id = ${processId}." else "Process id is unknown."),
-                )
-            }
-            if (rs is Err) {
-                return rs
+            val waitConnectionFileWritten: Result<Unit, ErrorReport> =
+                Sleeper.waitBlockUntil(
+                    50,
+                    kernelTimeOut?.connectionFileWriteTimeout ?: KernelTimeOut.defaultTimeOut
+                ) { this.process?.isAlive == false }
+            if (waitConnectionFileWritten is Err) {
+                return waitConnectionFileWritten
             }
             this.process = null
         }
         return Ok(Unit)
     }
-
 
     override fun getSocketFactory(): Result<SocketFactory, ErrorReport> {
         if (this.isKernelRunning()) {
@@ -200,9 +272,7 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
-
-
-    override suspend fun stopKernel(): Result<Unit, ErrorReport> {
+    override fun stopKernel(): Result<Unit, ErrorReport> {
         if (this.isKernelNotRunning()) {
             return Ok(Unit)
         }
@@ -217,20 +287,32 @@ class KernelContextImp @Inject internal constructor(
             return Ok(Unit)
         } catch (e: Throwable) {
             return CommonErrors.ExceptionError
-                .report("Encounter exception when trying to stop kernel",e)
+                .report("Encounter exception when trying to stop kernel", e)
                 .toErr()
         }
     }
 
-    private suspend fun destroyResource() {
+    override fun restartKernel(): Result<Unit, ErrorReport> {
+        if (this.isKernelRunning()) {
+            val rt = this.stopAll()
+                .andThen {
+                    this.startKernel()
+                }
+            return rt
+        } else {
+            val report = ErrorReport(
+                header = KernelErrors.KernelContextIllegalState.header.setDescription("Can't restart kernel because it is not running."),
+            )
+            return Err(report)
+        }
+    }
+
+    private fun destroyResource() {
         val cpath = this.connectionFilePath
 
-        if (cpath != null) {
+        if (cpath != null && this.deleteConnectionFile) {
             // x: delete connection file
             Files.delete(cpath)
-            // rmd: wait until file is deleted completely
-            Sleeper.delayUntil(50) { !Files.exists(cpath) }
-            this.connectionFilePath = null
         }
         // x: destroy other resources
         this.connectionFileContent = null
@@ -243,10 +325,10 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun getKernelProcess(): Result<Process, ErrorReport> {
-        if (this.process != null && this.process?.isAlive == true) {
+        if (this.process != null) {
             return Ok(this.process!!)
         } else {
-            return Err(KernelErrors.KernelDown.report("Can't get kernel process because the kernel is down"))
+            return Err(KernelErrors.KernelProcessIsNotAvailable.report())
         }
     }
 
@@ -258,14 +340,14 @@ class KernelContextImp @Inject internal constructor(
         return this.getKernelProcess().map { it.outputStream }
     }
 
-    override suspend fun restartKernel(kernelConfig: KernelConfig?): Result<Unit, ErrorReport> {
-        if(kernelConfig!=null){
-            this.iKernelConfig = kernelConfig
-        }
+
+    override fun restartKernel(kernelConfig: KernelConfig): Result<Unit, ErrorReport> {
         if (this.isKernelRunning()) {
             val rt = this.stopAll()
                 .andThen {
-                    this.startAll()
+                    this.clearConfig()
+                    this.setKernelConfig(kernelConfig)
+                    this.startKernel()
                 }
             return rt
         } else {
@@ -276,6 +358,39 @@ class KernelContextImp @Inject internal constructor(
         }
     }
 
+    override fun restartKernel(connectionFilePath: Path): Result<Unit, ErrorReport> {
+        if (this.isKernelRunning()) {
+            val rt = this.stopAll()
+                .andThen {
+                    this.clearConfig()
+                    this.setConnectionFilePath(connectionFilePath)
+                    this.startKernel()
+                }
+            return rt
+        } else {
+            val report = ErrorReport(
+                header = KernelErrors.KernelContextIllegalState.header.setDescription("Can't restart kernel because it is not running."),
+            )
+            return Err(report)
+        }
+    }
+
+    override fun restartKernel(connectionFileContent: KernelConnectionFileContent): Result<Unit, ErrorReport> {
+        if (this.isKernelRunning()) {
+            val rt = this.stopAll()
+                .andThen {
+                    this.clearConfig()
+                    this.setConnectionFileContent(connectionFileContent)
+                    this.startKernel()
+                }
+            return rt
+        } else {
+            val report = ErrorReport(
+                header = KernelErrors.KernelContextIllegalState.header.setDescription("Can't restart kernel because it is not running."),
+            )
+            return Err(report)
+        }
+    }
 
     override fun getConnectionFileContent(): Result<KernelConnectionFileContent, ErrorReport> {
         if (this.isKernelRunning()) {
@@ -284,7 +399,6 @@ class KernelContextImp @Inject internal constructor(
             return Err(KernelErrors.KernelDown.report("Can't get connection file content because the kernel is down"))
         }
     }
-
 
     override fun getSession(): Result<Session, ErrorReport> {
         if (this.isKernelRunning()) {
@@ -326,11 +440,22 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun isAllRunning(): Boolean {
-        return  isKernelRunning()
+        return isKernelRunning()
     }
 
     override fun isKernelNotRunning(): Boolean {
         return !this.isKernelRunning()
+    }
+
+    private fun clearConfig(): KernelContext {
+        if (this.isKernelRunning()) {
+            throw IllegalStateException("Cannot clear config while the kernel is running. Stop it first.")
+        }
+        this.iKernelConfig = null
+        this.connectionFileContent = null
+        this.connectionFilePath = null
+        processIsUnderManagement = false
+        return this
     }
 
     /**
@@ -338,8 +463,15 @@ class KernelContextImp @Inject internal constructor(
      */
     override val kernelStatus: KernelStatus
         get() {
-            val isProcessLive = this.process?.isAlive ?: false
-            val isConnectionFileWritten = this.connectionFilePath?.let { Files.exists(it) } ?: false
+            val isProcessLive = run {
+                if (this.processIsUnderManagement) {
+                    this.process?.isAlive ?: false
+                } else {
+                    true
+                }
+            }
+//            val isConnectionFileIsAvailable = (this.connectionFilePath?.let { Files.exists(it) } ?: false)
+            val isConnectionFileIsAvailable = this.connectionFileContent != null
             val connectionFileIsRead = this.connectionFileContent != null
             val isSessonOk = this.session != null
             val isChannelProviderOk = this.channelProvider != null
@@ -348,7 +480,7 @@ class KernelContextImp @Inject internal constructor(
 
             val rt = KernelStatus(
                 isProcessLive = isProcessLive,
-                isConnectionFileWritten = isConnectionFileWritten,
+                isConnectionFileWritten = isConnectionFileIsAvailable,
                 connectionFileIsRead = connectionFileIsRead,
                 isSessonOk = isSessonOk,
                 isChannelProviderOk = isChannelProviderOk,

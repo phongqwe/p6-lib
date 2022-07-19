@@ -14,7 +14,23 @@ object Sleeper {
             delay(waitPeriod)
         }
     }
-
+    fun waitBlockUntil(waitPeriod: Long, timeOut: Long, predicate: () -> Boolean): Result<Unit, ErrorReport> {
+        var time = 0L
+        while (predicate() == false && time < timeOut) {
+            Thread.sleep(waitPeriod)
+            time += waitPeriod
+        }
+        if (time < timeOut) {
+            return Ok(Unit)
+        } else {
+            return Err(
+                ErrorReport(
+                    header = CommonErrors.TimeOut.header,
+                    data = CommonErrors.TimeOut.Data("timeout in Sleeper.delay()")
+                )
+            )
+        }
+    }
     suspend fun delayUntil(waitPeriod: Long, timeOut: Long, predicate: () -> Boolean): Result<Unit, ErrorReport> {
         var time = 0L
         while (predicate() == false && time < timeOut) {

@@ -21,7 +21,7 @@ interface ExecuteSender : MsgSender<ExecuteRequest,
 
 /**
  * Send a code execution request. It is noted that the result returned by this sender is not the code execution result, only the sending status.
- * @return a reply.
+ * @return a reply indicating whether the msg was sent successfully or not
  */
 class ExecuteSenderImp @Inject constructor(
     private val kernelContext: KernelContextReadOnly,
@@ -48,7 +48,7 @@ class ExecuteSenderImp @Inject constructor(
                             interval = kernelContext.kernelConfig?.timeOut?.messageTimeOut
                                 ?: KernelTimeOut.defaultTimeOut
                         )
-                        pcSender.send2<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
+                        pcSender.send<Shell.Execute.Reply.MetaData, Shell.Execute.Reply.Content>(message)
                     }
                 }
             }

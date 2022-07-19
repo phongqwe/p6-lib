@@ -24,7 +24,7 @@ internal class PCSender<I: JPMessage<*, *>,O: JPMessage<*, *>> internal construc
 ) {
 
     inline fun <reified META : MsgMetaData, reified CONTENT : MsgContent>
-            send2(message: I): Result<O, ErrorReport> {
+            send(message: I): Result<O, ErrorReport> {
         return socket.use {
             val out: Result<JPRawMessage, ErrorReport> =
                 ZMQMsgSender.sendJPMsg(message, socket, msgEncoder, hbService, zContext,interval)
