@@ -192,7 +192,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
 
-    override fun getSocketProvider(): Result<SocketFactory, ErrorReport> {
+    override fun getSocketFactory(): Result<SocketFactory, ErrorReport> {
         if (this.isKernelRunning()) {
             return Ok(this.socketFactory!!)
         } else {

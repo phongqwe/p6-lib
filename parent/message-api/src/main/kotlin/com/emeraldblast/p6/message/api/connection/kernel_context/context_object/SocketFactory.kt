@@ -3,7 +3,7 @@ package com.emeraldblast.p6.message.api.connection.kernel_context.context_object
 import org.zeromq.ZMQ
 
 /**
- * provide ready-to-use sockets that can be reused, and methods to create new and ready-to-use sockets.
+ * provide method to create ready-to-use zmq sockets
  */
 interface SocketFactory {
     /**

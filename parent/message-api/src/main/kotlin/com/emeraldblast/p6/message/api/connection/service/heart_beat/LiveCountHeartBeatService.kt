@@ -28,7 +28,7 @@ class LiveCountHeartBeatService @AssistedInject constructor(
 ) : HeartBeatService {
 
 
-    private val socketProviderRs get()= kernelContext.getSocketProvider()
+    private val socketProviderRs get()= kernelContext.getSocketFactory()
     private val zContext get()=kernelContext.zContext()
     /**
      * when hb is not-alive/dead => uncompleted job
@@ -99,7 +99,7 @@ class LiveCountHeartBeatService @AssistedInject constructor(
             }
         } catch (e: Exception) {
             job?.cancel()
-            return CommonErrors.TimeOut.report("timeOutMessage").toErr()
+            return CommonErrors.TimeOut.report("timeout while waiting for heart beat service to go live").toErr()
         }
         if (startErr != null) {
             return startErr!!.toErr()
@@ -107,176 +107,6 @@ class LiveCountHeartBeatService @AssistedInject constructor(
         val waitHbLive = this.waitHBALive()
         return waitHbLive
     }
-
-
-//    override suspend fun start(): Result<Unit, ErrorReport> {
-//        if (this.isServiceRunning()) {
-//            return Ok(Unit)
-//        }
-//
-//        var poller = kernelContext.zContext().createPoller(1)
-//        val socketRs = kernelContext.getSocketProvider().map { it.heartBeatSocket() }
-//        var startErr: ErrorReport? = null
-//
-//        val timeOutRs = Sleeper.delayUntil2(
-//            timeOut = startTimeOut,
-//            timeOutMessage = "Time out when trying to start heart beat service",
-//            failSignal = { this.job == null },
-//        ) { startTimeOutJob ->
-//            this.job = coroutineScopeX.launch(dispatcher) {
-//                var needReConnect = false
-//                if (socketRs is Ok) {
-//                    var socket = socketRs.value
-//                    poller.register(socket, ZMQ.Poller.POLLIN)
-//                    poller.use {
-//                        while (isActive) {
-////                            if (startTimeOutJob.isActive) {
-////                                startTimeOutJob.complete(Ok(Unit))
-////                            }
-//                            val checkRs = this@LiveCountHeartBeatServiceCoroutine.check(poller, socket)
-//                            if (checkRs is Ok) {
-//                                currentLives = liveCount
-//                                needReConnect = false
-//                            } else {
-//                                // rmd: only reduce life if there are lives left
-//                                if (currentLives > 0) {
-//                                    currentLives -= 1
-//                                }
-//                                if (currentLives <= 0) {
-//                                    needReConnect = true
-//                                }
-//                            }
-//                            if (needReConnect) {
-//                                // attempt to re-reconnect to new heartbeat channel
-//                                poller.close()
-//                                val socketRs2 = kernelContext.getSocketProvider().map { it.heartBeatSocket() }
-//                                if (socketRs2 is Ok) {
-//                                    socket = socketRs2.value
-//                                    poller = kernelContext.zContext().createPoller(1)
-//                                    poller.register(socket, ZMQ.Poller.POLLIN)
-//                                }
-//                            }
-//                        }
-//                    }
-//                } else {
-//                    startErr = socketRs.getError()
-//                    this.cancel()
-//                }
-//            }
-//            if (startTimeOutJob.isActive) {
-//                startTimeOutJob.complete(Ok(Unit))
-//            }
-//        }
-//
-//        if (startErr != null) {
-//            return Err(startErr as ErrorReport)
-//        }
-//        val rt = timeOutRs
-//        if (rt is Err) {
-//            job?.cancel()
-//            return Err(rt.error)
-//        }
-//        return rt
-//    }
-
-    /**
-     * init resources and start service thread
-     */
-//    override suspend fun start(): Result<Unit, ErrorReport> {
-//        if (this.isServiceRunning()) {
-//            return Ok(Unit)
-//        }
-//
-//        val startTimeOutJob: CompletableDeferred<Result<Unit, ErrorReport>> = CompletableDeferred()
-//        coroutineScope.launch(dispatcher) {
-//            delay(startTimeOut)
-//            if (startTimeOutJob.isActive) {
-//                startTimeOutJob.complete(
-//                    CommonErrors.TimeOut
-//                        .report("Time out when trying to start heart beat service")
-//                        .toErr()
-//                )
-//            }
-//        }
-//
-//        var poller = kernelContext.zContext().createPoller(1)
-//        val socketRs = kernelContext.getSocketProvider().map { it.heartBeatSocket() }
-//        var startErr: ErrorReport? = null
-//
-//        this.job = coroutineScope.launch(dispatcher) {
-//            var needReConnect = false
-//            if (socketRs is Ok) {
-//                var socket = socketRs.value
-//                poller.register(socket, ZMQ.Poller.POLLIN)
-//                poller.use {
-//                    while (isActive) {
-//                        if (startTimeOutJob.isActive) {
-//                            startTimeOutJob.complete(Ok(Unit))
-//                        }
-//                        val checkRs = this@LiveCountHeartBeatServiceCoroutine.check(poller, socket)
-//                        if (checkRs is Ok) {
-//                            currentLives = liveCount
-//                            needReConnect = false
-//                        } else {
-//                            // rmd: only reduce life if there are lives left
-//                            if (currentLives > 0) {
-//                                currentLives -= 1
-//                            }
-//                            if (currentLives <= 0) {
-//                                needReConnect = true
-//                            }
-//                        }
-//                        if (needReConnect) {
-//                            // attempt to re-reconnect to new heartbeat channel
-//                            poller.close()
-//                            val socketRs2 = kernelContext.getSocketProvider().map { it.heartBeatSocket() }
-//                            if (socketRs2 is Ok) {
-//                                socket = socketRs2.value
-//                                poller = kernelContext.zContext().createPoller(1)
-//                                poller.register(socket, ZMQ.Poller.POLLIN)
-//                            }
-//                        }
-//                    }
-//                }
-//            } else {
-//                startErr = socketRs.getError()
-//                this.cancel()
-//            }
-//        }
-//
-//
-////        val timeOutRs = Sleeper.delayUntil2(
-////            timeOut = startTimeOut,
-////            timeOutMessage = "Time out when trying to start heart beat service",
-////            failSignal = { true },
-////        ) { startTimeOutJob ->
-////        }
-//
-//        if (startErr != null) {
-//            return Err(startErr as ErrorReport)
-//        }
-//        val rt = startTimeOutJob.await()
-////        val rt = timeOutRs
-//        if (rt is Err) {
-//            job?.cancel()
-//            return Err(rt.error)
-//        }
-//        return rt
-//    }
-
-//    /**
-//     * wait until this service goes live
-//     */
-//    private suspend fun waitTillLive(): Result<Unit, ErrorReport> {
-//        val waitRs2 = Sleeper.delayUntil(50, startTimeOut) { this.isHBAlive() }
-//        val rt2 = waitRs2.mapError {
-//            ErrorReport(
-//                header = HBServiceErrors.CantStartHBService.header,
-//                data = HBServiceErrors.CantStartHBService.Data("Time out when waiting for HB to come live"),
-//            )
-//        }
-//        return rt2
-//    }
 
     /**
      * Justification for throwing an exception here: the programmer must make sure this function must not be called if the service is not running.
@@ -300,7 +130,7 @@ class LiveCountHeartBeatService @AssistedInject constructor(
             }
             return o
         } catch (e: Throwable) {
-            return CommonErrors.TimeOut.report("timeOutMessage").toErr()
+            return CommonErrors.TimeOut.report("timeout while waiting for heart beat channel to go live").toErr()
         }
     }
 

@@ -5,6 +5,8 @@ import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContext
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelCoroutineScope
 import com.emeraldblast.p6.message.api.connection.kernel_services.KernelServiceManager
 import com.emeraldblast.p6.message.api.connection.service.heart_beat.HeartBeatServiceFactory
+import com.emeraldblast.p6.message.api.connection.service.iopub.IOPubListenerServiceFactory
+import com.emeraldblast.p6.message.api.connection.service.zmq_services.imp.SyncREPServiceFactory
 import dagger.BindsInstance
 import dagger.Component
 import kotlinx.coroutines.CoroutineDispatcher
@@ -33,8 +35,14 @@ interface MessageApiComponent {
     @MsgApiScope
     fun kernelContext(): KernelContext
 
-//    @MsgApiScope
-//    fun heartBeatServiceFactory():HeartBeatServiceFactory
+    @MsgApiScope
+    fun heartBeatServiceFactory():HeartBeatServiceFactory
+
+    @MsgApiScope
+    fun ioPubListenerServiceFactory(): IOPubListenerServiceFactory
+
+    @MsgApiScope
+    fun repServiceFactory():SyncREPServiceFactory
 
     @Component.Builder
     interface Builder {

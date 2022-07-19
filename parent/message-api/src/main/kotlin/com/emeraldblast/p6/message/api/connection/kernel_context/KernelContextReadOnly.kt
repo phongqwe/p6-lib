@@ -43,7 +43,7 @@ interface KernelContextReadOnly {
 
     fun getMsgIdGenerator(): Result<MsgIdGenerator, ErrorReport>
 
-    fun getSocketProvider():Result<SocketFactory, ErrorReport>
+    fun getSocketFactory():Result<SocketFactory, ErrorReport>
 
     fun zContext(): ZContext
 

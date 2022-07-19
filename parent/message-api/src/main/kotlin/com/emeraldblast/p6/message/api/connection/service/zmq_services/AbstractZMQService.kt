@@ -35,7 +35,6 @@ abstract class AbstractZMQService<T>(
             val socket: ZMQ.Socket = makeSocket()
             socket.use { sk: ZMQ.Socket ->
                 while (isActive) {
-                    println("zmq")
                     receiveMessage(sk)
                 }
             }

@@ -26,7 +26,7 @@ class CommOpenSender(
         }
 
 
-        return kernelContext.getSocketProvider().andThen {
+        return kernelContext.getSocketFactory().andThen {
             val shellSocket=it.shellSocket()
             kernelContext.getMsgEncoder().andThen {
                 val msgEncoder = it

@@ -8,9 +8,9 @@ import com.emeraldblast.p6.message.api.connection.service.zmq_services.msg.P6Res
 import com.github.michaelbull.result.Result
 
 interface KernelServiceManager {
-    val hbService: HeartBeatService?
-    val ioPubService: IOPubListenerService?
-    val zmqREPService: ZMQListenerService<P6Response>?
+    val hbService: HeartBeatService
+    val ioPubService: IOPubListenerService
+    val zmqREPService: ZMQListenerService<P6Response>
 
     val status:ServiceManagerStatus
 

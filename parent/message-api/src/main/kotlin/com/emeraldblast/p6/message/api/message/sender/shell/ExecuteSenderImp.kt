@@ -36,7 +36,7 @@ class ExecuteSenderImp @Inject constructor(
                 KernelErrors.KernelDown.report("ExecuteSenderImp can't send message because the kernel is down. Message header is:\n" + "${message.header}")
             )
         }
-        val rt = kernelContext.getSocketProvider().map { it.shellSocket() }
+        val rt = kernelContext.getSocketFactory().map { it.shellSocket() }
             .andThen { shellSocket ->
                 kernelContext.getMsgEncoder().andThen { msgEncoder ->
                     kernelServiceManager.getHeartBeatServiceRs().andThen { hbs ->

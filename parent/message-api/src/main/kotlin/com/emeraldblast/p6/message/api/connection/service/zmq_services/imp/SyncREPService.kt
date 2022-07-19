@@ -42,12 +42,14 @@ class SyncREPService @AssistedInject constructor(
     }
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java.canonicalName)
+
     override fun makeSocket(): ZMQ.Socket {
         val zcontext = kernelContext.zContext()
         val socket = zcontext.createSocket(SocketType.REP)
         socket.bind("tcp://*:${this.zmqPort}")
         return socket
     }
+
     @Synchronized
     override fun receiveMessage(socket: ZMQ.Socket) {
         try {

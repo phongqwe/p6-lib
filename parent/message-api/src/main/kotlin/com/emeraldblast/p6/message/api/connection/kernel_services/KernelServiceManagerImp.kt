@@ -25,69 +25,55 @@ class KernelServiceManagerImp @Inject constructor(
     private val syncRepServiceFactory: SyncREPServiceFactory,
 ) : KernelServiceManager {
 
-    private var _hbService: HeartBeatService? = null
-    private var _ioPubService: IOPubListenerService? = null
-    private var _zmqREPService: ZMQListenerService<P6Response>? = null
+    private var _hbService: HeartBeatService = heartBeatServiceFactory.create(
+        kernelContext = kernel,
+        liveCount = 20,
+        pollTimeOut = 1000,
+        startTimeOut = kernel.kernelConfig?.timeOut?.serviceInitTimeOut ?: KernelTimeOut.defaultTimeOut
+    )
+    private var _ioPubService: IOPubListenerService = ioPubListenerServiceFactory.create(
+        kernelContext = kernel,
+        defaultHandler = {},
+        parseExceptionHandler = {},
+        startTimeOut = kernel.kernelConfig?.timeOut?.serviceInitTimeOut ?: KernelTimeOut.defaultTimeOut
+    )
+    private var _zmqREPService: ZMQListenerService<P6Response> = syncRepServiceFactory.create(
+        kernelContext = kernel,
+    )
 
-    override val hbService: HeartBeatService?
+    override val hbService: HeartBeatService
         get() = _hbService
-    override val ioPubService: IOPubListenerService?
+    override val ioPubService: IOPubListenerService
         get() = _ioPubService
-    override val zmqREPService: ZMQListenerService<P6Response>?
+    override val zmqREPService: ZMQListenerService<P6Response>
         get() = _zmqREPService
     override val status: ServiceManagerStatus
         get() = ServiceManagerStatus(
-            HBServiceRunning = this.hbService?.isRunning() ?: false,
-            ioPubListenerServiceRunning = this.ioPubService?.isRunning() ?: false,
-            zmqRepServiceRunning = this.zmqREPService?.isRunning() ?: false,
+            HBServiceRunning = this.hbService.isRunning(),
+            ioPubListenerServiceRunning = this.ioPubService.isRunning(),
+            zmqRepServiceRunning = this.zmqREPService.isRunning(),
         )
 
     override suspend fun startAll(): Result<Unit, ErrorReport> {
         if (kernel.isKernelRunning()) {
-            val hbSv = heartBeatServiceFactory.create(
-                kernelContext = kernel,
-                liveCount = 20,
-                pollTimeOut = 1000,
-                startTimeOut = kernel.kernelConfig?.timeOut?.serviceInitTimeOut ?: KernelTimeOut.defaultTimeOut
-            )
-            this._hbService = hbSv
-
-            val hbStartRs: Result<Unit, ErrorReport> = hbSv.start()
+            val hbStartRs: Result<Unit, ErrorReport> = this._hbService.start()
             if (hbStartRs is Err) {
-                this.hbService?.stop()
-                this._hbService = null
+                this.hbService.stop()
                 return hbStartRs
             }
 
-            val ioPubSv = ioPubListenerServiceFactory.create(
-                kernelContext = kernel,
-                defaultHandler = {},
-                parseExceptionHandler = {},
-                startTimeOut = kernel.kernelConfig?.timeOut?.serviceInitTimeOut ?: KernelTimeOut.defaultTimeOut
-            )
-            this._ioPubService = ioPubSv
-
-            val ioPubStartRs: Result<Unit, ErrorReport> = ioPubSv.start()
+            val ioPubStartRs: Result<Unit, ErrorReport> = this._ioPubService.start()
             if (ioPubStartRs is Err) {
-                this.ioPubService?.stop()
-                this._ioPubService = null
+                this.ioPubService.stop()
                 return ioPubStartRs
             }
 
-            val zmqREPService = syncRepServiceFactory.create(
-                kernelContext = kernel,
-            )
-
-            this._zmqREPService = zmqREPService
-            val zmqListenerServiceStartRs = zmqREPService.start()
+            val zmqListenerServiceStartRs = this._zmqREPService.start()
             if (zmqListenerServiceStartRs is Err) {
-                this.zmqREPService?.stop()
-                this._zmqREPService = null
+                this.zmqREPService.stop()
                 return zmqListenerServiceStartRs
             }
-
             return Ok(Unit)
-
         } else {
             return KernelServiceManagerErrors.CantStartServices.report("Can't start kernel services because kernel is down")
                 .toErr()
@@ -102,25 +88,19 @@ class KernelServiceManagerImp @Inject constructor(
 
         val errorList = mutableListOf<ErrorReport>()
 
-        val ioPubStopRs = this.ioPubService?.stop() ?: Ok(Unit)
+        val ioPubStopRs = this.ioPubService.stop()
         if (ioPubStopRs is Err) {
             errorList.add(ioPubStopRs.error)
-        } else {
-            this._ioPubService = null
         }
 
-        val hbStopRs = this.hbService?.stop() ?: Ok(Unit)
+        val hbStopRs = this.hbService.stop()
         if (hbStopRs is Err) {
             errorList.add(hbStopRs.error)
-        } else {
-            this._hbService = null
         }
 
-        val zmqRepStopRs = this.zmqREPService?.stop() ?: Ok(Unit)
+        val zmqRepStopRs = this.zmqREPService.stop()
         if (zmqRepStopRs is Err) {
             errorList.add(zmqRepStopRs.error)
-        } else {
-            this._zmqREPService = null
         }
 
         if (errorList.isNotEmpty()) {
@@ -136,27 +116,23 @@ class KernelServiceManagerImp @Inject constructor(
     }
 
     override fun getIOPubListenerServiceRs(): Result<IOPubListenerService, ErrorReport> {
-        val sv = getService<IOPubListenerService>(this.ioPubService, "IO Pub service")
-        return sv
+        return Ok(this.ioPubService)
     }
 
-
     override fun getHeartBeatServiceRs(): Result<HeartBeatService, ErrorReport> {
-        val sv = getService<HeartBeatService>(this.hbService, "heart beat service")
-        return sv
+        return Ok(this.hbService)
     }
 
     override fun getZmqREPServiceRs(): Result<ZMQListenerService<P6Response>, ErrorReport> {
-        val sv = getService<ZMQListenerService<P6Response>>(this.zmqREPService, "zmq rep service")
-        return sv
+        return Ok(this.zmqREPService)
     }
 
-    private fun <T> getService(service: Service?, serviceName: String): Result<T, ErrorReport> {
-        if (service != null) {
-            return Ok(service as T)
-        } else {
-            return ServiceErrors.ServiceNull.report("${serviceName} is null").toErr()
-        }
-    }
+//    private fun <T> getService(service: Service?, serviceName: String): Result<T, ErrorReport> {
+//        if (service != null) {
+//            return Ok(service as T)
+//        } else {
+//            return ServiceErrors.ServiceNull.report("${serviceName} is null").toErr()
+//        }
+//    }
 
 }

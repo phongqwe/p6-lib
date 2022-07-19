@@ -178,7 +178,7 @@ internal class IOPubListenerServiceImpTest : TestOnJupyter() {
         mockkStatic("com.github.michaelbull.result.UnwrapKt")
         mockkStatic("com.github.michaelbull.result.GetKt")
         val mockContext: KernelContextReadOnly = mockk<KernelContextReadOnly>().also {
-            every { it.getSocketProvider().unwrap().ioPubSocket() } returns subSocket
+            every { it.getSocketFactory().unwrap().ioPubSocket() } returns subSocket
             every { it.isKernelRunning() } returns true
             every { it.isKernelNotRunning() } returns false
 //            every { kernelServiceManager.isHBAlive() } returns true

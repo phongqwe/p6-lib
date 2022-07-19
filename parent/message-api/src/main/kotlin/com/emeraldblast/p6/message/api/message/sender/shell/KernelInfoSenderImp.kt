@@ -29,7 +29,7 @@ class KernelInfoSenderImp @Inject constructor(
             )
         }
 
-        val rt = kernelContext.getSocketProvider().map { it.shellSocket() }
+        val rt = kernelContext.getSocketFactory().map { it.shellSocket() }
             .andThen { socket ->
                 kernelContext.getMsgEncoder().andThen { msgEncoder ->
                     kernelServiceManager.getHeartBeatServiceRs().andThen { hbService ->

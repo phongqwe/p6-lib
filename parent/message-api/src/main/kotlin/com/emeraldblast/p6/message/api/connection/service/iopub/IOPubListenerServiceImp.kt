@@ -3,6 +3,7 @@ package com.emeraldblast.p6.message.api.connection.service.iopub
 import com.emeraldblast.p6.common.exception.error.ErrorReport
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelContextReadOnly
 import com.emeraldblast.p6.message.api.connection.kernel_context.KernelCoroutineScope
+import com.emeraldblast.p6.message.api.connection.kernel_context.KernelTimeOut
 import com.emeraldblast.p6.message.api.connection.kernel_context.errors.KernelErrors
 import com.emeraldblast.p6.message.api.connection.service.iopub.errors.IOPubServiceErrors
 import com.emeraldblast.p6.message.api.connection.service.iopub.handler.MsgHandler
@@ -27,8 +28,8 @@ import org.zeromq.ZMsg
 class IOPubListenerServiceImp @AssistedInject constructor(
     @Assisted private val kernelContext: KernelContextReadOnly,
     @Assisted private val defaultHandler: ((msg: JPRawMessage) -> Unit)? = { /*do nothing*/ },
-    @Assisted private val parseExceptionHandler: suspend (exception: ErrorReport) -> Unit = { /*do nothing*/ },
-    @Assisted private val startTimeOut: Long = 50_000,
+    @Assisted private val parseExceptionHandler: (exception: ErrorReport) -> Unit = { /*do nothing*/ },
+    @Assisted private val startTimeOut: Long = KernelTimeOut.defaultTimeOut,
     private val handlerContainer: MsgHandlerContainer = MsgHandlerContainerImp(),
     @KernelCoroutineScope
     private val externalScope: CoroutineScope,
@@ -76,12 +77,10 @@ class IOPubListenerServiceImp @AssistedInject constructor(
         try {
             withTimeout(startTimeOut) {
                 job = externalScope.launch(dispatcher) {
-                    val socket: ZMQ.Socket = kernelContext.getSocketProvider().unwrap().ioPubSocket()
+                    val socket: ZMQ.Socket = kernelContext.getSocketFactory().unwrap().ioPubSocket()
                     socket.use {
                         // x: start the service loop
-                        // x: when the kernel is down, this service simply does not do anything. Just hang there.
                         while (isActive) {
-                            // x: this listener is passive, so it can start listening when the kernel is up, no need to wait for heartbeat service
                             if (kernelContext.isKernelRunning()) {
                                 val msg = ZMsg.recvMsg(it)
                                 if (msg != null) {
