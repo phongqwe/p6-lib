@@ -42,7 +42,11 @@ class KernelContextImp @Inject internal constructor(
     private val kernelTimeOut get() = kernelConfig?.timeOut
     private var _isLoggerEnabled: Boolean = false
     override val isLoggerEnabled: Boolean get() = _isLoggerEnabled
-    private var deleteConnectionFile = false
+
+    /**
+     * when stop kernel, delete the connection file
+     */
+    private val deleteConnectionFileWhenStop get()=this.kernelConfig!=null
 
     /**
      * process represent the python process
@@ -80,7 +84,6 @@ class KernelContextImp @Inject internal constructor(
         }
         this.clearConfig()
         this.iKernelConfig = kernelConfig
-        deleteConnectionFile = true
         return this
     }
 
@@ -90,7 +93,6 @@ class KernelContextImp @Inject internal constructor(
         }
         this.clearConfig()
         this.connectionFileContent = connectionFileContent
-        deleteConnectionFile = false
         return this
     }
 
@@ -100,7 +102,6 @@ class KernelContextImp @Inject internal constructor(
         }
         this.clearConfig()
         this.connectionFilePath = connectionFilePath
-        deleteConnectionFile = false
         return this
     }
 
@@ -310,7 +311,8 @@ class KernelContextImp @Inject internal constructor(
     private fun destroyResource() {
         val cpath = this.connectionFilePath
 
-        if (cpath != null && this.deleteConnectionFile) {
+        if (cpath != null && this.deleteConnectionFileWhenStop) {
+//        if (cpath != null && this.kernelConfig!=null) {
             // x: delete connection file
             Files.delete(cpath)
         }

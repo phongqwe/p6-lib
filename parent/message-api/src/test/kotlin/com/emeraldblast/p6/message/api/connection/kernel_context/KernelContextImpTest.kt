@@ -78,7 +78,6 @@ internal class KernelContextImpTest {
     @Test
     fun testKernelOnOff() {
         runBlocking {
-
             val cmp = DaggerMessageApiComponent.builder()
                 .kernelConfig(null)
                 .kernelCoroutineScope(GlobalScope)
@@ -187,9 +186,9 @@ internal class KernelContextImpTest {
 
     @Test
     fun stopIPython() = runBlocking {
-        kc.startAll()
+        kc.startKernel()
         runBlocking {
-            val rs = kc.stopAll()
+            val rs = kc.stopKernel()
             assertTrue(rs is Ok)
         }
         assertTrue(kc.isKernelNotRunning())

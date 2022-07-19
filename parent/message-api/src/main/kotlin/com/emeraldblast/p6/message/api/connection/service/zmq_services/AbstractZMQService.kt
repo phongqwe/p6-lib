@@ -28,11 +28,12 @@ abstract class AbstractZMQService<T>(
      * implement this method to provide code to receive messages
      */
     protected abstract fun receiveMessage(socket: ZMQ.Socket)
-
+    private var iSocket:ZMQ.Socket? = null
     override suspend fun start(): Result<Unit, ErrorReport> {
         if (this.isRunning()) return Ok(Unit)
         this.job = coroutineScope.launch(coroutineDispatcher) {
             val socket: ZMQ.Socket = makeSocket()
+            iSocket = socket
             socket.use { sk: ZMQ.Socket ->
                 while (isActive) {
                     receiveMessage(sk)
@@ -43,11 +44,13 @@ abstract class AbstractZMQService<T>(
     }
 
     override suspend fun stopJoin(): Result<Unit, ErrorReport> {
+        iSocket?.close()
         this.job?.cancelAndJoin()
         return Ok(Unit)
     }
 
     override fun stop(): Result<Unit, ErrorReport> {
+        iSocket?.close()
         this.job?.cancel()
         return Ok(Unit)
     }
