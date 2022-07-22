@@ -35,7 +35,7 @@ data class KernelConfigImp constructor(
                 val fileContent = Files.readString(filePath)
                 val rt: KernelConfig = ProtocolUtils.msgGson.fromJson(
                     fileContent,
-                    KernelConfig::class.java
+                    KernelConfigImp::class.java
                 )
                 return Ok(rt)
             } catch (e: IOException) {
