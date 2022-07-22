@@ -85,8 +85,8 @@ class SyncREPService @AssistedInject constructor(
             }
         } catch (e: Exception) {
             // receiver service must not crash
-            logger.error(marker,"Other exception when receving message",e)
-            repServiceLogger?.error(marker,"Other exception when receving message",e)
+            logger.error(marker,"Other exception when receiving message",e)
+            repServiceLogger?.error(marker,"Other exception when receiving message",e)
             socket.send("fail")
         }
     }

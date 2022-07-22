@@ -465,14 +465,6 @@ class KernelContextImp @Inject internal constructor(
      */
     override val kernelStatus: KernelStatus
         get() {
-            val isProcessLive = run {
-                if (this.processIsUnderManagement) {
-                    this.process?.isAlive ?: false
-                } else {
-                    true
-                }
-            }
-//            val isConnectionFileIsAvailable = (this.connectionFilePath?.let { Files.exists(it) } ?: false)
             val isConnectionFileIsAvailable = this.connectionFileContent != null
             val connectionFileIsRead = this.connectionFileContent != null
             val isSessonOk = this.session != null
@@ -481,7 +473,8 @@ class KernelContextImp @Inject internal constructor(
             val isSenderProviderOk = this.senderProvider != null
 
             val rt = KernelStatus(
-                isProcessLive = isProcessLive,
+                isProcessUnderManagement = this.processIsUnderManagement,
+                isProcessLive = this.process?.isAlive ?: false,
                 isConnectionFileWritten = isConnectionFileIsAvailable,
                 connectionFileIsRead = connectionFileIsRead,
                 isSessonOk = isSessonOk,
