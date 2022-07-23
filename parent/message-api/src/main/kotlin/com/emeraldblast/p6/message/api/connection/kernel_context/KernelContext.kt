@@ -103,5 +103,6 @@ interface KernelContext : KernelContextReadOnly {
     fun setKernelStartedListener(listener: OnKernelContextEvent)
 
     fun removeOnProcessStartListener()
+    fun getConnectionFilePath(): Path?
 }
 

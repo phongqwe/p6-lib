@@ -104,6 +104,10 @@ class KernelContextImp @Inject internal constructor(
         this.connectionFilePath = connectionFilePath
         return this
     }
+    override fun getConnectionFilePath(): Path? {
+        return this.connectionFilePath
+    }
+
 
     override val kernelConfig: KernelConfig?
         get() = iKernelConfig
