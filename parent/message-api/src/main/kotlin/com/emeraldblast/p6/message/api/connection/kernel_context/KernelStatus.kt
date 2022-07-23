@@ -15,7 +15,7 @@ data class KernelStatus(
     val isMsgEncodeOk: Boolean,
     val isSenderProviderOk: Boolean,
 ) {
-    fun isOk(): Boolean {
+    fun isRunning(): Boolean {
         val isProcessLive = run {
             if (this.isProcessUnderManagement) {
                 this.isProcessLive

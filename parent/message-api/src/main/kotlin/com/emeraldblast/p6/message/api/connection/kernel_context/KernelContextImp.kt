@@ -437,7 +437,7 @@ class KernelContextImp @Inject internal constructor(
     }
 
     override fun isKernelRunning(): Boolean {
-        val rt = this.kernelStatus.isOk()
+        val rt = this.kernelStatus.isRunning()
         return rt
     }
 
