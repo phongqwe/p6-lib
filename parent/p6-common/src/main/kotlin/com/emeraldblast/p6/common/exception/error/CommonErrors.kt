@@ -57,4 +57,23 @@ object CommonErrors {
             )
         }
     }
+
+    object NullObject{
+        val header = ErrorHeader("${prefix}4", "Null obj error")
+        fun report(detail: String?=null):ErrorReport{
+            if(detail!=null){
+                return header.setDescription(detail).toErrorReport()
+            }else{
+                return header.toErrorReport()
+            }
+        }
+    }
+    object UnPlanned {
+        val header = ErrorHeader("${prefix}5", "Un planned error")
+
+        fun report(detail: String):ErrorReport{
+            return header.setDescription(detail).toErrorReport()
+        }
+    }
+
 }

@@ -33,7 +33,8 @@
         <redis.version>3.6.0</redis.version>
         <retrofit.version>2.9.0</retrofit.version>
         <tornadorfx.version>1.7.20</tornadorfx.version>
-        <dagger.version>2.38.1</dagger.version>
+<!--        <dagger.version>2.38.1</dagger.version>-->
+        <dagger.version>2.43.1</dagger.version>
         <protocol.buffer.version>3.19.4</protocol.buffer.version>
         <slf4j.version>1.7.36</slf4j.version>
         <log4j.version>2.17.2</log4j.version>

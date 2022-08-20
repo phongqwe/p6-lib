@@ -16,6 +16,11 @@ import kotlin.test.assertTrue
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class Bench {
 
+    suspend fun susFunc0() {
+        delay(2000)
+        println("f0")
+    }
+
     suspend fun susFunc1() {
         delay(2000)
         println("f1")
@@ -54,7 +59,15 @@ class Bench {
         // all three jobs are performed in the same main thread
         runBlocking {
             // this create a coroutine that run in parallel with the one below
+            coroutineScope {
+                launch {
+                    println("start coroutine 0, this will block the run of the 2 following coroutine below.")
+                    susFunc0()
+                    println("done f0. Now coroutine 1 and 2 will run")
+                }
+            }
             launch {
+                println("start coroutine 1")
                 susFunc1()
                 println("Done f1 (this is blocked by f1 because f1 is a sus function that block its coroutine)")
                 println("coroutine 1 is in: ${Thread.currentThread()}")
@@ -62,6 +75,7 @@ class Bench {
             }
             // this create a coroutine runs in parallel along the previous launch
             launch {
+                println("start coroutine 2: this is not blocked by the completion of coroutine 1")
                 susFunc2()
                 println("Done f2(this is blocked by f2 because f2 is a sus function that block its coroutine")
                 println("coroutine 2 is in: ${Thread.currentThread()}")

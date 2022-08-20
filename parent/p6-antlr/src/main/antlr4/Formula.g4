@@ -14,7 +14,7 @@ expr: functionCall #funCall
     | expr op=(MUL|DIV|MOD) expr #mulDivModExpr
     | expr op=(ADD|SUB) expr #addSubExpr
     | expr op=(AND|OR) expr # andOrExpr
-    | SHEET_PREFIX?rangeAddress #sheetRangeAddrExpr
+    | SHEET_PREFIX?rangeAddress #sheetRangeAddrExpr //Sheet1!C1, 'Sheet 123'!C1
     ;
 
 functionCall: functionName'('(expr)?(','expr)* ','?')';
@@ -26,8 +26,8 @@ rangeAddress:cellAddress':'cellAddress  #rangeAsPairCellAddress
             |'('rangeAddress')' #rangeInparens
             ;
 
-// A1,A123, ABC123
-cellAddress: ID INT;
+// A1,A123, ABC123, $A1, A$1, $A$1
+cellAddress: '$'?ID '$'?INT;
 
 // literal
 BOOLEAN: 'TRUE' | 'FALSE';
