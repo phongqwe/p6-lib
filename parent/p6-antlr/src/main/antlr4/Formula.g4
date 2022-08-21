@@ -14,7 +14,7 @@ expr: functionCall #funCall
     | expr op=(MUL|DIV|MOD) expr #mulDivModExpr
     | expr op=(ADD|SUB) expr #addSubExpr
     | expr op=(AND|OR) expr # andOrExpr
-    | SHEET_PREFIX?rangeAddress #sheetRangeAddrExpr //Sheet1!C1, 'Sheet 123'!C1
+    | wbPrefix?sheetPrefix?rangeAddress #sheetRangeAddrExpr //Sheet1!C1, 'Sheet 123'!C1
     ;
 
 functionCall: functionName'('(expr)?(','expr)* ','?')';
@@ -32,10 +32,29 @@ cellAddress: '$'?ID '$'?INT;
 // literal
 BOOLEAN: 'TRUE' | 'FALSE';
 lit: (FLOAT_NUMBER | BOOLEAN | STRING | INT );
+sheetPrefix:'\'' sheetNameWithSpace '\''  '@'
+            | sheetName '@';
+
+sheetNameWithSpace:withSpaceId;
+sheetName:noSpaceId;
+
+wbPrefix: wbPrefixNoPath | wbPrefixWithPath;
+wbPrefixNoPath:wbName '@';
+wbPrefixWithPath:wbName '@' wbPath '@';
+
+wbName:wbNameNoSpace | '\'' wbNameWithSpace '\'';
+wbNameNoSpace:noSpaceId;
+wbNameWithSpace:withSpaceId;
+
+wbPath:'\'' (ESC_CHAR|.)*? '\'';
+
+noSpaceId:ID(INT|ID)*;
+withSpaceId:ID(' '|INT|ID)*?;
 
 // sheet prefix may or may not encased in single quote, ends with "!". Eg: 'My Sheet'!, MySheet!
-SHEET_PREFIX:'\'' ID(' '|INT|ID)*? '\''   '!'
-            | ID(INT|ID)* '!';
+//SHEET_PREFIX:'\'' ID(' '|INT|ID)*? '\''   '!'
+//            | ID(INT|ID)* '!';
+
 ID:ID_LETTER(ID_LETTER)*;
 fragment ID_LETTER:'a'..'z'|'A'..'Z'|'_';
 
@@ -47,8 +66,8 @@ INT:DIGIT+;
 fragment DIGIT:[0-9] ;
 
 // string
-STRING: '"' (ESC|.)*? '"' ;// match anything in "..."
-fragment ESC : '\\"' | '\\\\' ; // 2-char sequences \" and \\
+STRING: '"' (ESC_CHAR|.)*? '"' ;// match anything in "..."
+ESC_CHAR : '\\"' | '\\\\' ; // 2-char sequences \" and \\
 functionName:ID(INT|ID)* ;
 // operator
 MUL: '*';
