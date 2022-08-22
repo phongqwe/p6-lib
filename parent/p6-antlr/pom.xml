@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>parent</artifactId>
-        <groupId>com.emeraldblast.p6</groupId>
+        <groupId>com.qxdzbc.p6</groupId>
         <version>1.0</version>
     </parent>
 
@@ -37,7 +37,7 @@
                         <configuration>
                             <visitor>true</visitor>
                             <outputDirectory>
-                                ${project.build.directory}/generated-sources/antlr4/com/emeraldblast/p6/formula/translator/antlr
+                                ${project.build.directory}/generated-sources/antlr4/com/qxdzbc/p6/formula/translator/antlr
                             </outputDirectory>
                             <libDirectory>
                                 ${project.basedir}/src/main/antlr4/imports

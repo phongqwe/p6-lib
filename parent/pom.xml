@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>bom</artifactId>
-        <groupId>com.emeraldblast.p6</groupId>
+        <groupId>com.qxdzbc.p6</groupId>
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -50,7 +50,7 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.emeraldblast.p6</groupId>
+                <groupId>com.qxdzbc.p6</groupId>
                 <artifactId>p6-proto</artifactId>
                 <version>${revision}</version>
             </dependency>
