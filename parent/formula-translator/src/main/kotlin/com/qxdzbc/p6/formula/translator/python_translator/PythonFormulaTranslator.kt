@@ -3,7 +3,7 @@ package com.qxdzbc.p6.formula.translator.python_translator
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
-import com.qxdzbc.p6.common.exception.error.ErrorReport
+import com.qxdzbc.common.error.ErrorReport
 import com.qxdzbc.p6.formula.translator.antlr.FormulaLexer
 import com.qxdzbc.p6.formula.translator.antlr.FormulaParser
 import com.qxdzbc.p6.formula.translator.errors.TranslatorErrors
@@ -78,13 +78,15 @@ class PythonFormulaTranslator : StrFormulaTranslator {
             val tree: ParseTree = parser.formula()
 
             if(parserErrorData!=null || lexerErrData!=null){
-                return Err(ErrorReport(
+                return Err(
+                    ErrorReport(
                     header= TranslatorErrors.TranslatingErr.header,
                     data = TranslatorErrors.TranslatingErr.Data(
                         lexerErr = lexerErrData,
                         parserErr = parserErrorData
                     ),
-                ))
+                )
+                )
             }
             val visitor = PythonFormularVisitor()
             val out=visitor.visit(tree)

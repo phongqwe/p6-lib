@@ -21,7 +21,7 @@
         <dependencies>
             <dependency>
                 <groupId>com.qxdzbc.p6</groupId>
-                <artifactId>message-api</artifactId>
+                <artifactId>p6-python-message-api</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
@@ -30,8 +30,13 @@
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>com.qxdzbc.p6</groupId>
-                <artifactId>p6-common</artifactId>
+                <groupId>com.qxdzbc</groupId>
+                <artifactId>err</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.qxdzbc</groupId>
+                <artifactId>common</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>

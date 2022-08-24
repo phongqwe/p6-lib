@@ -18,8 +18,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.qxdzbc.p6</groupId>
-            <artifactId>p6-common</artifactId>
+            <groupId>com.qxdzbc</groupId>
+            <artifactId>err</artifactId>
             <version>1.0</version>
         </dependency>
 

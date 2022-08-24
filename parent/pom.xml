@@ -12,9 +12,8 @@
     <artifactId>parent</artifactId>
 
     <modules>
-        <module>message-api</module>
+        <module>p6-python-message-api</module>
         <module>formula-translator</module>
-        <module>p6-common</module>
         <module>p6-antlr</module>
     </modules>
 
@@ -25,15 +24,12 @@
         <karaf.version>4.3.2</karaf.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.version>1.6.10</kotlin.version>
-<!--        <kotlin.version>1.6.20</kotlin.version>-->
         <kotlin.coroutine.version>1.6.0</kotlin.coroutine.version>
-<!--        <kotlin.coroutine.version>1.6.1</kotlin.coroutine.version>-->
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <firebase.version>8.0.1</firebase.version>
         <redis.version>3.6.0</redis.version>
         <retrofit.version>2.9.0</retrofit.version>
         <tornadorfx.version>1.7.20</tornadorfx.version>
-<!--        <dagger.version>2.38.1</dagger.version>-->
         <dagger.version>2.43.1</dagger.version>
         <protocol.buffer.version>3.19.4</protocol.buffer.version>
         <slf4j.version>1.7.36</slf4j.version>
