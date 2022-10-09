@@ -88,6 +88,6 @@ AND: '&&';
 OR: '||';
 NOT:'!';
 
-NEWLINE:'\r'? '\n';
+NEWLINE:'\r'?'\n'->skip;
 // white space
 WS:(' '|'\t')+ -> skip;
