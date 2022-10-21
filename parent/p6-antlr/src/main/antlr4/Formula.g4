@@ -1,12 +1,12 @@
 grammar Formula;
 
 // a formula always start with '='
-formula: '='expr EOF #zFormula
+formula: startFormulaSymbol expr EOF #zFormula
         ;
 
 // an expression always returns something
 expr: functionCall #funCall
-    | '('expr')' #parenExpr
+    | openParen expr closeParen #parenExpr
     | lit #literal
     | op=SUB expr #unSubExpr
     | op=NOT expr #notExpr
@@ -14,17 +14,17 @@ expr: functionCall #funCall
     | expr op=(MUL|DIV|MOD) expr #mulDivModExpr
     | expr op=(ADD|SUB) expr #addSubExpr
     | expr op=(AND|OR) expr # andOrExpr
-//    | wbPrefix?sheetPrefix?rangeAddress #fullRangeAddressExpr // wbName@'wb/path/abc.txt'@Sheet1@C1, 'Sheet 123'@C1
-    | rangeAddress sheetPrefix? wbPrefix? #fullRangeAddressExpr // wbName@'wb/path/abc.txt'@Sheet1@C1, 'Sheet 123'@C1
+    | expr op=(EQUAL|NOT_EQUAL|LARGER|LARGER_OR_EQUAL|SMALLER|SMALLER_OR_EQUAL) expr #boolOperation
+    | rangeAddress sheetPrefix? wbPrefix? #fullRangeAddressExpr
     ;
 
-functionCall: functionName'('(expr)?(','expr)* ','?')';
+functionCall: functionName openParen (expr)?(comma expr)* comma? closeParen;
 
 rangeAddress:cellAddress ':' cellAddress  #rangeAsPairCellAddress
             | cellAddress  #rangeAsOneCellAddress
             | ID ':' ID  #rangeAsColAddress
             | INT':'INT #rangeAsRowAddress
-            |'('rangeAddress')' #rangeInparens
+            |openParen rangeAddress closeParen #rangeInparens
             ;
 
 // A1,A123, ABC123, $A1, A$1, $A$1
@@ -53,7 +53,11 @@ wbPath:SINGLE_QUOTE_STRING;
 
 noSpaceId:ID(INT|ID)*;
 withSpaceId:SINGLE_QUOTE_STRING;
-
+openParen:'(';
+closeParen:')';
+comma:',';
+startFormulaSymbol:'=';
+// | ',' | '='
 // sheet prefix may or may not encased in single quote, ends with "!". Eg: 'My Sheet'!, MySheet!
 
 ID:ID_LETTER(ID_LETTER)*;
@@ -87,6 +91,12 @@ EXP: '^'; //exponential
 AND: '&&';
 OR: '||';
 NOT:'!';
+EQUAL:'==';
+NOT_EQUAL:'!=';
+LARGER:'>';
+LARGER_OR_EQUAL:'>=';
+SMALLER:'<';
+SMALLER_OR_EQUAL:'<=';
 
 NEWLINE:'\r'?'\n'->skip;
 // white space
