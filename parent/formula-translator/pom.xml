@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>parent</artifactId>
-        <groupId>com.emeraldblast.p6</groupId>
+        <groupId>com.qxdzbc.p6</groupId>
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -18,45 +18,16 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.emeraldblast.p6</groupId>
-            <artifactId>p6-common</artifactId>
+            <groupId>com.qxdzbc</groupId>
+            <artifactId>err</artifactId>
             <version>1.0</version>
         </dependency>
+
         <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4</artifactId>
-            <version>${antlr.version}</version>
+            <groupId>com.qxdzbc.p6</groupId>
+            <artifactId>p6-antlr</artifactId>
+            <version>1.0</version>
         </dependency>
 
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr4-maven-plugin</artifactId>
-                <version>${antlr.version}</version>
-                <executions>
-                    <execution>
-                        <id>antlr</id>
-                        <goals>
-                            <goal>antlr4</goal>
-                        </goals>
-                        <configuration>
-                            <visitor>true</visitor>
-                            <outputDirectory>
-                                ${project.build.directory}/generated-sources/antlr4/com/emeraldblast/p6/formula/translator/antlr
-                            </outputDirectory>
-                            <libDirectory>
-                                ${project.basedir}/src/main/antlr4/imports
-                            </libDirectory>
-                            <arguments>
-                                <argument>-package</argument>
-                                <argument>${groupId}.formula.translator.antlr</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>
