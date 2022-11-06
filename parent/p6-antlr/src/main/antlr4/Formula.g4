@@ -1,11 +1,10 @@
 grammar Formula;
 
 // a formula always start with '='
-formula: startFormulaSymbol expr EOF #zFormula
-        ;
+formula: startFormulaSymbol expr EOF #zFormula ;
 
 // an expression always returns something
-expr: functionCall #funCall
+expr: invokation #invokeExpr
     | openParen expr closeParen #parenExpr
     | lit #literal
     | op=SUB expr #unSubExpr
@@ -15,78 +14,83 @@ expr: functionCall #funCall
     | expr op=(ADD|SUB) expr #addSubExpr
     | expr op=(AND|OR) expr # andOrExpr
     | expr op=(EQUAL|NOT_EQUAL|LARGER|LARGER_OR_EQUAL|SMALLER|SMALLER_OR_EQUAL) expr #boolOperation
-    | rangeAddress sheetPrefix? wbPrefix? #fullRangeAddressExpr
     ;
 
-functionCall: functionName openParen (expr)?(comma expr)* comma? closeParen;
+invokation:functionCall
+          | fullRangeAddress
+          ;
+
+functionCall:functionName openParen (expr)?(comma expr)* comma? closeParen;
+
+functionName:noSpaceId ;
+
+fullRangeAddress:rangeAddress sheetPrefix? wbPrefix?;
+sheetPrefix:'@' sheetNameWithSpace
+           |'@' sheetName
+           ;
+sheetNameWithSpace:WITH_SPACE_ID;
+sheetName:noSpaceId;
 
 rangeAddress:cellAddress ':' cellAddress  #rangeAsPairCellAddress
             | cellAddress  #rangeAsOneCellAddress
-            | ID ':' ID  #rangeAsColAddress
+            | ID_LETTERS ':' ID_LETTERS  #rangeAsColAddress
             | INT':'INT #rangeAsRowAddress
             |openParen rangeAddress closeParen #rangeInparens
             ;
 
-// A1,A123, ABC123, $A1, A$1, $A$1
-cellAddress: '$'?ID '$'?INT;
-
-// literal
-BOOLEAN: 'TRUE' | 'FALSE';
-lit: (FLOAT_NUMBER | BOOLEAN | STRING | INT );
-sheetPrefix:'@'  sheetNameWithSpace
-            |'@' sheetName;
-
-sheetNameWithSpace:withSpaceId;
-sheetName:noSpaceId;
-
-wbPrefix: wbPrefixNoPath | wbPrefixWithPath;
+wbPrefix: wbPrefixNoPath
+        | wbPrefixWithPath;
 wbPrefixNoPath:'@' wbName;
 wbPrefixWithPath:'@' wbName '@' wbPath ;
 
-wbName:wbNameNoSpace |  wbNameWithSpace ;
-wbNameNoSpace:noSpaceId;
-wbNameWithSpace:withSpaceId;
+wbName: noSpaceId | WITH_SPACE_ID ;
+
+// A1,A123, ABC123, $A1, A$1, $A$1
+cellAddress: CELL_LIKE_ADDRESS;
 
 // wbPath is encased in single quotes: 'path/to/wb.abc'
-//wbPath:'\'' (.)*? '\'';
-wbPath:SINGLE_QUOTE_STRING;
+wbPath:WITH_SPACE_ID;
+lit: (FLOAT_NUMBER | BOOLEAN | STRING | INT );
 
-noSpaceId:ID(INT|ID)*;
-withSpaceId:SINGLE_QUOTE_STRING;
 openParen:'(';
 closeParen:')';
 comma:',';
 startFormulaSymbol:'=';
-// | ',' | '='
-// sheet prefix may or may not encased in single quote, ends with "!". Eg: 'My Sheet'!, MySheet!
 
-ID:ID_LETTER(ID_LETTER)*;
-fragment ID_LETTER:'a'..'z'|'A'..'Z'|'_';
+// Boolean must be prioritized over id so that it can be parsed correctly
+BOOLEAN: 'TRUE' | 'FALSE';
+
+// eg: A1, $A1, A$1, $A$1
+noSpaceId:CELL_LIKE_ADDRESS|NO_SPACE_ID;
+CELL_LIKE_ADDRESS:'$'?ID_LETTERS '$'?INT;
+NO_SPACE_ID:ID_LETTERS(INT|ID_LETTERS)*;
+WITH_SPACE_ID:SINGLE_QUOTE_STRING;
+
+ID_LETTERS:LETTER(LETTER)*;
+fragment LETTER:'a'..'z'|'A'..'Z'|'_';
 
 FLOAT_NUMBER: DIGIT+ '.' DIGIT*
         |'.' DIGIT+
         ;
 
+// an Int may start with 0, to preserve the text integrity
 INT:DIGIT+;
 fragment DIGIT:[0-9] ;
 
 // string
 STRING: '"' (ESC_CHAR|.)*? '"' ;// match anything in "..."
 SINGLE_QUOTE_STRING:'\'' (ESC_CHAR|.)*? '\'';
-//STRING: '"' (STRING_CONTENT)*? '"' ;// match anything in "..."
-//STRING_CONTENT:(ESC_CHAR|.);
-//LATIN_EXTENDED_A: '\u0100' .. '\u017E';
-//LATIN_EXTENDED_A: '\u0020' .. '\u017E';
-
 ESC_CHAR : '\\"' | '\\\\' ; // 2-char sequences \" and \\
-functionName:ID(INT|ID)* ;
+
 // operator
 MUL: '*';
 DIV: '/';
 ADD: '+';
 SUB: '-';
-MOD: '%'; //modulo
-EXP: '^'; //exponential
+//modulo
+MOD: '%';
+//exponential
+EXP: '^';
 // boolean operators
 AND: '&&';
 OR: '||';
