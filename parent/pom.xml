@@ -14,7 +14,6 @@
     <modules>
         <module>p6-python-message-api</module>
         <module>formula-translator</module>
-        <module>p6-antlr</module>
     </modules>
 
 
